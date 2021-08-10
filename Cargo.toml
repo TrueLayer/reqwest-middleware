@@ -1,0 +1,6 @@
+[workspace]
+members = [
+  "reqwest-middleware",
+  "reqwest-tracing",
+  "reqwest-retry",
+]
