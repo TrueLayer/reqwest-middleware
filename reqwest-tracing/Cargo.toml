@@ -1,0 +1,35 @@
+[package]
+name = "reqwest-tracing"
+version = "0.1.0"
+authors = ["Rodrigo Gryzinski <rodrigo.gryzinski@truelayer.com>"]
+edition = "2018"
+description = "Opentracing middleware for reqwest."
+repository = "https://github.com/TrueLayer/reqwest-middleware"
+license = "MIT OR Apache-2.0"
+keywords = ["reqwest", "http", "middleware", "opentracing", "tracing"]
+categories = ["web-programming::http-client"]
+
+[features]
+opentelemetry_0_13 = ["opentelemetry_0_13_pkg", "tracing-opentelemetry_0_12_pkg"]
+opentelemetry_0_14 = ["opentelemetry_0_14_pkg", "tracing-opentelemetry_0_13_pkg"]
+opentelemetry_0_15 = ["opentelemetry_0_15_pkg", "tracing-opentelemetry_0_14_pkg"]
+
+[dependencies]
+reqwest-middleware = { version = "0.1", path = "../reqwest-middleware" }
+
+async-trait = "0.1.51"
+reqwest = "0.11"
+tokio = { version = "1.6", features = ["time"] }
+tracing = "0.1.26"
+truelayer-extensions = "0.1"
+
+opentelemetry_0_13_pkg = { package = "opentelemetry", version = "0.13", optional = true }
+opentelemetry_0_14_pkg = { package = "opentelemetry", version = "0.14", optional = true }
+opentelemetry_0_15_pkg = { package = "opentelemetry", version = "0.15", optional = true }
+tracing-opentelemetry_0_12_pkg = { package = "tracing-opentelemetry",version = "0.12", optional = true }
+tracing-opentelemetry_0_13_pkg = { package = "tracing-opentelemetry", version = "0.13", optional = true }
+tracing-opentelemetry_0_14_pkg = { package = "tracing-opentelemetry",version = "0.14", optional = true }
+
+[dev-dependencies]
+wiremock = "0.5"
+tokio = { version = "1", features = ["macros"] }

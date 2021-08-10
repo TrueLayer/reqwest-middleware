@@ -1,0 +1,130 @@
+on:
+  push:
+    branches: [main]
+  pull_request:
+name: CI # Continuous Integration
+
+jobs:
+
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --workspace --all-targets --features opentelemetry_0_15
+
+  rustfmt:
+    name: Rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+          components: rustfmt
+      - name: Check formatting
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+          components: clippy
+      - name: Clippy check
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-targets --features opentelemetry_0_15 --workspace -- -D warnings
+
+  docs:
+    name: Docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      - name: Check documentation
+        env:
+          RUSTDOCFLAGS: -D warnings
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --no-deps --document-private-items --features opentelemetry_0_15 --workspace
+
+  publish-check:
+    name: Publish dry run
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: publish
+          args: --dry-run --manifest-path reqwest-middleware/Cargo.toml
+      - uses: actions-rs/cargo@v1
+        with:
+          command: publish
+          args: --dry-run --manifest-path reqwest-retry/Cargo.toml
+      - uses: actions-rs/cargo@v1
+        with:
+          command: publish
+          args: --dry-run --manifest-path reqwest-opentracing/Cargo.toml
+
+  coverage:
+    name: Code coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      - name: Run cargo-tarpaulin
+        uses: actions-rs/tarpaulin@v0.1
+        with:
+          args: '--ignore-tests --out Lcov'
+      - name: Upload to Coveralls
+        # upload only if push
+        if: ${{ github.event_name == 'push' }}
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: './lcov.info'
