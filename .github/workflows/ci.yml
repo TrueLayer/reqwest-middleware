@@ -21,7 +21,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --workspace --all-targets --features opentelemetry_0_15
+          args: --workspace --all-targets --features opentelemetry_0_16
 
   rustfmt:
     name: Rustfmt
@@ -59,7 +59,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets --features opentelemetry_0_15 --workspace -- -D warnings
+          args: --all-targets --features opentelemetry_0_16 --workspace -- -D warnings
 
   docs:
     name: Docs
@@ -79,7 +79,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: doc
-          args: --no-deps --document-private-items --features opentelemetry_0_15 --workspace
+          args: --no-deps --document-private-items --features opentelemetry_0_16 --workspace
 
   publish-check:
     name: Publish dry run
