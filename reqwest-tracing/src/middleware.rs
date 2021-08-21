@@ -43,7 +43,8 @@ impl Middleware for TracingMiddleware {
         #[cfg(any(
             feature = "opentelemetry_0_13",
             feature = "opentelemetry_0_14",
-            feature = "opentelemetry_0_15"
+            feature = "opentelemetry_0_15",
+            feature = "opentelemetry_0_16",
         ))]
         let req = crate::otel::inject_opentracing_context_into_request(&request_span, req);
 
