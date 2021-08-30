@@ -49,10 +49,10 @@ an opentelemetry version feature:
 ```toml
 [dependencies]
 # ...
-reqwest-tracing = { version = "0.1.0", features = ["opentelemetry_0_15"] }
+reqwest-tracing = { version = "0.1.0", features = ["opentelemetry_0_16"] }
 ```
 
-Available opentelemetry features are `opentelemetry_0_15`, `opentelemetry_0_14` and
+Available opentelemetry features are `opentelemetry_0_16`, `opentelemetry_0_15`, `opentelemetry_0_14` and
 `opentelemetry_0_13`.
 
 #### License
