@@ -9,6 +9,13 @@ jobs:
   test:
     name: Test Suite
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        otel_version:
+          - opentelemetry_0_13
+          - opentelemetry_0_14
+          - opentelemetry_0_15
+          - opentelemetry_0_16
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -21,7 +28,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --workspace --all-targets --features opentelemetry_0_16
+          args: --workspace --all-targets --features ${{ matrix.otel_version }}
 
   rustfmt:
     name: Rustfmt
@@ -45,6 +52,13 @@ jobs:
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        otel_version:
+          - opentelemetry_0_13
+          - opentelemetry_0_14
+          - opentelemetry_0_15
+          - opentelemetry_0_16
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -59,11 +73,18 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets --features opentelemetry_0_16 --workspace -- -D warnings
+          args: --all-targets --features ${{ matrix.otel_version }} --workspace -- -D warnings
 
   docs:
     name: Docs
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        otel_version:
+          - opentelemetry_0_13
+          - opentelemetry_0_14
+          - opentelemetry_0_15
+          - opentelemetry_0_16
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -79,7 +100,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: doc
-          args: --no-deps --document-private-items --features opentelemetry_0_16 --workspace
+          args: --no-deps --document-private-items --features ${{ matrix.otel_version }} --workspace
 
   publish-check:
     name: Publish dry run
