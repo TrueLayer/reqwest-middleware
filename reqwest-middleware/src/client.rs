@@ -126,7 +126,11 @@ impl ClientWithMiddleware {
     }
 
     /// Executes a request with initial [`Extensions`].
-    pub async fn execute_with_extensions(&self, req: Request, ext: &mut Extensions) -> Result<Response> { 
+    pub async fn execute_with_extensions(
+        &self,
+        req: Request,
+        ext: &mut Extensions,
+    ) -> Result<Response> {
         let next = Next::new(&self.inner, &self.middleware_stack);
         next.run(req, ext).await
     }
