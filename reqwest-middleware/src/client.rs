@@ -121,9 +121,18 @@ impl ClientWithMiddleware {
     /// See
     /// [`Client::execute`](https://docs.rs/reqwest/latest/reqwest/struct.Client.html#method.execute)
     pub async fn execute(&self, req: Request) -> Result<Response> {
-        let next = Next::new(&self.inner, &self.middleware_stack);
         let mut ext = Extensions::new();
-        next.run(req, &mut ext).await
+        self.execute_with_extensions(req, &mut ext).await
+    }
+
+    /// Executes a request with initial [`Extensions`].
+    pub async fn execute_with_extensions(
+        &self,
+        req: Request,
+        ext: &mut Extensions,
+    ) -> Result<Response> {
+        let next = Next::new(&self.inner, &self.middleware_stack);
+        next.run(req, ext).await
     }
 }
 
@@ -237,6 +246,12 @@ impl RequestBuilder {
     pub async fn send(self) -> Result<Response> {
         let req = self.inner.build()?;
         self.client.execute(req).await
+    }
+
+    /// Sends a request with initial [`Extensions`].
+    pub async fn send_with_extensions(self, ext: &mut Extensions) -> Result<Response> {
+        let req = self.inner.build()?;
+        self.client.execute_with_extensions(req, ext).await
     }
 
     pub fn try_clone(self) -> Option<Self> {
