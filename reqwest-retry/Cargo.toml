@@ -10,7 +10,7 @@ keywords = ["reqwest", "http", "middleware", "retry"]
 categories = ["web-programming::http-client"]
 
 [dependencies]
-reqwest-middleware = { version = "0.1", path = "../reqwest-middleware" }
+reqwest-middleware = { version = "0.1", path = "../reqwest-middleware", default-features = false }
 
 anyhow = "1"
 async-trait = "0.1.51"
@@ -18,7 +18,7 @@ chrono = "0.4"
 futures = "0.3"
 http = "0.2"
 retry-policies = "0.1"
-reqwest = "0.11"
+reqwest = { version = "0.11", default-features = false }
 tokio = { version = "1.6", features = ["time"] }
 tracing = "0.1.26"
 truelayer-extensions = "0.1"

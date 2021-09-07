@@ -10,12 +10,17 @@ keywords = ["reqwest", "http", "middleware"]
 categories = ["web-programming::http-client"]
 readme = "../README.md"
 
+[features]
+default = ["native-tls"]
+native-tls = ["reqwest/native-tls"]
+rustls-tls = ["reqwest/rustls-tls"]
+
 [dependencies]
 anyhow = "1"
 async-trait = "0.1.51"
 futures = "0.3"
 http = "0.2"
-reqwest = { version = "0.11", features = ["json", "multipart"] }
+reqwest = { version = "0.11", default-features = false, features = ["json", "multipart"] }
 serde = "1"
 thiserror = "1"
 truelayer-extensions = "0.1"

@@ -16,10 +16,10 @@ opentelemetry_0_15 = ["opentelemetry_0_15_pkg", "tracing-opentelemetry_0_14_pkg"
 opentelemetry_0_16 = ["opentelemetry_0_16_pkg", "tracing-opentelemetry_0_15_pkg"]
 
 [dependencies]
-reqwest-middleware = { version = "0.1", path = "../reqwest-middleware" }
+reqwest-middleware = { version = "0.1", path = "../reqwest-middleware", default-features = false }
 
 async-trait = "0.1.51"
-reqwest = "0.11"
+reqwest = { version = "0.11", default-features = false }
 tokio = { version = "1.6", features = ["time"] }
 tracing = "0.1.26"
 truelayer-extensions = "0.1"
