@@ -8,10 +8,21 @@ to allow for client middleware chains.
 [![CI](https://github.com/TrueLayer/reqwest-middleware/workflows/CI/badge.svg)](https://github.com/TrueLayer/reqwest-middleware/actions)
 [![Coverage Status](https://coveralls.io/repos/github/TrueLayer/reqwest-middleware/badge.svg?branch=main&t=YKhONc)](https://coveralls.io/github/TrueLayer/reqwest-middleware?branch=main)
 
+This crate provides functionality for building and running middleware but no middleware
+implementations. This repository also contains a couple of useful concrete middleware crates:
+
+* [`reqwest-retry`](https://crates.io/crates/reqwest-retry): retry failed requests.
+* [`reqwest-trcing`](https://crates.io/crates/reqwest-tracing):
+  [`tracing`](https://crates.io/crates/tracing) integration, optional opentelemetry support.
+
 ## Overview
 
 The `reqwest-middleware` client exposes the same interface as a plain `reqwest` client, but
 `ClientBuilder` exposes functionality to attach middleware:
+
+```toml
+# Cargo.toml
+```
 
 ```rust
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
@@ -20,22 +31,22 @@ use reqwest_tracing::TracingMiddleware;
 
 #[tokio::main]
 async fn main() {
-    let retry_policy = ExponentialBackoff::builder().build_with_max_retries(3);
-    let client = ClientBuilder::new(reqwest::Client::new())
-        .with(TracingMiddleware)
-        .with(RetryTransientMiddleware::new_with_policy(retry_policy))
-        .build();
-    run(client).await;
+    let retry_policy = ExponentialBackoff::builder().build_with_max_retries(3);
+    let client = ClientBuilder::new(reqwest::Client::new())
+        .with(TracingMiddleware)
+        .with(RetryTransientMiddleware::new_with_policy(retry_policy))
+        .build();
+        run(client).await;
 }
 
 async fn run(client: ClientWithMiddleware) {
-    // free retries!
-    client
-        .get("https://some-external-service.com")
-        .header("foo", "bar")
-        .send()
-        .await
-        .unwrap();
+    // free retries!
+    client
+        .get("https://truelayer.com")
+        .header("foo", "bar")
+        .send()
+        .await
+        .unwrap();
 }
 ```
 

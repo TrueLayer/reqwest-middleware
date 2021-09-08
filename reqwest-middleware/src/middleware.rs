@@ -30,9 +30,8 @@ use crate::error::{Error, Result};
 /// }
 /// ```
 ///
-/// [`ClientWithMiddleware`]: struct.ClientWithMiddleware.html
-/// [`Extensions`]: TODO
-/// [`with`]: struct.ClientBuilder.html#method.with
+/// [`ClientWithMiddleware`]: crate::ClientWithMiddleware
+/// [`with`]: crate::ClientBuilder::with
 #[async_trait::async_trait]
 pub trait Middleware: 'static + Send + Sync {
     /// Invoked with a request before sending it. If you want to continue processing the request,
@@ -69,8 +68,8 @@ where
 /// Next encapsulates the remaining middleware chain to run in [`Middleware::handle`]. You can
 /// forward the request down the chain with [`run`].
 ///
-/// [`Middleware::handle`]: trait.Middleware.html#tymethod.handle
-/// [`run`]: #method.run
+/// [`Middleware::handle`]: Middleware::handle
+/// [`run`]: Self::run
 #[derive(Clone)]
 pub struct Next<'a> {
     client: &'a Client,
