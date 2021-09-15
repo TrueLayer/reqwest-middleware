@@ -1,6 +1,6 @@
 [package]
 name = "reqwest-retry"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Rodrigo Gryzinski <rodrigo.gryzinski@truelayer.com>"]
 edition = "2018"
 description = "Retry middleware for reqwest."
@@ -10,7 +10,7 @@ keywords = ["reqwest", "http", "middleware", "retry"]
 categories = ["web-programming::http-client"]
 
 [dependencies]
-reqwest-middleware = { version = "0.1", path = "../reqwest-middleware" }
+reqwest-middleware = { version = "0.1.1", path = "../reqwest-middleware" }
 
 anyhow = "1"
 async-trait = "0.1.51"
