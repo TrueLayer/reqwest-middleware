@@ -21,6 +21,7 @@ thiserror = "1"
 truelayer-extensions = "0.1"
 
 [dev-dependencies]
+reqwest = "0.11"
 reqwest-retry = { path = "../reqwest-retry" }
 reqwest-tracing = { path = "../reqwest-tracing" }
 wiremock = "0.5"

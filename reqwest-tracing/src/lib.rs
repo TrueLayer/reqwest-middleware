@@ -1,3 +1,7 @@
+//! Opentracing middleware implementation for [`reqwest-middleware`].
+//!
+//! Attach [`TracingMiddleware`] to your client to automatically trace HTTP requests.
+
 mod middleware;
 #[cfg(any(
     feature = "opentelemetry_0_13",

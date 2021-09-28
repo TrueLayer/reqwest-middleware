@@ -22,6 +22,13 @@ The `reqwest-middleware` client exposes the same interface as a plain `reqwest` 
 
 ```toml
 # Cargo.toml
+# ...
+[dependencies]
+reqwest = "0.11"
+reqwest-middleware = "0.1.1"
+reqwest-retry = "0.1.1"
+reqwest-tracing = "0.1.2"
+tokio = { version = "1.12.0", features = ["macros", "rt-multi-thread"] }
 ```
 
 ```rust
@@ -31,16 +38,18 @@ use reqwest_tracing::TracingMiddleware;
 
 #[tokio::main]
 async fn main() {
+    // Retry up to 3 times with increasing intervals between attempts.
     let retry_policy = ExponentialBackoff::builder().build_with_max_retries(3);
     let client = ClientBuilder::new(reqwest::Client::new())
+        // Trace HTTP requests. See the tracing crate to make use of these traces.
         .with(TracingMiddleware)
+        // Retry failed requests.
         .with(RetryTransientMiddleware::new_with_policy(retry_policy))
         .build();
         run(client).await;
 }
 
 async fn run(client: ClientWithMiddleware) {
-    // free retries!
     client
         .get("https://truelayer.com")
         .header("foo", "bar")
@@ -48,16 +57,6 @@ async fn run(client: ClientWithMiddleware) {
         .await
         .unwrap();
 }
-```
-
-## How to install
-
-Add `reqwest-middleware` to your dependencies
-
-```toml
-[dependencies]
-# ...
-reqwest-middleware = "0.1.0"
 ```
 
 #### License

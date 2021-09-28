@@ -12,8 +12,23 @@ Opentracing middleware implementation for
 
 Attach `TracingMiddleware` to your client to automatically trace HTTP requests:
 
-```rust
-use opentelemetry::exporter::trace::stdout;
+```toml
+# Cargo.toml
+# ...
+[dependencies]
+opentelemetry = "0.16"
+reqwest = "0.11"
+reqwest-middleware = "0.1.1"
+reqwest-retry = "0.1.1"
+reqwest-tracing = { version = "0.1.2", features = ["opentelemetry_0_16"] }
+tokio = { version = "1.12.0", features = ["macros", "rt-multi-thread"] }
+tracing = "0.1"
+tracing-opentelemetry = "0.15"
+tracing-subscriber = "0.2"
+```
+
+```rust,skip
+use opentelemetry::sdk::export::trace::stdout;
 use reqwest_middleware::ClientBuilder;
 use reqwest_tracing::TracingMiddleware;
 use tracing_subscriber::layer::SubscriberExt;
@@ -21,7 +36,7 @@ use tracing_subscriber::Registry;
 
 #[tokio::main]
 async fn main() {
-  let (tracer, _) = stdout::new_pipeline().install();
+  let tracer = stdout::new_pipeline().install_simple();
   let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
   let subscriber = Registry::default().with(telemetry);
   tracing::subscriber::set_global_default(subscriber).unwrap();
@@ -29,13 +44,18 @@ async fn main() {
   run().await;
 }
 
-async fun run() {
+async fn run() {
   let client = ClientBuilder::new(reqwest::Client::new())
     .with(TracingMiddleware)
-    .build();`
+    .build();
 
   client.get("https://truelayer.com").send().await.unwrap();
 }
+```
+
+```terminal
+$ cargo run
+SpanData { span_context: SpanContext { trace_id: ...
 ```
 
 See the [`tracing`](https://crates.io/crates/tracing) crate for more information on how to set up a
