@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Disabled default features on `reqwest`
 - Replaced `truelayer-extensions` with `task-local-extensions`
+- Updated `reqwest-middleware` to `0.1.2`
 
 ## [0.1.1] - 2021-09-15
 ### Changed
