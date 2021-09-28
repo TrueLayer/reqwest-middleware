@@ -21,7 +21,7 @@ retry-policies = "0.1"
 reqwest = { version = "0.11", default-features = false }
 tokio = { version = "1.6", features = ["time"] }
 tracing = "0.1.26"
-truelayer-extensions = "0.1"
+task-local-extensions = "0.1.1"
 
 [dev-dependencies]
 wiremock = "0.5"

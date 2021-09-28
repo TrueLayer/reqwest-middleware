@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Re-export `RetryPolicy` from the crate root.
 ### Changed
 - Disabled default features on `reqwest`
+- Replaced `truelayer-extensions` with `task-local-extensions`
 
 ## [0.1.1] - 2021-09-15
 ### Changed

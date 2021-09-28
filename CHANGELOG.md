@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Disabled default features on `reqwest`
+- Replaced `truelayer-extensions` with `task-local-extensions`
 
 ### Added
 - New methods on `ClientWithExtensions` and `RequestBuilder` for sending requests with initial extensions.
