@@ -10,7 +10,7 @@ keywords = ["reqwest", "http", "middleware", "retry"]
 categories = ["web-programming::http-client"]
 
 [dependencies]
-reqwest-middleware = { version = "0.1.2-alpha.0", path = "../reqwest-middleware" }
+reqwest-middleware = { version = "0.1.1", path = "../reqwest-middleware" }
 
 anyhow = "1"
 async-trait = "0.1.51"
