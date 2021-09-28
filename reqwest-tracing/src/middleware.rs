@@ -1,7 +1,7 @@
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{Request, Response, StatusCode as RequestStatusCode};
 use reqwest_middleware::{Error, Middleware, Next, Result};
-use truelayer_extensions::Extensions;
+use task_local_extensions::Extensions;
 
 /// Middleware for tracing requests using the current Opentelemetry Context.
 pub struct TracingMiddleware;

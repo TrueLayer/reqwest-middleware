@@ -6,7 +6,7 @@ use std::convert::TryFrom;
 use std::fmt::Display;
 use std::sync::Arc;
 use std::time::Duration;
-use truelayer_extensions::Extensions;
+use task_local_extensions::Extensions;
 
 use crate::error::Result;
 use crate::middleware::{Middleware, Next};

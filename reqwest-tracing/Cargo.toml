@@ -22,7 +22,7 @@ async-trait = "0.1.51"
 reqwest = { version = "0.11", default-features = false }
 tokio = { version = "1.6", features = ["time"] }
 tracing = "0.1.26"
-truelayer-extensions = "0.1"
+task-local-extensions = "0.1.1"
 
 opentelemetry_0_13_pkg = { package = "opentelemetry", version = "0.13", optional = true }
 opentelemetry_0_14_pkg = { package = "opentelemetry", version = "0.14", optional = true }

@@ -8,7 +8,7 @@
 //! ```
 //! use reqwest::{Client, Request, Response};
 //! use reqwest_middleware::{ClientBuilder, Middleware, Next, Result};
-//! use truelayer_extensions::Extensions;
+//! use task_local_extensions::Extensions;
 //!
 //! struct LoggingMiddleware;
 //!
