@@ -37,11 +37,18 @@
 //! }
 //! ```
 //!
-//! [`build`]: struct.ClientBuilder.html#method.build
-//! [`ClientBuilder`]: struct.ClientBuilder.html
-//! [`ClientWithMiddleware`]: struct.ClientWithMiddleware.html
-//! [`reqwest::Client`]: https://docs.rs/reqwest/0.10.8/reqwest/struct.Client.html
-//! [`with`]: struct.ClientBuilder.html#method.with
+//! [`build`]: ClientBuilder::build
+//! [`ClientBuilder`]: ClientBuilder
+//! [`ClientWithMiddleware`]: ClientWithMiddleware
+//! [`with`]: ClientBuilder::with
+
+// Test README examples without overriding module docs.
+// We want to keep the in-code docs separate as those allow for automatic linking to crate
+// documentation.
+#[doc = include_str!("../../README.md")]
+#[cfg(doctest)]
+pub struct ReadmeDoctests;
+
 mod client;
 mod error;
 mod middleware;

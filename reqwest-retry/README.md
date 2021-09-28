@@ -15,15 +15,7 @@ Build `RetryTransientMiddleware` from a `RetryPolicy`, then attach it to a
 [`retry-policies::policies`](https://crates.io/crates/retry-policies) is reexported under
 `reqwest_retry::policies` for convenience.
 
-## How to install
-
-Add `reqwest-retry` to your dependencies
-
-```toml
-[dependencies]
-# ...
-reqwest-retry = "0.1.0"
-```
+See [`reqwest_middleware`](https://docs.rs/reqwest_middleware) for usage with reqwest.
 
 #### License
 
