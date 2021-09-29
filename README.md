@@ -46,7 +46,7 @@ async fn main() {
         // Retry failed requests.
         .with(RetryTransientMiddleware::new_with_policy(retry_policy))
         .build();
-        run(client).await;
+    run(client).await;
 }
 
 async fn run(client: ClientWithMiddleware) {
