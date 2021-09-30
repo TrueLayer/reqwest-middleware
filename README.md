@@ -12,7 +12,7 @@ This crate provides functionality for building and running middleware but no mid
 implementations. This repository also contains a couple of useful concrete middleware crates:
 
 * [`reqwest-retry`](https://crates.io/crates/reqwest-retry): retry failed requests.
-* [`reqwest-trcing`](https://crates.io/crates/reqwest-tracing):
+* [`reqwest-tracing`](https://crates.io/crates/reqwest-tracing):
   [`tracing`](https://crates.io/crates/tracing) integration, optional opentelemetry support.
 
 ## Overview
