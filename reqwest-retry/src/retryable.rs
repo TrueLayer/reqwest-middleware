@@ -1,4 +1,5 @@
 use http::StatusCode;
+use hyper;
 use reqwest_middleware::Error;
 
 /// Classification of an error/status returned by request.
@@ -49,6 +50,14 @@ impl Retryable {
                         || error.is_redirect()
                     {
                         Some(Retryable::Fatal)
+                    } else if let Some(hyper_error) = get_source_error_type::<hyper::Error>(&error)
+                    {
+                        if hyper_error.is_incomplete_message() {
+                            Some(Retryable::Fatal)
+                        } else {
+                            Some(Retryable::Transient)
+                        }
+                        // TODO: map all the hyper_error types
                     } else {
                         // We omit checking if error.is_status() since we check that already.
                         // However, if Response::error_for_status is used the status will still
@@ -65,4 +74,19 @@ impl From<&reqwest::Error> for Retryable {
     fn from(_status: &reqwest::Error) -> Retryable {
         Retryable::Transient
     }
+}
+
+fn get_source_error_type<T: std::error::Error + 'static>(
+    err: &dyn std::error::Error,
+) -> Option<&T> {
+    let mut source = err.source();
+
+    while let Some(err) = source {
+        if let Some(hyper_err) = err.downcast_ref::<T>() {
+            return Some(hyper_err);
+        }
+
+        source = err.source();
+    }
+    None
 }
