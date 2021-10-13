@@ -55,7 +55,7 @@ impl SimpleServer {
     }
 
     /// Starts the TcpListener and handles the requests.
-    pub async fn start(mut self) -> () {
+    pub async fn start(mut self) {
         while let Some(stream) = self.listener.incoming().next().await {
             match stream {
                 Ok(stream) => {
@@ -63,14 +63,12 @@ impl SimpleServer {
                         Ok(_) => (),
                         Err(e) => {
                             println!("Error handling connection: {}", e);
-                            ()
                         }
                     }
-                    self.calls_counter = self.calls_counter + 1;
+                    self.calls_counter += 1;
                 }
                 Err(e) => {
                     println!("Connection failed: {}", e);
-                    ()
                 }
             }
         }
@@ -88,7 +86,7 @@ impl SimpleServer {
         let request = String::from_utf8_lossy(&buffer[..]);
         let request_line = request.lines().next().unwrap();
 
-        let response = match Self::parse_request_line(&request_line) {
+        let response = match Self::parse_request_line(request_line) {
             Ok(request) => {
                 println!("== Request == \n{}\n=============", request);
                 self.get_response().clone()
