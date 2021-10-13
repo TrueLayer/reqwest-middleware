@@ -11,7 +11,6 @@ use wiremock::matchers::{method, path};
 use wiremock::{Mock, MockServer, Respond, ResponseTemplate};
 
 use crate::helpers::SimpleServer;
-
 pub struct RetryResponder(Arc<AtomicU32>, u32, u16);
 
 impl RetryResponder {
@@ -218,10 +217,24 @@ async fn assert_retry_on_request_timeout() {
 
 #[tokio::test]
 async fn assert_retry_on_incomplete_message() {
-    let raw_response = "HTTP/1.1 200"; // the full working response is: "HTTP/1.1 200 OK\r\n\r\n"
+    let incomplete_message = "HTTP/1.1";
+    let complete_message = "HTTP/1.1 200 OK\r\n\r\n";
 
-    let simple_server = SimpleServer::new("127.0.0.1", None, raw_response)
-        .expect("Error when creating a simple server");
+    let simple_server = SimpleServer::new(
+        "127.0.0.1",
+        None,
+        vec![
+            incomplete_message.to_string(),
+            incomplete_message.to_string(),
+            incomplete_message.to_string(),
+            complete_message.to_string(),
+        ],
+    )
+    .await
+    .expect("Error when creating a simple server");
+
+    let uri = simple_server.uri();
+
     tokio::spawn(simple_server.start());
 
     let reqwest_client = Client::builder().build().unwrap();
@@ -237,8 +250,8 @@ async fn assert_retry_on_incomplete_message() {
         .build();
 
     let resp = client
-        .get(&format!("{}/foo", simple_server.uri()))
-        .timeout(std::time::Duration::from_millis(10))
+        .get(&format!("{}/foo", uri))
+        .timeout(std::time::Duration::from_millis(100))
         .send()
         .await
         .expect("call failed");

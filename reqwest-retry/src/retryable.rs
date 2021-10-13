@@ -45,19 +45,20 @@ impl Retryable {
                         Some(Retryable::Transient)
                     } else if error.is_body()
                         || error.is_decode()
-                        || error.is_request()
                         || error.is_builder()
                         || error.is_redirect()
                     {
                         Some(Retryable::Fatal)
-                    } else if let Some(hyper_error) = get_source_error_type::<hyper::Error>(&error)
-                    {
-                        if hyper_error.is_incomplete_message() {
-                            Some(Retryable::Fatal)
+                    } else if error.is_request() {
+                        if let Some(hyper_error) = get_source_error_type::<hyper::Error>(&error) {
+                            if hyper_error.is_incomplete_message() {
+                                Some(Retryable::Transient)
+                            } else {
+                                Some(Retryable::Fatal)
+                            }
                         } else {
-                            Some(Retryable::Transient)
+                            Some(Retryable::Fatal)
                         }
-                        // TODO: map all the hyper_error types
                     } else {
                         // We omit checking if error.is_status() since we check that already.
                         // However, if Response::error_for_status is used the status will still

@@ -28,3 +28,4 @@ task-local-extensions = "0.1.1"
 wiremock = "0.5"
 tokio = { version = "1", features = ["macros"] }
 paste = "1"
+async-std = { version = "1.10"}
