@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2021-10-13
+### Fixed
+- Handle the `hyper::Error(IncompleteMessage)` as a `Retryable::Transient`.
+
 ## [0.1.2] - 2021-09-28
 ### Changed
 - Disabled default features on `reqwest`
