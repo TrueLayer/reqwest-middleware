@@ -198,8 +198,8 @@ async fn assert_retry_on_request_timeout() {
         .with(RetryTransientMiddleware::new_with_policy(
             ExponentialBackoff {
                 max_n_retries: 3,
-                max_retry_interval: std::time::Duration::from_millis(30),
-                min_retry_interval: std::time::Duration::from_millis(100),
+                max_retry_interval: std::time::Duration::from_millis(100),
+                min_retry_interval: std::time::Duration::from_millis(30),
                 backoff_exponent: 2,
             },
         ))
@@ -244,8 +244,8 @@ async fn assert_retry_on_incomplete_message() {
         .with(RetryTransientMiddleware::new_with_policy(
             ExponentialBackoff {
                 max_n_retries: 3,
-                max_retry_interval: std::time::Duration::from_millis(30),
-                min_retry_interval: std::time::Duration::from_millis(100),
+                max_retry_interval: std::time::Duration::from_millis(100),
+                min_retry_interval: std::time::Duration::from_millis(30),
                 backoff_exponent: 2,
             },
         ))
