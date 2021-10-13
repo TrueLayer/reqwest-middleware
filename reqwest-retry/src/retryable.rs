@@ -1,5 +1,4 @@
 use http::StatusCode;
-use hyper;
 use reqwest_middleware::Error;
 
 /// Classification of an error/status returned by request.
