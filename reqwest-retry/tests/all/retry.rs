@@ -220,6 +220,8 @@ async fn assert_retry_on_incomplete_message() {
     let incomplete_message = "HTTP/1.1";
     let complete_message = "HTTP/1.1 200 OK\r\n\r\n";
 
+    // create a SimpleServer that returns the correct response after 3 attempts.
+    // the first 3 attempts are incomplete http response and internally they result in a [`hyper::Error(IncompleteMessage)`] error.
     let simple_server = SimpleServer::new(
         "127.0.0.1",
         None,
