@@ -81,7 +81,7 @@ impl From<&reqwest::Error> for Retryable {
     }
 }
 
-/// Downcasts the given [`err`] source into [`T`].
+/// Downcasts the given err source into T.
 fn get_source_error_type<T: std::error::Error + 'static>(
     err: &dyn std::error::Error,
 ) -> Option<&T> {
