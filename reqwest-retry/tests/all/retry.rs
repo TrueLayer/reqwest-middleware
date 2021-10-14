@@ -217,6 +217,15 @@ async fn assert_retry_on_request_timeout() {
 
 #[tokio::test]
 async fn assert_retry_on_incomplete_message() {
+    // Following the HTTP/1.1 specification (https://en.wikipedia.org/wiki/HTTP_message_body) a valid response contains:
+    // - status line
+    // - headers
+    // - empty line
+    // - optional message body
+    //
+    // After a few tries we have noticed that:
+    // - "message_that_makes_no_sense" triggers a hyper::ParseError because the format is completely wrong
+    // - "HTTP/1.1" triggers a hyper::IncompleteMessage because the format is correct until that point but misses mandatory parts
     let incomplete_message = "HTTP/1.1";
     let complete_message = "HTTP/1.1 200 OK\r\n\r\n";
 
