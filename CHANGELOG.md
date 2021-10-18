@@ -6,7 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.3] - 2021-10-13
+## [0.1.3] - 2021-10-18
+
+### Security
+- remove time v0.1 dependency
+
 ### Fixed
 - Handle the `hyper::Error(IncompleteMessage)` as a `Retryable::Transient`.
 
