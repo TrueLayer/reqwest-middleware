@@ -17,6 +17,7 @@ async-trait = "0.1.51"
 chrono = "0.4"
 futures = "0.3"
 http = "0.2"
+hyper = "0.14"
 retry-policies = "0.1"
 reqwest = { version = "0.11", default-features = false }
 tokio = { version = "1.6", features = ["time"] }
@@ -27,3 +28,4 @@ task-local-extensions = "0.1.1"
 wiremock = "0.5"
 tokio = { version = "1", features = ["macros"] }
 paste = "1"
+async-std = { version = "1.10"}

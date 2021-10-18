@@ -10,6 +10,7 @@ use std::sync::{
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, MockServer, Respond, ResponseTemplate};
 
+use crate::helpers::SimpleServer;
 pub struct RetryResponder(Arc<AtomicU32>, u32, u16);
 
 impl RetryResponder {
@@ -197,8 +198,8 @@ async fn assert_retry_on_request_timeout() {
         .with(RetryTransientMiddleware::new_with_policy(
             ExponentialBackoff {
                 max_n_retries: 3,
-                max_retry_interval: std::time::Duration::from_millis(30),
-                min_retry_interval: std::time::Duration::from_millis(100),
+                max_retry_interval: std::time::Duration::from_millis(100),
+                min_retry_interval: std::time::Duration::from_millis(30),
                 backoff_exponent: 2,
             },
         ))
@@ -207,6 +208,61 @@ async fn assert_retry_on_request_timeout() {
     let resp = client
         .get(&format!("{}/foo", server.uri()))
         .timeout(std::time::Duration::from_millis(10))
+        .send()
+        .await
+        .expect("call failed");
+
+    assert_eq!(resp.status(), 200);
+}
+
+#[tokio::test]
+async fn assert_retry_on_incomplete_message() {
+    // Following the HTTP/1.1 specification (https://en.wikipedia.org/wiki/HTTP_message_body) a valid response contains:
+    // - status line
+    // - headers
+    // - empty line
+    // - optional message body
+    //
+    // After a few tries we have noticed that:
+    // - "message_that_makes_no_sense" triggers a hyper::ParseError because the format is completely wrong
+    // - "HTTP/1.1" triggers a hyper::IncompleteMessage because the format is correct until that point but misses mandatory parts
+    let incomplete_message = "HTTP/1.1";
+    let complete_message = "HTTP/1.1 200 OK\r\n\r\n";
+
+    // create a SimpleServer that returns the correct response after 3 attempts.
+    // the first 3 attempts are incomplete http response and internally they result in a [`hyper::Error(IncompleteMessage)`] error.
+    let simple_server = SimpleServer::new(
+        "127.0.0.1",
+        None,
+        vec![
+            incomplete_message.to_string(),
+            incomplete_message.to_string(),
+            incomplete_message.to_string(),
+            complete_message.to_string(),
+        ],
+    )
+    .await
+    .expect("Error when creating a simple server");
+
+    let uri = simple_server.uri();
+
+    tokio::spawn(simple_server.start());
+
+    let reqwest_client = Client::builder().build().unwrap();
+    let client = ClientBuilder::new(reqwest_client)
+        .with(RetryTransientMiddleware::new_with_policy(
+            ExponentialBackoff {
+                max_n_retries: 3,
+                max_retry_interval: std::time::Duration::from_millis(100),
+                min_retry_interval: std::time::Duration::from_millis(30),
+                backoff_exponent: 2,
+            },
+        ))
+        .build();
+
+    let resp = client
+        .get(&format!("{}/foo", uri))
+        .timeout(std::time::Duration::from_millis(100))
         .send()
         .await
         .expect("call failed");

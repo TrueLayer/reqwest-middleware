@@ -44,11 +44,25 @@ impl Retryable {
                         Some(Retryable::Transient)
                     } else if error.is_body()
                         || error.is_decode()
-                        || error.is_request()
                         || error.is_builder()
                         || error.is_redirect()
                     {
                         Some(Retryable::Fatal)
+                    } else if error.is_request() {
+                        // It seems that hyper::Error(IncompleteMessage) is not correctly handled by reqwest.
+                        // Here we check if the Reqwest error was originated by hyper and map it consistently.
+                        if let Some(hyper_error) = get_source_error_type::<hyper::Error>(&error) {
+                            // The hyper::Error(IncompleteMessage) is raised if the HTTP response is well formatted but does not contain all the bytes.
+                            // This can happen when the server has started sending back the response but the connection is cut halfway thorugh.
+                            // We can safely retry the call, hence marking this error as [`Retryable::Transient`].
+                            if hyper_error.is_incomplete_message() {
+                                Some(Retryable::Transient)
+                            } else {
+                                Some(Retryable::Fatal)
+                            }
+                        } else {
+                            Some(Retryable::Fatal)
+                        }
                     } else {
                         // We omit checking if error.is_status() since we check that already.
                         // However, if Response::error_for_status is used the status will still
@@ -65,4 +79,20 @@ impl From<&reqwest::Error> for Retryable {
     fn from(_status: &reqwest::Error) -> Retryable {
         Retryable::Transient
     }
+}
+
+/// Downcasts the given err source into T.
+fn get_source_error_type<T: std::error::Error + 'static>(
+    err: &dyn std::error::Error,
+) -> Option<&T> {
+    let mut source = err.source();
+
+    while let Some(err) = source {
+        if let Some(hyper_err) = err.downcast_ref::<T>() {
+            return Some(hyper_err);
+        }
+
+        source = err.source();
+    }
+    None
 }
