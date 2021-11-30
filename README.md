@@ -27,7 +27,7 @@ The `reqwest-middleware` client exposes the same interface as a plain `reqwest` 
 reqwest = "0.11"
 reqwest-middleware = "0.1.1"
 reqwest-retry = "0.1.1"
-reqwest-tracing = "0.1.2"
+reqwest-tracing = "0.2.0"
 tokio = { version = "1.12.0", features = ["macros", "rt-multi-thread"] }
 ```
 
