@@ -25,7 +25,7 @@ pub use tracing_opentelemetry_0_13_pkg as tracing_opentelemetry;
 pub use tracing_opentelemetry_0_14_pkg as tracing_opentelemetry;
 
 #[cfg(feature = "opentelemetry_0_16")]
-pub use tracing_opentelemetry_0_15_pkg as tracing_opentelemetry;
+pub use tracing_opentelemetry_0_16_pkg as tracing_opentelemetry;
 
 use opentelemetry::global;
 use opentelemetry::propagation::Injector;
