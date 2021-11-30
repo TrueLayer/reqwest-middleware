@@ -13,7 +13,7 @@ categories = ["web-programming::http-client"]
 opentelemetry_0_13 = ["opentelemetry_0_13_pkg", "tracing-opentelemetry_0_12_pkg"]
 opentelemetry_0_14 = ["opentelemetry_0_14_pkg", "tracing-opentelemetry_0_13_pkg"]
 opentelemetry_0_15 = ["opentelemetry_0_15_pkg", "tracing-opentelemetry_0_14_pkg"]
-opentelemetry_0_16 = ["opentelemetry_0_16_pkg", "tracing-opentelemetry_0_15_pkg"]
+opentelemetry_0_16 = ["opentelemetry_0_16_pkg", "tracing-opentelemetry_0_16_pkg"]
 
 [dependencies]
 reqwest-middleware = { version = "0.1.2", path = "../reqwest-middleware" }
@@ -31,7 +31,7 @@ opentelemetry_0_16_pkg = { package = "opentelemetry", version = "0.16", optional
 tracing-opentelemetry_0_12_pkg = { package = "tracing-opentelemetry",version = "0.12", optional = true }
 tracing-opentelemetry_0_13_pkg = { package = "tracing-opentelemetry", version = "0.13", optional = true }
 tracing-opentelemetry_0_14_pkg = { package = "tracing-opentelemetry",version = "0.14", optional = true }
-tracing-opentelemetry_0_15_pkg = { package = "tracing-opentelemetry",version = "0.15", optional = true }
+tracing-opentelemetry_0_16_pkg = { package = "tracing-opentelemetry",version = "0.16", optional = true }
 
 [dev-dependencies]
 wiremock = "0.5"
