@@ -4,6 +4,7 @@ use reqwest_middleware::{Error, Middleware, Next, Result};
 use task_local_extensions::Extensions;
 
 /// Middleware for tracing requests using the current Opentelemetry Context.
+#[derive(Debug)]
 pub struct TracingMiddleware;
 
 #[async_trait::async_trait]

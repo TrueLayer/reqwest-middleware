@@ -15,6 +15,7 @@ use crate::error::{Error, Result};
 /// use reqwest_middleware::{ClientBuilder, Middleware, Next, Result};
 /// use task_local_extensions::Extensions;
 ///
+/// #[derive(Debug)]
 /// struct TransparentMiddleware;
 ///
 /// #[async_trait::async_trait]
@@ -33,7 +34,7 @@ use crate::error::{Error, Result};
 /// [`ClientWithMiddleware`]: crate::ClientWithMiddleware
 /// [`with`]: crate::ClientBuilder::with
 #[async_trait::async_trait]
-pub trait Middleware: 'static + Send + Sync {
+pub trait Middleware: 'static + Send + Sync + std::fmt::Debug {
     /// Invoked with a request before sending it. If you want to continue processing the request,
     /// you should explicitly call `next.run(req, extensions)`.
     ///
@@ -52,6 +53,7 @@ impl<F> Middleware for F
 where
     F: Send
         + Sync
+        + std::fmt::Debug
         + 'static
         + for<'a> Fn(Request, &'a mut Extensions, Next<'a>) -> BoxFuture<'a, Result<Response>>,
 {

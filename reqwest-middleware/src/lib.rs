@@ -10,6 +10,7 @@
 //! use reqwest_middleware::{ClientBuilder, Middleware, Next, Result};
 //! use task_local_extensions::Extensions;
 //!
+//! #[derive(Debug)]
 //! struct LoggingMiddleware;
 //!
 //! #[async_trait::async_trait]

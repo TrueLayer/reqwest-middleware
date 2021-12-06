@@ -55,7 +55,7 @@ impl ClientBuilder {
 
 /// `ClientWithMiddleware` is a wrapper around [`reqwest::Client`] which runs middleware on every
 /// request.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ClientWithMiddleware {
     inner: reqwest::Client,
     middleware_stack: Box<[Arc<dyn Middleware>]>,

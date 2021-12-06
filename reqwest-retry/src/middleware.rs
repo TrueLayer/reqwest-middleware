@@ -35,6 +35,7 @@ static MAXIMUM_NUMBER_OF_RETRIES: u32 = 10;
 ///     let client = ClientBuilder::new(Client::new()).with(retry_transient_middleware).build();
 ///```
 ///
+#[derive(Debug)]
 pub struct RetryTransientMiddleware<T: RetryPolicy + Send + Sync + 'static> {
     retry_policy: T,
 }
@@ -47,7 +48,7 @@ impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
 }
 
 #[async_trait::async_trait]
-impl<T: RetryPolicy + Send + Sync> Middleware for RetryTransientMiddleware<T> {
+impl<T: RetryPolicy + Send + Sync + std::fmt::Debug> Middleware for RetryTransientMiddleware<T> {
     async fn handle(
         &self,
         req: Request,
