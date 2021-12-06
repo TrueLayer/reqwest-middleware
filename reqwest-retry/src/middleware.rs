@@ -81,7 +81,7 @@ impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
         &'a self,
         req: Request,
         next: Next<'a>,
-        mut ext: &'a mut Extensions,
+        ext: &'a mut Extensions,
         n_past_retries: u32,
     ) -> futures::future::BoxFuture<'a, Result<Response>> {
         Box::pin(async move {
@@ -97,7 +97,7 @@ impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
 
             let cloned_next = next.clone();
 
-            let result = next.run(req, &mut ext).await;
+            let result = next.run(req, ext).await;
 
             // We classify the response which will return None if not
             // errors were returned.
