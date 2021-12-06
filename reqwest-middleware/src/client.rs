@@ -3,7 +3,7 @@ use reqwest::multipart::Form;
 use reqwest::{Body, Client, IntoUrl, Method, Request, Response};
 use serde::Serialize;
 use std::convert::TryFrom;
-use std::fmt::Display;
+use std::fmt::{self, Display};
 use std::sync::Arc;
 use std::time::Duration;
 use task_local_extensions::Extensions;
@@ -135,6 +135,15 @@ impl From<Client> for ClientWithMiddleware {
             inner: client,
             middleware_stack: Box::new([]),
         }
+    }
+}
+
+impl fmt::Debug for ClientWithMiddleware {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // skipping middleware_stack field for now
+        f.debug_struct("ClientWithMiddleware")
+            .field("inner", &self.inner)
+            .finish()
     }
 }
 
