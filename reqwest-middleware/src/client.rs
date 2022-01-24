@@ -143,7 +143,7 @@ impl fmt::Debug for ClientWithMiddleware {
         // skipping middleware_stack field for now
         f.debug_struct("ClientWithMiddleware")
             .field("inner", &self.inner)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
