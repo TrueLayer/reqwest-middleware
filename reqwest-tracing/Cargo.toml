@@ -35,8 +35,7 @@ tracing-opentelemetry_0_12_pkg = { package = "tracing-opentelemetry",version = "
 tracing-opentelemetry_0_13_pkg = { package = "tracing-opentelemetry", version = "0.13", optional = true }
 tracing-opentelemetry_0_14_pkg = { package = "tracing-opentelemetry",version = "0.14", optional = true }
 tracing-opentelemetry_0_16_pkg = { package = "tracing-opentelemetry",version = "0.16", optional = true }
-# replace when tracing-opentelemetry is released
-tracing-opentelemetry_0_17_pkg = { package = "tracing-opentelemetry",version = "0.15", optional = true, git="https://github.com/tokio-rs/tracing", rev="e005548bfcb741dac0ffbe8fb97f9c45999fdb57" }
+tracing-opentelemetry_0_17_pkg = { package = "tracing-opentelemetry",version = "0.17", optional = true }
 
 
 [dev-dependencies]
