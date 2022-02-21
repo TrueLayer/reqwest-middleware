@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2022-02-21
+### Changed
+- Updated `reqwest-middleware` to `0.1.5`
+
 ## [0.2.0] - 2021-11-30
 ### Breaking
 - Update to `tracing-subscriber` `0.3.x` when `opentelemetry_0_16` is active.
