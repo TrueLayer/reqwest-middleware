@@ -1,6 +1,7 @@
 //! `RetryTransientMiddleware` implements retrying requests on transient errors.
 
 use crate::retryable::Retryable;
+use crate::retryable_strategy::RetryableStrategy;
 use anyhow::anyhow;
 use chrono::Utc;
 use reqwest::{Request, Response};
@@ -37,15 +38,15 @@ static MAXIMUM_NUMBER_OF_RETRIES: u32 = 10;
 ///
 pub struct RetryTransientMiddleware<T: RetryPolicy + Send + Sync + 'static> {
     retry_policy: T,
-    retryable_from_resp: fn(&Result<reqwest::Response, >) -> Option<Retryable>,
+    retryable_strategy: RetryableStrategy,
 }
 
 impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
     /// Construct `RetryTransientMiddleware` with  a [retry_policy][retry_policies::RetryPolicy].
     pub fn new_with_policy(retry_policy: T) -> Self {
-        Self { 
+        Self {
             retry_policy,
-            retryable_from_resp: Retryable::from_reqwest_response,
+            retryable_strategy: RetryableStrategy::default(),
         }
     }
 }
@@ -105,7 +106,7 @@ impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
 
             // We classify the response which will return None if not
             // errors were returned.
-            match (self.retryable_from_resp)(&result) {
+            match self.retryable_strategy.handle(&result) {
                 Some(retryable)
                     if retryable == Retryable::Transient
                         && n_past_retries < MAXIMUM_NUMBER_OF_RETRIES =>
