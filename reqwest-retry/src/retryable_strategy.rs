@@ -12,6 +12,84 @@ use reqwest_middleware::Error;
 ///     For example a HTTP statuscode of 500
 /// - [`reqwest_middleware::Error`] In this case the request actually failed.
 ///     This could, for example, be caused by a timeout on the connection.
+/// 
+/// Example:
+/// 
+/// ```
+/// use reqwest_retry::{RetryableStrategy, policies::ExponentialBackoff, RetryTransientMiddleware, Retryable};
+/// use reqwest::{Request, Response};
+/// use reqwest_middleware::{ClientBuilder, Middleware, Next, Result};
+/// use task_local_extensions::Extensions;
+/// 
+/// // Log each request to show that the requests will be retried
+/// struct LoggingMiddleware;
+/// 
+/// #[async_trait::async_trait]
+/// impl Middleware for LoggingMiddleware {
+///     async fn handle(
+///         &self,
+///         req: Request,
+///         extensions: &mut Extensions,
+///         next: Next<'_>,
+///     ) -> Result<Response> {
+///         println!("Request started {}", req.url());
+///         let res = next.run(req, extensions).await;
+///         println!("Request finished");
+///         res
+///     }
+/// }
+/// 
+/// // Just a toy example, retry when the response code is 201, else do nothing.
+/// fn retry_201(res: &reqwest::Response) -> Option<Retryable> {
+///     if res.status() == 201 {
+///         Some(Retryable::Transient)
+///     } else {
+///         None
+///     }
+/// }
+/// 
+/// 
+/// #[tokio::main]
+/// async fn main() {
+///     // Create the retry stategy. Success responses will be handled by `retry_201`.
+///     // Error handling is default.
+///     let ret_strat = RetryableStrategy::new(
+///         Some(retry_201),
+///         None
+///     );
+/// 
+///     // Exponential backoff with max 2 retries
+///     let retry_policy = ExponentialBackoff::builder()
+///         .build_with_max_retries(2);
+///     
+///     // Create the actual middleware, with the exponential backoff and custom retry stategy.
+///     let ret_s = RetryTransientMiddleware::new_with_retryable_strat(
+///         retry_policy,
+///         ret_strat
+///     );
+/// 
+///     let client = ClientBuilder::new(reqwest::Client::new())
+///         // Retry failed requests.
+///         .with(ret_s)
+///         // Log the requests
+///         .with(LoggingMiddleware)
+///         .build();
+/// 
+///     // Send request which should get a 201 response. So it will be retried
+///     let r = client   
+///         .get("https://httpbin.org/status/201")
+///         .send()
+///         .await;
+///     println!("{:?}", r);
+/// 
+///     // Send request which should get a 200 response. So it will not be retried
+///     let r = client   
+///         .get("https://httpbin.org/status/200")
+///         .send()
+///         .await;
+///     println!("{:?}", r);
+/// }
+/// ```
 pub struct RetryableStrategy {
     pub success_handler: fn(&reqwest::Response) -> Option<Retryable>,
     pub error_handler: fn(&Error) -> Option<Retryable>,
