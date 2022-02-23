@@ -49,6 +49,17 @@ impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
             retryable_strategy: RetryableStrategy::default(),
         }
     }
+
+    /// Construct a [`RetryTransientMiddleware`] With a given [`RetryPolicy`] and [`RetryableStrategy`]
+    pub fn new_with_retryable_strat(
+        retry_policy: T, 
+        retryable_strategy: RetryableStrategy
+    ) -> Self {
+        Self {
+            retry_policy,
+            retryable_strategy
+        }
+    }
 }
 
 #[async_trait::async_trait]
