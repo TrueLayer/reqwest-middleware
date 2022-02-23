@@ -37,12 +37,16 @@ static MAXIMUM_NUMBER_OF_RETRIES: u32 = 10;
 ///
 pub struct RetryTransientMiddleware<T: RetryPolicy + Send + Sync + 'static> {
     retry_policy: T,
+    retryable_from_resp: fn(&Result<reqwest::Response, >) -> Option<Retryable>,
 }
 
 impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
     /// Construct `RetryTransientMiddleware` with  a [retry_policy][retry_policies::RetryPolicy].
     pub fn new_with_policy(retry_policy: T) -> Self {
-        Self { retry_policy }
+        Self { 
+            retry_policy,
+            retryable_from_resp: Retryable::from_reqwest_response,
+        }
     }
 }
 
@@ -101,7 +105,7 @@ impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
 
             // We classify the response which will return None if not
             // errors were returned.
-            match Retryable::from_reqwest_response(&result) {
+            match (self.retryable_from_resp)(&result) {
                 Some(retryable)
                     if retryable == Retryable::Transient
                         && n_past_retries < MAXIMUM_NUMBER_OF_RETRIES =>
