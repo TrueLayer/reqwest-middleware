@@ -61,12 +61,12 @@ impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
 
     /// Construct a [`RetryTransientMiddleware`] With a given [`RetryPolicy`] and [`RetryableStrategy`]
     pub fn new_with_retryable_strat(
-        retry_policy: T, 
-        retryable_strategy: RetryableStrategy
+        retry_policy: T,
+        retryable_strategy: RetryableStrategy,
     ) -> Self {
         Self {
             retry_policy,
-            retryable_strategy
+            retryable_strategy,
         }
     }
 }
