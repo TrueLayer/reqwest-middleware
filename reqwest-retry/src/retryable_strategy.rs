@@ -1,20 +1,20 @@
+use crate::retryable::Retryable;
 use http::StatusCode;
-use crate::retryable::{Retryable};
 use reqwest_middleware::Error;
 
 /// A strategy to create a [`Retryable`] from a [`Result<reqwest::Response, reqwest_middleware::Error>`]
-/// 
+///
 /// A [`RetryableStrategy`] has two functions, a `success_handler` and a `error_handler`
 /// The correct handler will be called based on what the result of calling the request was.
 /// The result of calling the request could be:\
 /// - [`reqwest::Response`] In case the request has been sent and received correctly
 ///     This could however still mean that the server responded with a erroneous response.
 ///     For example a HTTP statuscode of 500
-/// - [`reqwest_middleware::Error`] In this case the request actually failed. 
+/// - [`reqwest_middleware::Error`] In this case the request actually failed.
 ///     This could, for example, be caused by a timeout on the connection.
 pub struct RetryableStrategy {
-    pub success_handler: fn (&reqwest::Response) ->  Option<Retryable>,
-    pub error_handler: fn (&Error) ->  Option<Retryable>,
+    pub success_handler: fn(&reqwest::Response) -> Option<Retryable>,
+    pub error_handler: fn(&Error) -> Option<Retryable>,
 }
 
 impl Default for RetryableStrategy {
@@ -28,19 +28,18 @@ impl Default for RetryableStrategy {
 }
 
 impl RetryableStrategy {
-
     /// Actually classifies the request as a [`Retryable`],
     /// based on the success- and error-handlers for this [`RetryableStrategy`]
     pub fn handle(&self, res: &Result<reqwest::Response, Error>) -> Option<Retryable> {
         match res {
-            Ok(success) =>  (self.success_handler)(success),
+            Ok(success) => (self.success_handler)(success),
             Err(error) => (self.error_handler)(error),
         }
     }
 
     pub fn new(
-        success_handler: Option<fn (&reqwest::Response) ->  Option<Retryable>>,
-        error_handler: Option<fn (&Error) ->  Option<Retryable>>
+        success_handler: Option<fn(&reqwest::Response) -> Option<Retryable>>,
+        error_handler: Option<fn(&Error) -> Option<Retryable>>,
     ) -> Self {
         // Choose default success_handler if the passed argument is `None`
         let success_handler = if let Some(x) = success_handler {
@@ -58,12 +57,12 @@ impl RetryableStrategy {
 
         Self {
             success_handler,
-            error_handler
+            error_handler,
         }
     }
 
     /// A good default handler for a success response
-    pub fn default_success_handler(success: &reqwest::Response) ->  Option<Retryable> {
+    pub fn default_success_handler(success: &reqwest::Response) -> Option<Retryable> {
         let status = success.status();
         if status.is_server_error() {
             Some(Retryable::Transient)
@@ -74,9 +73,7 @@ impl RetryableStrategy {
             Some(Retryable::Fatal)
         } else if status.is_success() {
             None
-        } else if status == StatusCode::REQUEST_TIMEOUT
-            || status == StatusCode::TOO_MANY_REQUESTS
-        {
+        } else if status == StatusCode::REQUEST_TIMEOUT || status == StatusCode::TOO_MANY_REQUESTS {
             Some(Retryable::Transient)
         } else {
             Some(Retryable::Fatal)
@@ -121,7 +118,6 @@ impl RetryableStrategy {
             }
         }
     }
-
 }
 
 /// Downcasts the given err source into T.

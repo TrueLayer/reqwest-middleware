@@ -1,5 +1,5 @@
-use reqwest_middleware::Error;
 use crate::retryable_strategy::RetryableStrategy;
+use reqwest_middleware::Error;
 
 /// Classification of an error/status returned by request.
 #[derive(PartialEq, Eq)]
@@ -25,4 +25,3 @@ impl From<&reqwest::Error> for Retryable {
         Retryable::Transient
     }
 }
-
