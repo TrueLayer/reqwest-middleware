@@ -1,6 +1,7 @@
 //! `RetryTransientMiddleware` implements retrying requests on transient errors.
 
 use crate::retryable::Retryable;
+use crate::retryable_strategy::RetryableStrategy;
 use anyhow::anyhow;
 use chrono::Utc;
 use reqwest::{Request, Response};
@@ -46,15 +47,15 @@ use task_local_extensions::Extensions;
 /// source directly, avoiding the issue of streaming requests not being clonable.
 pub struct RetryTransientMiddleware<T: RetryPolicy + Send + Sync + 'static> {
     retry_policy: T,
-    retryable_from_resp: fn(&Result<reqwest::Response, >) -> Option<Retryable>,
+    retryable_strategy: RetryableStrategy,
 }
 
 impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
     /// Construct `RetryTransientMiddleware` with  a [retry_policy][retry_policies::RetryPolicy].
     pub fn new_with_policy(retry_policy: T) -> Self {
-        Self { 
+        Self {
             retry_policy,
-            retryable_from_resp: Retryable::from_reqwest_response,
+            retryable_strategy: RetryableStrategy::default(),
         }
     }
 }
@@ -102,7 +103,7 @@ impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
 
             // We classify the response which will return None if not
             // errors were returned.
-            break match (self.retryable_from_resp)(&result) {
+            break match self.retryable_strategy.handle(&result) {
                 Some(Retryable::Transient) => {
                     // If the response failed and the error type was transient
                     // we can safely try to retry the request.
