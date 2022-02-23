@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added 
+- `RetryableStrategy` which allows for custom retry decisions based on the response that a request got
+
 ## [0.1.4] - 2022-02-21
 ### Changed
 - Updated `reqwest-middleware` to `0.1.5`
