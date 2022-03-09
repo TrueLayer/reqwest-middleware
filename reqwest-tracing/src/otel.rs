@@ -37,8 +37,8 @@ use opentelemetry::global;
 use opentelemetry::propagation::Injector;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 
-/// Injects the given Opentelemetry Context into a reqwest::Request headers to allow propagation downstream.
-pub fn inject_opentracing_context_into_request(span: &Span, request: Request) -> Request {
+/// Injects the given OpenTelemetry Context into a reqwest::Request headers to allow propagation downstream.
+pub fn inject_opentelemetry_context_into_request(span: &Span, request: Request) -> Request {
     let context = span.context();
     let mut request = request;
 
