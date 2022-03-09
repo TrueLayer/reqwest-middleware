@@ -6,7 +6,7 @@ edition = "2018"
 description = "Opentracing middleware for reqwest."
 repository = "https://github.com/TrueLayer/reqwest-middleware"
 license = "MIT OR Apache-2.0"
-keywords = ["reqwest", "http", "middleware", "opentracing", "tracing"]
+keywords = ["reqwest", "http", "middleware", "opentelemetry", "tracing"]
 categories = ["web-programming::http-client"]
 
 [features]

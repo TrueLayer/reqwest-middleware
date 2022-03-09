@@ -38,7 +38,7 @@ impl Middleware for TracingMiddleware {
             )
         };
 
-        // Adds tracing headers to the given request to propagate the OpenTracing context to downstream revivers of the request.
+        // Adds tracing headers to the given request to propagate the OpenTelemetry context to downstream revivers of the request.
         // Spans added by downstream consumers will be part of the same trace.
         #[cfg(any(
             feature = "opentelemetry_0_13",
@@ -47,7 +47,7 @@ impl Middleware for TracingMiddleware {
             feature = "opentelemetry_0_16",
             feature = "opentelemetry_0_17",
         ))]
-        let req = crate::otel::inject_opentracing_context_into_request(&request_span, req);
+        let req = crate::otel::inject_opentelemetry_context_into_request(&request_span, req);
 
         // Run the request
         let outcome = next.run(req, extensions).await;
