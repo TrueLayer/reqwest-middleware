@@ -79,9 +79,17 @@ mod test {
     use opentelemetry::sdk::propagation::TraceContextPropagator;
     use reqwest_middleware::ClientBuilder;
     use tracing::{info_span, Instrument, Level};
-    #[cfg(any(feature = "opentelemetry_0_13", feature = "opentelemetry_0_14", feature = "opentelemetry_0_15"))]
+    #[cfg(any(
+        feature = "opentelemetry_0_13",
+        feature = "opentelemetry_0_14",
+        feature = "opentelemetry_0_15"
+    ))]
     use tracing_subscriber_0_2::{filter, layer::SubscriberExt, Registry};
-    #[cfg(not(any(feature = "opentelemetry_0_13", feature = "opentelemetry_0_14", feature = "opentelemetry_0_15")))]
+    #[cfg(not(any(
+        feature = "opentelemetry_0_13",
+        feature = "opentelemetry_0_14",
+        feature = "opentelemetry_0_15"
+    )))]
     use tracing_subscriber_0_3::{filter, layer::SubscriberExt, Registry};
     use wiremock::{matchers::any, Mock, MockServer, ResponseTemplate};
 
