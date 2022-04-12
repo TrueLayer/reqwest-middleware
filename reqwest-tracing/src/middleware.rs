@@ -92,7 +92,7 @@ impl Middleware for TracingMiddleware {
 
 fn get_header_value(key: &str, headers: &HeaderMap) -> String {
     let header_default = &HeaderValue::from_static("");
-    format!("{:?}", headers.get(key).unwrap_or(header_default)).replace('\"', "")
+    format!("{:?}", headers.get(key).unwrap_or(header_default)).replace('"', "")
 }
 
 /// HTTP Mapping <https://github.com/open-telemetry/opentelemetry-specification/blob/c4b7f4307de79009c97b3a98563e91fee39b7ba3/work_in_progress/opencensus/HTTP.md#status>
