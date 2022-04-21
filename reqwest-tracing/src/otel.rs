@@ -38,9 +38,8 @@ use opentelemetry::propagation::Injector;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 
 /// Injects the given OpenTelemetry Context into a reqwest::Request headers to allow propagation downstream.
-pub fn inject_opentelemetry_context_into_request(span: &Span, request: Request) -> Request {
-    let context = span.context();
-    let mut request = request;
+pub fn inject_opentelemetry_context_into_request(mut request: Request) -> Request {
+    let context = Span::current().context();
 
     global::get_text_map_propagator(|injector| {
         injector.inject_context(&context, &mut RequestCarrier::new(&mut request))
@@ -70,5 +69,66 @@ impl<'a> Injector for RequestCarrier<'a> {
         let header_name = HeaderName::from_str(key).expect("Must be header name");
         let header_value = HeaderValue::from_str(&value).expect("Must be a header value");
         self.request.headers_mut().insert(header_name, header_value);
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::TracingMiddleware;
+    use opentelemetry::sdk::propagation::TraceContextPropagator;
+    use reqwest_middleware::ClientBuilder;
+    use tracing::{info_span, Instrument, Level};
+    #[cfg(any(
+        feature = "opentelemetry_0_13",
+        feature = "opentelemetry_0_14",
+        feature = "opentelemetry_0_15"
+    ))]
+    use tracing_subscriber_0_2::{filter, layer::SubscriberExt, Registry};
+    #[cfg(not(any(
+        feature = "opentelemetry_0_13",
+        feature = "opentelemetry_0_14",
+        feature = "opentelemetry_0_15"
+    )))]
+    use tracing_subscriber_0_3::{filter, layer::SubscriberExt, Registry};
+    use wiremock::{matchers::any, Mock, MockServer, ResponseTemplate};
+
+    #[tokio::test]
+    async fn tracing_middleware_propagates_otel_data_even_when_the_span_is_disabled() {
+        let tracer = opentelemetry::sdk::export::trace::stdout::new_pipeline()
+            .with_writer(std::io::sink())
+            .install_simple();
+        let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
+        let subscriber = Registry::default()
+            .with(filter::Targets::new().with_target("reqwest_tracing::otel::test", Level::DEBUG))
+            .with(telemetry);
+        tracing::subscriber::set_global_default(subscriber).unwrap();
+        global::set_text_map_propagator(TraceContextPropagator::new());
+
+        // Mock server - sends all request headers back in the response
+        let server = MockServer::start().await;
+        Mock::given(any())
+            .respond_with(|req: &wiremock::Request| {
+                req.headers
+                    .iter()
+                    .fold(ResponseTemplate::new(200), |resp, (k, v)| {
+                        resp.append_header(k.clone(), v.clone())
+                    })
+            })
+            .mount(&server)
+            .await;
+
+        let client = ClientBuilder::new(reqwest::Client::new())
+            .with(TracingMiddleware)
+            .build();
+
+        let resp = client
+            .get(server.uri())
+            .send()
+            .instrument(info_span!("some_span"))
+            .await
+            .unwrap();
+
+        assert!(resp.headers().contains_key("traceparent"));
     }
 }

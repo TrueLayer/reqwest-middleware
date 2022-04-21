@@ -41,3 +41,5 @@ tracing-opentelemetry_0_17_pkg = { package = "tracing-opentelemetry",version = "
 [dev-dependencies]
 wiremock = "0.5"
 tokio = { version = "1", features = ["macros"] }
+tracing_subscriber_0_2 = { package = "tracing-subscriber", version = "0.2" }
+tracing_subscriber_0_3 = { package = "tracing-subscriber", version = "0.3" }

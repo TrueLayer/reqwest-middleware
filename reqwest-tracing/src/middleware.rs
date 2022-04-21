@@ -2,6 +2,7 @@ use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{Request, Response, StatusCode as RequestStatusCode};
 use reqwest_middleware::{Error, Middleware, Next, Result};
 use task_local_extensions::Extensions;
+use tracing::Instrument;
 
 /// Middleware for tracing requests using the current Opentelemetry Context.
 pub struct TracingMiddleware;
@@ -38,56 +39,60 @@ impl Middleware for TracingMiddleware {
             )
         };
 
-        // Adds tracing headers to the given request to propagate the OpenTelemetry context to downstream revivers of the request.
-        // Spans added by downstream consumers will be part of the same trace.
-        #[cfg(any(
-            feature = "opentelemetry_0_13",
-            feature = "opentelemetry_0_14",
-            feature = "opentelemetry_0_15",
-            feature = "opentelemetry_0_16",
-            feature = "opentelemetry_0_17",
-        ))]
-        let req = crate::otel::inject_opentelemetry_context_into_request(&request_span, req);
+        async {
+            // Adds tracing headers to the given request to propagate the OpenTelemetry context to downstream revivers of the request.
+            // Spans added by downstream consumers will be part of the same trace.
+            #[cfg(any(
+                feature = "opentelemetry_0_13",
+                feature = "opentelemetry_0_14",
+                feature = "opentelemetry_0_15",
+                feature = "opentelemetry_0_16",
+                feature = "opentelemetry_0_17",
+            ))]
+            let req = crate::otel::inject_opentelemetry_context_into_request(req);
 
-        // Run the request
-        let outcome = next.run(req, extensions).await;
-        match &outcome {
-            Ok(response) => {
-                // The request ran successfully
-                let span_status = get_span_status(response.status());
-                let status_code = response.status().as_u16() as i64;
-                let user_agent = get_header_value("user_agent", response.headers());
-                if let Some(span_status) = span_status {
-                    request_span.record("otel.status_code", &span_status);
+            // Run the request
+            let outcome = next.run(req, extensions).await;
+            match &outcome {
+                Ok(response) => {
+                    // The request ran successfully
+                    let span_status = get_span_status(response.status());
+                    let status_code = response.status().as_u16() as i64;
+                    let user_agent = get_header_value("user_agent", response.headers());
+                    if let Some(span_status) = span_status {
+                        request_span.record("otel.status_code", &span_status);
+                    }
+                    request_span.record("http.status_code", &status_code);
+                    request_span.record("http.user_agent", &user_agent.as_str());
                 }
-                request_span.record("http.status_code", &status_code);
-                request_span.record("http.user_agent", &user_agent.as_str());
-            }
-            Err(e) => {
-                // The request didn't run successfully
-                let error_message = e.to_string();
-                let error_cause_chain = format!("{:?}", e);
-                request_span.record("otel.status_code", &"ERROR");
-                request_span.record("error.message", &error_message.as_str());
-                request_span.record("error.cause_chain", &error_cause_chain.as_str());
-                if let Error::Reqwest(e) = e {
-                    request_span.record(
-                        "http.status_code",
-                        &e.status()
-                            .map(|s| s.to_string())
-                            .unwrap_or_else(|| "".to_string())
-                            .as_str(),
-                    );
+                Err(e) => {
+                    // The request didn't run successfully
+                    let error_message = e.to_string();
+                    let error_cause_chain = format!("{:?}", e);
+                    request_span.record("otel.status_code", &"ERROR");
+                    request_span.record("error.message", &error_message.as_str());
+                    request_span.record("error.cause_chain", &error_cause_chain.as_str());
+                    if let Error::Reqwest(e) = e {
+                        request_span.record(
+                            "http.status_code",
+                            &e.status()
+                                .map(|s| s.to_string())
+                                .unwrap_or_else(|| "".to_string())
+                                .as_str(),
+                        );
+                    }
                 }
             }
+            outcome
         }
-        outcome
+        .instrument(request_span.clone())
+        .await
     }
 }
 
 fn get_header_value(key: &str, headers: &HeaderMap) -> String {
     let header_default = &HeaderValue::from_static("");
-    format!("{:?}", headers.get(key).unwrap_or(header_default)).replace("\"", "")
+    format!("{:?}", headers.get(key).unwrap_or(header_default)).replace('"', "")
 }
 
 /// HTTP Mapping <https://github.com/open-telemetry/opentelemetry-specification/blob/c4b7f4307de79009c97b3a98563e91fee39b7ba3/work_in_progress/opencensus/HTTP.md#status>
