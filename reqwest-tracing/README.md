@@ -20,11 +20,11 @@ opentelemetry = "0.17"
 reqwest = "0.11"
 reqwest-middleware = "0.1.1"
 reqwest-retry = "0.1.1"
-reqwest-tracing = { version = "0.1.2", features = ["opentelemetry_0_17"] }
+reqwest-tracing = { version = "0.2.1", features = ["opentelemetry_0_17"] }
 tokio = { version = "1.12.0", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1"
-tracing-opentelemetry = "0.15"
-tracing-subscriber = "0.2"
+tracing-opentelemetry = "0.17"
+tracing-subscriber = "0.3"
 ```
 
 ```rust,skip
