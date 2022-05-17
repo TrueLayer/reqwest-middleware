@@ -95,28 +95,21 @@ fn get_header_value(key: &str, headers: &HeaderMap) -> String {
     format!("{:?}", headers.get(key).unwrap_or(header_default)).replace('"', "")
 }
 
-/// HTTP Mapping <https://github.com/open-telemetry/opentelemetry-specification/blob/c4b7f4307de79009c97b3a98563e91fee39b7ba3/work_in_progress/opencensus/HTTP.md#status>
-// | HTTP code               | Span status code      |
-// |-------------------------|-----------------------|
-// | 100...299               | `Ok`                  |
-// | 3xx redirect codes      | `DeadlineExceeded` in case of loop (see above) [1], otherwise `Ok` |
-// | 401 Unauthorized ⚠      | `Unauthenticated` ⚠ (Unauthorized actually means unauthenticated according to [RFC 7235][rfc-unauthorized])  |
-// | 403 Forbidden           | `PermissionDenied`    |
-// | 404 Not Found           | `NotFound`            |
-// | 429 Too Many Requests   | `ResourceExhausted`   |
-// | Other 4xx code          | `InvalidArgument` [1] |
-// | 501 Not Implemented     | `Unimplemented`       |
-// | 503 Service Unavailable | `Unavailable`         |
-// | 504 Gateway Timeout     | `DeadlineExceeded`    |
-// | Other 5xx code          | `InternalError` [1]   |
-// | Any status code the client fails to interpret (e.g., 093 or 573) | `UnknownError` |
+/// HTTP Mapping <https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md#status>
 ///
 /// Maps the the http status to an Opentelemetry span status following the the specified convention above.
 fn get_span_status(request_status: RequestStatusCode) -> Option<&'static str> {
     match request_status.as_u16() {
-        100..=399 => Some("OK"),
-        400..=599 => Some("ERROR"),
-        _ => None,
+        // Span Status MUST be left unset if HTTP status code was in the 1xx, 2xx or 3xx ranges, unless there was
+        // another error (e.g., network error receiving the response body; or 3xx codes with max redirects exceeded),
+        // in which case status MUST be set to Error.
+        100..=399 => None,
+        // For HTTP status codes in the 4xx range span status MUST be left unset in case of SpanKind.SERVER and MUST be
+        // set to Error in case of SpanKind.CLIENT.
+        400..=499 => Some("ERROR"),
+        // For HTTP status codes in the 5xx range, as well as any other code the client failed to interpret, span
+        // status MUST be set to Error.
+        _ => Some("ERROR"),
     }
 }
 
