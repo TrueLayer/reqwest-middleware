@@ -13,4 +13,6 @@ mod middleware;
 mod otel;
 mod root_span;
 
+pub use middleware::DefaultRootSpanBuilder;
+pub use middleware::RootSpanBuilder;
 pub use middleware::TracingMiddleware;

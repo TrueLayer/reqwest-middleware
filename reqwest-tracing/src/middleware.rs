@@ -6,9 +6,10 @@ use tracing::{Instrument, Span};
 
 use crate::root_span;
 
+#[derive(Default)]
 /// Middleware for tracing requests using the current Opentelemetry Context.
-pub struct TracingMiddleware<RootSpan: RootSpanBuilder> {
-    root_span_builder: std::marker::PhantomData<RootSpan>,
+pub struct TracingMiddleware<S> {
+    root_span_builder: std::marker::PhantomData<S>,
 }
 
 pub trait RootSpanBuilder {
@@ -16,6 +17,7 @@ pub trait RootSpanBuilder {
     fn on_request_end(span: &Span, outcome: &Result<Response>);
 }
 
+#[derive(Default)]
 pub struct DefaultRootSpanBuilder;
 
 impl RootSpanBuilder for DefaultRootSpanBuilder {
