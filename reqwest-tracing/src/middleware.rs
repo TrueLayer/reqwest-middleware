@@ -2,42 +2,72 @@ use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{Request, Response, StatusCode as RequestStatusCode};
 use reqwest_middleware::{Error, Middleware, Next, Result};
 use task_local_extensions::Extensions;
-use tracing::Instrument;
+use tracing::{Instrument, Span};
+
+use crate::root_span;
 
 /// Middleware for tracing requests using the current Opentelemetry Context.
-pub struct TracingMiddleware;
+pub struct TracingMiddleware<RootSpan: RootSpanBuilder> {
+    root_span_builder: std::marker::PhantomData<RootSpan>,
+}
+
+pub trait RootSpanBuilder {
+    fn on_request_start(req: &Request) -> Span;
+    fn on_request_end(span: &Span, outcome: &Result<Response>);
+}
+
+pub struct DefaultRootSpanBuilder;
+
+impl RootSpanBuilder for DefaultRootSpanBuilder {
+    fn on_request_start(req: &Request) -> Span {
+        root_span!(req)
+    }
+    fn on_request_end(span: &Span, outcome: &Result<Response>) {
+        match outcome {
+            Ok(response) => {
+                // The request ran successfully
+                let span_status = get_span_status(response.status());
+                let status_code = response.status().as_u16() as i64;
+                let user_agent = get_header_value("user_agent", response.headers());
+                if let Some(span_status) = span_status {
+                    span.record("otel.status_code", &span_status);
+                }
+                span.record("http.status_code", &status_code);
+                span.record("http.user_agent", &user_agent.as_str());
+            }
+            Err(e) => {
+                // The request didn't run successfully
+                let error_message = e.to_string();
+                let error_cause_chain = format!("{:?}", e);
+                span.record("otel.status_code", &"ERROR");
+                span.record("error.message", &error_message.as_str());
+                span.record("error.cause_chain", &error_cause_chain.as_str());
+                if let Error::Reqwest(e) = e {
+                    span.record(
+                        "http.status_code",
+                        &e.status()
+                            .map(|s| s.to_string())
+                            .unwrap_or_else(|| "".to_string())
+                            .as_str(),
+                    );
+                }
+            }
+        }
+    }
+}
 
 #[async_trait::async_trait]
-impl Middleware for TracingMiddleware {
+impl<RootSpan> Middleware for TracingMiddleware<RootSpan>
+where
+    RootSpan: RootSpanBuilder + Sync + Send + 'static,
+{
     async fn handle(
         &self,
         req: Request,
         extensions: &mut Extensions,
         next: Next<'_>,
     ) -> Result<Response> {
-        let request_span = {
-            let method = req.method();
-            let scheme = req.url().scheme();
-            let host = req.url().host_str().unwrap_or("");
-            let host_port = req.url().port().unwrap_or(0) as i64;
-            let path = req.url().path();
-            let otel_name = format!("{} {}", method, path);
-
-            tracing::info_span!(
-                "HTTP request",
-                http.method = %method,
-                http.scheme = %scheme,
-                http.host = %host,
-                net.host.port = %host_port,
-                otel.kind = "client",
-                otel.name = %otel_name,
-                otel.status_code = tracing::field::Empty,
-                http.user_agent = tracing::field::Empty,
-                http.status_code = tracing::field::Empty,
-                error.message = tracing::field::Empty,
-                error.cause_chain = tracing::field::Empty,
-            )
-        };
+        let request_span = RootSpan::on_request_start(&req);
 
         async {
             // Adds tracing headers to the given request to propagate the OpenTelemetry context to downstream revivers of the request.
@@ -53,36 +83,7 @@ impl Middleware for TracingMiddleware {
 
             // Run the request
             let outcome = next.run(req, extensions).await;
-            match &outcome {
-                Ok(response) => {
-                    // The request ran successfully
-                    let span_status = get_span_status(response.status());
-                    let status_code = response.status().as_u16() as i64;
-                    let user_agent = get_header_value("user_agent", response.headers());
-                    if let Some(span_status) = span_status {
-                        request_span.record("otel.status_code", &span_status);
-                    }
-                    request_span.record("http.status_code", &status_code);
-                    request_span.record("http.user_agent", &user_agent.as_str());
-                }
-                Err(e) => {
-                    // The request didn't run successfully
-                    let error_message = e.to_string();
-                    let error_cause_chain = format!("{:?}", e);
-                    request_span.record("otel.status_code", &"ERROR");
-                    request_span.record("error.message", &error_message.as_str());
-                    request_span.record("error.cause_chain", &error_cause_chain.as_str());
-                    if let Error::Reqwest(e) = e {
-                        request_span.record(
-                            "http.status_code",
-                            &e.status()
-                                .map(|s| s.to_string())
-                                .unwrap_or_else(|| "".to_string())
-                                .as_str(),
-                        );
-                    }
-                }
-            }
+            RootSpan::on_request_end(&request_span, &outcome);
             outcome
         }
         .instrument(request_span.clone())

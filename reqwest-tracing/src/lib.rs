@@ -11,5 +11,6 @@ mod middleware;
     feature = "opentelemetry_0_17",
 ))]
 mod otel;
+mod root_span;
 
 pub use middleware::TracingMiddleware;
