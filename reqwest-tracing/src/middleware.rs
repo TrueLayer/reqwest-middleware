@@ -12,19 +12,46 @@ pub struct TracingMiddleware<S> {
     root_span_builder: std::marker::PhantomData<S>,
 }
 
+/// ```rust
+/// [derive(Default)]
+/// pub struct TimeTrace;
+/// impl RootSpanBuilder for TimeTrace {
+///     fn on_request_start(state: &mut Extensions, req: &Request) -> Span {
+///         state.insert(Time::now());
+///         root_span!(req, time_elapsed = tracing::field::Empty)
+///     }
+///
+///     fn on_request_end(state: &mut Extensions, span: &Span, outcome: &Result<Response>) {
+///         let detla = state.get().unwrap() - Time::now();
+///         DefaultRootSpanBuilder::on_request_end(state, span, outcome);
+///         match outcome {
+///             Ok(_response) => {
+///                 span.record("time_elapsed", &detla);
+///             }
+///             Err(_e) => {}
+///         }
+///     }
+/// }
+///
+/// let http = ClientBuilder::new(reqwest::Client::new())
+///     .with(TimeTrace::default())
+///     .build();
+/// ```
 pub trait RootSpanBuilder {
-    fn on_request_start(req: &Request) -> Span;
-    fn on_request_end(span: &Span, outcome: &Result<Response>);
+    fn on_request_start(state: &mut Extensions, req: &Request) -> Span;
+    fn on_request_end(state: &mut Extensions, span: &Span, outcome: &Result<Response>) {
+        DefaultRootSpanBuilder::on_request_end(state, span, outcome)
+    }
 }
 
 #[derive(Default)]
 pub struct DefaultRootSpanBuilder;
 
 impl RootSpanBuilder for DefaultRootSpanBuilder {
-    fn on_request_start(req: &Request) -> Span {
-        root_span!(req)
+    fn on_request_start(_state: &mut Extensions, req: &Request) -> Span {
+        root_span!(req, time_elp = tracing::field::Empty)
     }
-    fn on_request_end(span: &Span, outcome: &Result<Response>) {
+    fn on_request_end(_state: &mut Extensions, span: &Span, outcome: &Result<Response>) {
         match outcome {
             Ok(response) => {
                 // The request ran successfully
@@ -69,9 +96,10 @@ where
         extensions: &mut Extensions,
         next: Next<'_>,
     ) -> Result<Response> {
-        let request_span = RootSpan::on_request_start(&req);
+        let mut state = Extensions::new();
+        let request_span = RootSpan::on_request_start(&mut state, &req);
 
-        async {
+        let outcome_future = async {
             // Adds tracing headers to the given request to propagate the OpenTelemetry context to downstream revivers of the request.
             // Spans added by downstream consumers will be part of the same trace.
             #[cfg(any(
@@ -85,11 +113,11 @@ where
 
             // Run the request
             let outcome = next.run(req, extensions).await;
-            RootSpan::on_request_end(&request_span, &outcome);
+            RootSpan::on_request_end(&mut state, &request_span, &outcome);
             outcome
-        }
-        .instrument(request_span.clone())
-        .await
+        };
+
+        outcome_future.instrument(request_span.clone()).await
     }
 }
 
