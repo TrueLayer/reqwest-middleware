@@ -96,8 +96,7 @@ where
         extensions: &mut Extensions,
         next: Next<'_>,
     ) -> Result<Response> {
-        let mut state = Extensions::new();
-        let request_span = RootSpan::on_request_start(&mut state, &req);
+        let request_span = RootSpan::on_request_start(extensions, &req);
 
         let outcome_future = async {
             // Adds tracing headers to the given request to propagate the OpenTelemetry context to downstream revivers of the request.
@@ -113,7 +112,7 @@ where
 
             // Run the request
             let outcome = next.run(req, extensions).await;
-            RootSpan::on_request_end(&mut state, &request_span, &outcome);
+            RootSpan::on_request_end(extensions, &request_span, &outcome);
             outcome
         };
 
