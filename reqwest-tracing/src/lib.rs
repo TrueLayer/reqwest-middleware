@@ -4,7 +4,7 @@
 //!
 //! In this example we define a custom span builder to calculate the request time elapsed and we register the `TracingMiddleware`.
 //! ```rust
-//! 
+//!
 //! use reqwest_middleware::Result;
 //! use task_local_extensions::Extensions;
 //! use reqwest::{Request, Response};
@@ -12,11 +12,11 @@
 //! use reqwest_tracing::{DefaultRootSpanBuilder, RootSpanBuilder, TracingMiddleware};
 //! use tracing::Span;
 //! use std::time::{Duration, Instant};
-//! 
+//!
 //! use reqwest_tracing::root_span;
-//! 
+//!
 //! pub struct TimeTrace;
-//! 
+//!
 //! impl RootSpanBuilder for TimeTrace {
 //!     fn on_request_start(req: &Request, extension: &mut Extensions) -> Span {
 //!         extension.insert(Instant::now());
@@ -45,8 +45,8 @@ mod middleware;
 ))]
 mod otel;
 mod root_span_builder;
-pub use root_span_builder::{DefaultRootSpanBuilder, RootSpanBuilder};
 pub use middleware::TracingMiddleware;
+pub use root_span_builder::{DefaultRootSpanBuilder, RootSpanBuilder};
 
 #[doc(hidden)]
 pub mod root_span_macro;

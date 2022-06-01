@@ -1,5 +1,7 @@
-use reqwest::header::{HeaderName, HeaderValue};
-use reqwest::Request;
+use reqwest::{
+    header::{HeaderName, HeaderValue},
+    Request,
+};
 use std::str::FromStr;
 use tracing::Span;
 
@@ -33,8 +35,7 @@ pub use tracing_opentelemetry_0_16_pkg as tracing_opentelemetry;
 #[cfg(feature = "opentelemetry_0_17")]
 pub use tracing_opentelemetry_0_17_pkg as tracing_opentelemetry;
 
-use opentelemetry::global;
-use opentelemetry::propagation::Injector;
+use opentelemetry::{global, propagation::Injector};
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 
 /// Injects the given OpenTelemetry Context into a reqwest::Request headers to allow propagation downstream.
