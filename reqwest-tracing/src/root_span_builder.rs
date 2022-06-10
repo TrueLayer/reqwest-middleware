@@ -8,23 +8,23 @@ use tracing::Span;
 
 use crate::root_span;
 
-/// `RootSpanBuilder` allows you to customise the span attached by
+/// `RequestOtelSpanBuilder` allows you to customise the span attached by
 /// [`TracingMiddleware`] to incoming requests.
 ///
 /// Check out [`root_span`] documentation for examples.
 ///
 /// [`TracingMiddleware`]: crate::middleware::TracingMiddleware
-pub trait RootSpanBuilder {
+pub trait RequestOtelSpanBuilder {
     fn on_request_start(req: &Request, extension: &mut Extensions) -> Span;
     fn on_request_end(span: &Span, outcome: &Result<Response>, extension: &mut Extensions);
 }
 
-/// The default [`RootSpanBuilder`] for [`TracingMiddleware`].
+/// The default [`RequestOtelSpanBuilder`] for [`TracingMiddleware`].
 ///
 /// [`TracingMiddleware`]: crate::middleware::TracingMiddleware
-pub struct DefaultRootSpanBuilder;
+pub struct DefaultRequestOtelSpanBuilder;
 
-impl RootSpanBuilder for DefaultRootSpanBuilder {
+impl RequestOtelSpanBuilder for DefaultRequestOtelSpanBuilder {
     fn on_request_start(req: &Request, _extension: &mut Extensions) -> Span {
         root_span!(req)
     }

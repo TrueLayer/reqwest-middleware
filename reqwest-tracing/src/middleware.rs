@@ -3,14 +3,14 @@ use reqwest_middleware::{Middleware, Next, Result};
 use task_local_extensions::Extensions;
 use tracing::Instrument;
 
-use crate::{DefaultRootSpanBuilder, RootSpanBuilder};
+use crate::{DefaultRequestOtelSpanBuilder, RequestOtelSpanBuilder};
 
 /// Middleware for tracing requests using the current Opentelemetry Context.
-pub struct TracingMiddleware<S: RootSpanBuilder> {
+pub struct TracingMiddleware<S: RequestOtelSpanBuilder> {
     root_span_builder: std::marker::PhantomData<S>,
 }
 
-impl<S: RootSpanBuilder> TracingMiddleware<S> {
+impl<S: RequestOtelSpanBuilder> TracingMiddleware<S> {
     pub fn new() -> TracingMiddleware<S> {
         TracingMiddleware {
             root_span_builder: Default::default(),
@@ -18,13 +18,13 @@ impl<S: RootSpanBuilder> TracingMiddleware<S> {
     }
 }
 
-impl Default for TracingMiddleware<DefaultRootSpanBuilder> {
+impl Default for TracingMiddleware<DefaultRequestOtelSpanBuilder> {
     fn default() -> Self {
         TracingMiddleware::new()
     }
 }
 
-impl<S: RootSpanBuilder> Clone for TracingMiddleware<S> {
+impl<S: RequestOtelSpanBuilder> Clone for TracingMiddleware<S> {
     fn clone(&self) -> Self {
         Self::new()
     }
@@ -33,7 +33,7 @@ impl<S: RootSpanBuilder> Clone for TracingMiddleware<S> {
 #[async_trait::async_trait]
 impl<RootSpan> Middleware for TracingMiddleware<RootSpan>
 where
-    RootSpan: RootSpanBuilder + Sync + Send + 'static,
+    RootSpan: RequestOtelSpanBuilder + Sync + Send + 'static,
 {
     async fn handle(
         &self,

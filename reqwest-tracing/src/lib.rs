@@ -9,7 +9,7 @@
 //! use task_local_extensions::Extensions;
 //! use reqwest::{Request, Response};
 //! use reqwest_middleware::ClientBuilder;
-//! use reqwest_tracing::{DefaultRootSpanBuilder, RootSpanBuilder, TracingMiddleware};
+//! use reqwest_tracing::{DefaultRequestOtelSpanBuilder, RequestOtelSpanBuilder, TracingMiddleware};
 //! use tracing::Span;
 //! use std::time::{Duration, Instant};
 //!
@@ -17,7 +17,7 @@
 //!
 //! pub struct TimeTrace;
 //!
-//! impl RootSpanBuilder for TimeTrace {
+//! impl RequestOtelSpanBuilder for TimeTrace {
 //!     fn on_request_start(req: &Request, extension: &mut Extensions) -> Span {
 //!         extension.insert(Instant::now());
 //!         root_span!(req, time_elapsed = tracing::field::Empty)
@@ -25,7 +25,7 @@
 //!
 //!     fn on_request_end(span: &Span, outcome: &Result<Response>, extension: &mut Extensions) {
 //!         let time_elapsed = extension.get::<Instant>().unwrap().elapsed().as_millis() as i64;
-//!         DefaultRootSpanBuilder::on_request_end(span, outcome, extension);
+//!         DefaultRequestOtelSpanBuilder::on_request_end(span, outcome, extension);
 //!         span.record("time_elapsed", &time_elapsed);
 //!     }
 //! }
@@ -46,7 +46,7 @@ mod middleware;
 mod otel;
 mod root_span_builder;
 pub use middleware::TracingMiddleware;
-pub use root_span_builder::{DefaultRootSpanBuilder, RootSpanBuilder};
+pub use root_span_builder::{DefaultRequestOtelSpanBuilder, RequestOtelSpanBuilder};
 
 #[doc(hidden)]
 pub mod root_span_macro;
