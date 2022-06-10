@@ -6,12 +6,12 @@ use reqwest_middleware::{Error, Result};
 use task_local_extensions::Extensions;
 use tracing::Span;
 
-use crate::root_span;
+use crate::reqwest_otel_span;
 
 /// `RequestOtelSpanBuilder` allows you to customise the span attached by
 /// [`TracingMiddleware`] to incoming requests.
 ///
-/// Check out [`root_span`] documentation for examples.
+/// Check out [`reqwest_otel_span`] documentation for examples.
 ///
 /// [`TracingMiddleware`]: crate::middleware::TracingMiddleware
 pub trait RequestOtelSpanBuilder {
@@ -26,7 +26,7 @@ pub struct DefaultRequestOtelSpanBuilder;
 
 impl RequestOtelSpanBuilder for DefaultRequestOtelSpanBuilder {
     fn on_request_start(req: &Request, _extension: &mut Extensions) -> Span {
-        root_span!(req)
+        reqwest_otel_span!(req)
     }
     fn on_request_end(span: &Span, outcome: &Result<Response>, _extension: &mut Extensions) {
         match outcome {

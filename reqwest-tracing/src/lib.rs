@@ -44,9 +44,9 @@ mod middleware;
     feature = "opentelemetry_0_17",
 ))]
 mod otel;
-mod root_span_builder;
+mod reqwest_otel_span_builder;
 pub use middleware::TracingMiddleware;
-pub use root_span_builder::{DefaultRequestOtelSpanBuilder, RequestOtelSpanBuilder};
+pub use reqwest_otel_span_builder::{DefaultRequestOtelSpanBuilder, RequestOtelSpanBuilder};
 
 #[doc(hidden)]
-pub mod root_span_macro;
+pub mod reqwest_otel_span_macro;
