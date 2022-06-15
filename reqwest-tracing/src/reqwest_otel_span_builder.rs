@@ -6,60 +6,72 @@ use reqwest_middleware::{Error, Result};
 use task_local_extensions::Extensions;
 use tracing::Span;
 
-use crate::reqwest_otel_span;
+use crate::{impl_on_request_failure, impl_on_request_success, reqwest_otel_span};
 
-/// `RequestOtelSpanBuilder` allows you to customise the span attached by
+/// [`RequestOtelSpanBackend`] allows you to customise the span attached by
 /// [`TracingMiddleware`] to incoming requests.
 ///
 /// Check out [`reqwest_otel_span`] documentation for examples.
 ///
-/// [`TracingMiddleware`]: crate::middleware::TracingMiddleware
-pub trait RequestOtelSpanBuilder {
+/// [`TracingMiddleware`]: crate::middleware::TracingMiddleware.
+pub trait RequestOtelSpanBackend {
+    /// Initalized a new span before the request is executed.
     fn on_request_start(req: &Request, extension: &mut Extensions) -> Span;
-    fn on_request_end(span: &Span, outcome: &Result<Response>, extension: &mut Extensions);
+
+    /// Runs after the request call has executed.
+    fn on_request_end(span: &Span, outcome: &Result<Response>, extension: &mut Extensions) {}
+
+    /// Runs only on a successful request.
+    fn on_request_success(span: &Span, response: &Response, extension: &mut Extensions);
+
+    /// Runs only on a failed request.
+    fn on_request_failure(span: &Span, e: &Error, _extension: &mut Extensions);
 }
 
-/// The default [`RequestOtelSpanBuilder`] for [`TracingMiddleware`].
+/// Pupulates default success fields for a given [`reqwest_otel_span!`] span.
+#[inline]
+pub fn default_on_request_success(span: &Span, response: &Response) {
+    let span_status = get_span_status(response.status());
+    let status_code = response.status().as_u16() as i64;
+    let user_agent = get_header_value("user_agent", response.headers());
+    if let Some(span_status) = span_status {
+        span.record("otel.status_code", &span_status);
+    }
+    span.record("http.status_code", &status_code);
+    span.record("http.user_agent", &user_agent.as_str());
+}
+
+/// Pupulates default failure fields for a given [`reqwest_otel_span!`] span.
+#[inline]
+pub fn default_on_request_failure(span: &Span, e: &Error) {
+    let error_message = e.to_string();
+    let error_cause_chain = format!("{:?}", e);
+    span.record("otel.status_code", &"ERROR");
+    span.record("error.message", &error_message.as_str());
+    span.record("error.cause_chain", &error_cause_chain.as_str());
+    if let Error::Reqwest(e) = e {
+        span.record(
+            "http.status_code",
+            &e.status()
+                .map(|s| s.to_string())
+                .unwrap_or_else(|| "".to_string())
+                .as_str(),
+        );
+    }
+}
+
+/// The default [`RequestOtelSpanBackend`] for [`TracingMiddleware`].
 ///
 /// [`TracingMiddleware`]: crate::middleware::TracingMiddleware
-pub struct DefaultRequestOtelSpanBuilder;
+pub struct DefaultSpanBackend;
 
-impl RequestOtelSpanBuilder for DefaultRequestOtelSpanBuilder {
-    fn on_request_start(req: &Request, _extension: &mut Extensions) -> Span {
+impl RequestOtelSpanBackend for DefaultSpanBackend {
+    fn on_request_start(req: &Request, _: &mut Extensions) -> Span {
         reqwest_otel_span!(req)
     }
-    fn on_request_end(span: &Span, outcome: &Result<Response>, _extension: &mut Extensions) {
-        match outcome {
-            Ok(response) => {
-                // The request ran successfully
-                let span_status = get_span_status(response.status());
-                let status_code = response.status().as_u16() as i64;
-                let user_agent = get_header_value("user_agent", response.headers());
-                if let Some(span_status) = span_status {
-                    span.record("otel.status_code", &span_status);
-                }
-                span.record("http.status_code", &status_code);
-                span.record("http.user_agent", &user_agent.as_str());
-            }
-            Err(e) => {
-                // The request didn't run successfully
-                let error_message = e.to_string();
-                let error_cause_chain = format!("{:?}", e);
-                span.record("otel.status_code", &"ERROR");
-                span.record("error.message", &error_message.as_str());
-                span.record("error.cause_chain", &error_cause_chain.as_str());
-                if let Error::Reqwest(e) = e {
-                    span.record(
-                        "http.status_code",
-                        &e.status()
-                            .map(|s| s.to_string())
-                            .unwrap_or_else(|| "".to_string())
-                            .as_str(),
-                    );
-                }
-            }
-        }
-    }
+
+    impl_on_request_success!();
+    impl_on_request_failure!();
 }
 
 fn get_header_value(key: &str, headers: &HeaderMap) -> String {

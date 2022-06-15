@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+# [0.3.0] - 2022-06-10
+### Breaking
+- Created `RequestOtelSpanBackend` trait with `reqwest_otel_span` macro to provide extendable default request otel fields
 ### Fixed
 - Fix how we set the OpenTelemetry span status, based on the HTTP response status.
 
