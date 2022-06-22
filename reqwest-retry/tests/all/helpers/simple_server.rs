@@ -4,6 +4,7 @@ use async_std::net::{TcpListener, TcpStream};
 use futures::stream::StreamExt;
 use std::error::Error;
 use std::fmt;
+
 /// This is a simple server that returns the responses given at creation time: [`self.raw_http_responses`] following a round-robin mechanism.
 pub struct SimpleServer {
     listener: TcpListener,
