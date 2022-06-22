@@ -1,5 +1,6 @@
-use reqwest::{Request, Response};
-use reqwest_middleware::{Middleware, Next, Result};
+use reqwest::header::{HeaderMap, HeaderValue};
+use reqwest::{Request, Response, StatusCode as RequestStatusCode};
+use reqwest_middleware::{Error, Middleware, Next, Result};
 use task_local_extensions::Extensions;
 use tracing::Instrument;
 

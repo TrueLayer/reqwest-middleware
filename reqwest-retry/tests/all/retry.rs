@@ -1,15 +1,14 @@
 use paste::paste;
-use reqwest::{Client, StatusCode};
+use reqwest::Client;
+use reqwest::StatusCode;
 use reqwest_middleware::ClientBuilder;
 use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
 use std::sync::{
     atomic::{AtomicU32, Ordering},
     Arc,
 };
-use wiremock::{
-    matchers::{method, path},
-    Mock, MockServer, Respond, ResponseTemplate,
-};
+use wiremock::matchers::{method, path};
+use wiremock::{Mock, MockServer, Respond, ResponseTemplate};
 
 use crate::helpers::SimpleServer;
 pub struct RetryResponder(Arc<AtomicU32>, u32, u16);

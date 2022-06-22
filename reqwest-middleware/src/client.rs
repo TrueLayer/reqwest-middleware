@@ -1,21 +1,15 @@
-use reqwest::{
-    header::{HeaderMap, HeaderName, HeaderValue},
-    multipart::Form,
-    Body, Client, IntoUrl, Method, Request, Response,
-};
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+use reqwest::multipart::Form;
+use reqwest::{Body, Client, IntoUrl, Method, Request, Response};
 use serde::Serialize;
-use std::{
-    convert::TryFrom,
-    fmt::{self, Display},
-    sync::Arc,
-    time::Duration,
-};
+use std::convert::TryFrom;
+use std::fmt::{self, Display};
+use std::sync::Arc;
+use std::time::Duration;
 use task_local_extensions::Extensions;
 
-use crate::{
-    error::Result,
-    middleware::{Middleware, Next},
-};
+use crate::error::Result;
+use crate::middleware::{Middleware, Next};
 
 /// A `ClientBuilder` is used to build a [`ClientWithMiddleware`].
 ///
