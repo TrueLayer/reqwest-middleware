@@ -6,7 +6,7 @@ use reqwest_middleware::{Error, Result};
 use task_local_extensions::Extensions;
 use tracing::Span;
 
-use crate::{impl_on_request_failure, impl_on_request_success, reqwest_otel_span};
+use crate::reqwest_otel_span;
 
 /// [`RequestOtelSpanBackend`] allows you to customise the span attached by
 /// [`TracingMiddleware`] to incoming requests.
@@ -19,16 +19,19 @@ pub trait RequestOtelSpanBackend {
     fn on_request_start(req: &Request, extension: &mut Extensions) -> Span;
 
     /// Runs after the request call has executed.
-    fn on_request_end(span: &Span, outcome: &Result<Response>, extension: &mut Extensions) {}
-
-    /// Runs only on a successful request.
-    fn on_request_success(span: &Span, response: &Response, extension: &mut Extensions);
-
-    /// Runs only on a failed request.
-    fn on_request_failure(span: &Span, e: &Error, _extension: &mut Extensions);
+    fn on_request_end(span: &Span, outcome: &Result<Response>, extension: &mut Extensions);
 }
 
-/// Pupulates default success fields for a given [`reqwest_otel_span!`] span.
+/// Populates default success/failure fields for a given [`reqwest_otel_span!`] span.
+#[inline]
+pub fn default_on_request_end(span: &Span, outcome: &Result<Response>) {
+    match outcome {
+        Ok(res) => default_on_request_success(span, res),
+        Err(err) => default_on_request_failure(span, err),
+    }
+}
+
+/// Populates default success fields for a given [`reqwest_otel_span!`] span.
 #[inline]
 pub fn default_on_request_success(span: &Span, response: &Response) {
     let span_status = get_span_status(response.status());
@@ -41,7 +44,7 @@ pub fn default_on_request_success(span: &Span, response: &Response) {
     span.record("http.user_agent", &user_agent.as_str());
 }
 
-/// Pupulates default failure fields for a given [`reqwest_otel_span!`] span.
+/// Populates default failure fields for a given [`reqwest_otel_span!`] span.
 #[inline]
 pub fn default_on_request_failure(span: &Span, e: &Error) {
     let error_message = e.to_string();
@@ -70,8 +73,9 @@ impl RequestOtelSpanBackend for DefaultSpanBackend {
         reqwest_otel_span!(req)
     }
 
-    impl_on_request_success!();
-    impl_on_request_failure!();
+    fn on_request_end(span: &Span, outcome: &Result<Response>, _: &mut Extensions) {
+        default_on_request_end(span, outcome)
+    }
 }
 
 fn get_header_value(key: &str, headers: &HeaderMap) -> String {

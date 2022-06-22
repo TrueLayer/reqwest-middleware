@@ -3,7 +3,7 @@
 /// It empowers you to add custom properties to the span on top of the default properties provided by the macro
 ///
 /// Here are some convenient functions to checkout [`default_on_request_success`], [`default_on_request_failure`],
-/// [`impl_on_request_success!`], and [`impl_on_request_failure!`].
+/// and [`default_on_request_end`].
 ///
 /// # Why a macro?
 ///
@@ -16,6 +16,14 @@
 /// The first argument passed to [`reqwest_otel_span!`] is a reference to an [`reqwest::Request`].
 ///
 /// ```rust
+/// use reqwest_middleware::Result;
+/// use task_local_extensions::Extensions;
+/// use reqwest::{Request, Response};
+/// use reqwest_tracing::{
+///     default_on_request_end, reqwest_otel_span, RequestOtelSpanBackend
+/// };
+/// use tracing::Span;
+///
 /// pub struct CustomRequestOtelSpanBackend;
 ///
 /// impl RequestOtelSpanBackend for CustomRequestOtelSpanBackend {
@@ -23,8 +31,9 @@
 ///         reqwest_otel_span!(req)
 ///     }
 ///
-///     impl_on_request_success!();
-///     impl_on_request_failure!();
+///     fn on_request_end(span: &Span, outcome: &Result<Response>, _extension: &mut Extensions) {
+///         default_on_request_end(span, outcome)
+///     }
 /// }
 /// ```
 ///
@@ -59,7 +68,7 @@
 /// # let request: &reqwest::Request = todo!();
 ///
 /// // Reduce the log level for service endpoints/probes
-/// let level = if req.method().as_str() == "POST" {
+/// let level = if request.method().as_str() == "POST" {
 ///     Level::DEBUG
 /// } else {
 ///     Level::INFO
@@ -73,6 +82,7 @@
 /// [`DefaultSpanBackend`]: crate::reqwest_otel_span_builder::DefaultSpanBackend
 /// [`default_on_request_success`]: crate::reqwest_otel_span_builder::default_on_request_success
 /// [`default_on_request_failure`]: crate::reqwest_otel_span_builder::default_on_request_failure
+/// [`default_on_request_end`]: crate::reqwest_otel_span_builder::default_on_request_end
 macro_rules! reqwest_otel_span {
     // Vanilla root span at default INFO level, with no additional fields
     ($request:ident) => {
@@ -137,30 +147,6 @@ macro_rules! reqwest_otel_span {
             span
         }
     }
-}
-
-#[macro_export]
-/// provides a default [`on_request_success`] implementation for a [`reqwest_otel_span!`] span.
-///
-/// [`on_request_success`]: crate::RequestOtelSpanBackend::on_request_success
-macro_rules! impl_on_request_success {
-    () => {
-        fn on_request_success(span: &Span, response: &Response, _: &mut Extensions) {
-            crate::default_on_request_success(span, response)
-        }
-    };
-}
-
-#[macro_export]
-/// provides a default [`on_request_failure`] implementation for a [`reqwest_otel_span!`] span.
-///
-/// [`on_request_failure`]: crate::RequestOtelSpanBackend::on_request_failure
-macro_rules! impl_on_request_failure {
-    () => {
-        fn on_request_failure(span: &Span, e: &Error, _: &mut Extensions) {
-            crate::default_on_request_failure(span, e)
-        }
-    };
 }
 
 #[doc(hidden)]

@@ -57,10 +57,6 @@ where
 
             // Run the request
             let outcome = next.run(req, extensions).await;
-            match &outcome {
-                Ok(res) => RequestOtelSpan::on_request_success(&request_span, res, extensions),
-                Err(err) => RequestOtelSpan::on_request_failure(&request_span, err, extensions),
-            }
             RequestOtelSpan::on_request_end(&request_span, &outcome, extensions);
             outcome
         };

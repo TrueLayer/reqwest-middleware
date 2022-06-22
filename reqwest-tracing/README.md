@@ -28,10 +28,7 @@ tracing-subscriber = "0.3"
 ```
 
 ```rust,skip
-use reqwest_tracing::{
-    impl_on_request_failure, impl_on_request_success, reqwest_otel_span,
-    RequestOtelSpanBackend, TracingMiddleware
-};
+use reqwest_tracing::{default_on_request_end, reqwest_otel_span, RequestOtelSpanBackend, TracingMiddleware};
 use opentelemetry::sdk::export::trace::stdout;
 use reqwest::{Request, Response};
 use reqwest_middleware::{ClientBuilder, Result};
@@ -51,11 +48,9 @@ impl RequestOtelSpanBackend for TimeTrace {
 
     fn on_request_end(span: &Span, outcome: &Result<Response>, extension: &mut Extensions) {
         let time_elapsed = extension.get::<Instant>().unwrap().elapsed().as_millis() as i64;
+        default_on_request_end(span, outcome);
         span.record("time_elapsed", &time_elapsed);
     }
-    
-    impl_on_request_success!();
-    impl_on_request_failure!();
 }
 
 #[tokio::main]
@@ -70,7 +65,7 @@ async fn main() {
 
 async fn run() {
     let client = ClientBuilder::new(reqwest::Client::new())
-        .with(TracingMiddleware::<TimeTrace>::default())
+        .with(TracingMiddleware::<TimeTrace>::new())
         .build();
 
     client.get("https://truelayer.com").send().await.unwrap();

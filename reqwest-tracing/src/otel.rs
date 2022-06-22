@@ -120,7 +120,7 @@ mod test {
             .await;
 
         let client = ClientBuilder::new(reqwest::Client::new())
-            .with(TracingMiddleware)
+            .with(TracingMiddleware::default())
             .build();
 
         let resp = client

@@ -42,7 +42,7 @@ async fn main() {
     let retry_policy = ExponentialBackoff::builder().build_with_max_retries(3);
     let client = ClientBuilder::new(reqwest::Client::new())
         // Trace HTTP requests. See the tracing crate to make use of these traces.
-        .with(TracingMiddleware)
+        .with(TracingMiddleware::default())
         // Retry failed requests.
         .with(RetryTransientMiddleware::new_with_policy(retry_policy))
         .build();
