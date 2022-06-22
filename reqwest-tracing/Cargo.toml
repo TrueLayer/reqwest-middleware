@@ -18,7 +18,7 @@ opentelemetry_0_17 = ["opentelemetry_0_17_pkg", "tracing-opentelemetry_0_17_pkg"
 
 
 [dependencies]
-reqwest-middleware = { path = "../reqwest-middleware" }
+reqwest-middleware = { version = "^0.1.6", path = "../reqwest-middleware" }
 
 async-trait = "0.1.51"
 reqwest = { version = "0.11", default-features = false }
