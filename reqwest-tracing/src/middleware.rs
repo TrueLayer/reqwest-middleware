@@ -3,14 +3,14 @@ use reqwest_middleware::{Middleware, Next, Result};
 use task_local_extensions::Extensions;
 use tracing::Instrument;
 
-use crate::{DefaultSpanBackend, RequestOtelSpanBackend};
+use crate::{DefaultSpanBackend, ReqwestOtelSpanBackend};
 
 /// Middleware for tracing requests using the current Opentelemetry Context.
-pub struct TracingMiddleware<S: RequestOtelSpanBackend> {
+pub struct TracingMiddleware<S: ReqwestOtelSpanBackend> {
     span_backend: std::marker::PhantomData<S>,
 }
 
-impl<S: RequestOtelSpanBackend> TracingMiddleware<S> {
+impl<S: ReqwestOtelSpanBackend> TracingMiddleware<S> {
     pub fn new() -> TracingMiddleware<S> {
         TracingMiddleware {
             span_backend: Default::default(),
@@ -24,16 +24,16 @@ impl Default for TracingMiddleware<DefaultSpanBackend> {
     }
 }
 
-impl<S: RequestOtelSpanBackend> Clone for TracingMiddleware<S> {
+impl<S: ReqwestOtelSpanBackend> Clone for TracingMiddleware<S> {
     fn clone(&self) -> Self {
         Self::new()
     }
 }
 
 #[async_trait::async_trait]
-impl<RequestOtelSpan> Middleware for TracingMiddleware<RequestOtelSpan>
+impl<ReqwestOtelSpan> Middleware for TracingMiddleware<ReqwestOtelSpan>
 where
-    RequestOtelSpan: RequestOtelSpanBackend + Sync + Send + 'static,
+    ReqwestOtelSpan: ReqwestOtelSpanBackend + Sync + Send + 'static,
 {
     async fn handle(
         &self,
@@ -41,7 +41,7 @@ where
         extensions: &mut Extensions,
         next: Next<'_>,
     ) -> Result<Response> {
-        let request_span = RequestOtelSpan::on_request_start(&req, extensions);
+        let request_span = ReqwestOtelSpan::on_request_start(&req, extensions);
 
         let outcome_future = async {
             // Adds tracing headers to the given request to propagate the OpenTelemetry context to downstream revivers of the request.
@@ -57,7 +57,7 @@ where
 
             // Run the request
             let outcome = next.run(req, extensions).await;
-            RequestOtelSpan::on_request_end(&request_span, &outcome, extensions);
+            ReqwestOtelSpan::on_request_end(&request_span, &outcome, extensions);
             outcome
         };
 

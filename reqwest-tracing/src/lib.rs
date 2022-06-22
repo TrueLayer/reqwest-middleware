@@ -9,14 +9,14 @@
 //! use reqwest::{Request, Response};
 //! use reqwest_middleware::ClientBuilder;
 //! use reqwest_tracing::{
-//!     default_on_request_end, reqwest_otel_span, RequestOtelSpanBackend, TracingMiddleware
+//!     default_on_request_end, reqwest_otel_span, ReqwestOtelSpanBackend, TracingMiddleware
 //! };
 //! use tracing::Span;
 //! use std::time::{Duration, Instant};
 //!
 //! pub struct TimeTrace;
 //!
-//! impl RequestOtelSpanBackend for TimeTrace {
+//! impl ReqwestOtelSpanBackend for TimeTrace {
 //!     fn on_request_start(req: &Request, extension: &mut Extensions) -> Span {
 //!         extension.insert(Instant::now());
 //!         reqwest_otel_span!(req, time_elapsed = tracing::field::Empty)
@@ -47,7 +47,7 @@ mod reqwest_otel_span_builder;
 pub use middleware::TracingMiddleware;
 pub use reqwest_otel_span_builder::{
     default_on_request_end, default_on_request_failure, default_on_request_success,
-    DefaultSpanBackend, RequestOtelSpanBackend,
+    DefaultSpanBackend, ReqwestOtelSpanBackend,
 };
 
 #[doc(hidden)]

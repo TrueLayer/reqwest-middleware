@@ -28,7 +28,7 @@ tracing-subscriber = "0.3"
 ```
 
 ```rust,skip
-use reqwest_tracing::{default_on_request_end, reqwest_otel_span, RequestOtelSpanBackend, TracingMiddleware};
+use reqwest_tracing::{default_on_request_end, reqwest_otel_span, ReqwestOtelSpanBackend, TracingMiddleware};
 use opentelemetry::sdk::export::trace::stdout;
 use reqwest::{Request, Response};
 use reqwest_middleware::{ClientBuilder, Result};
@@ -40,7 +40,7 @@ use tracing_subscriber::Registry;
 
 pub struct TimeTrace;
 
-impl RequestOtelSpanBackend for TimeTrace {
+impl ReqwestOtelSpanBackend for TimeTrace {
     fn on_request_start(req: &Request, extension: &mut Extensions) -> Span {
         extension.insert(Instant::now());
         reqwest_otel_span!(req, time_elapsed = tracing::field::Empty)

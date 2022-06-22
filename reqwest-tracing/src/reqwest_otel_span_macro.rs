@@ -20,13 +20,13 @@
 /// use task_local_extensions::Extensions;
 /// use reqwest::{Request, Response};
 /// use reqwest_tracing::{
-///     default_on_request_end, reqwest_otel_span, RequestOtelSpanBackend
+///     default_on_request_end, reqwest_otel_span, ReqwestOtelSpanBackend
 /// };
 /// use tracing::Span;
 ///
-/// pub struct CustomRequestOtelSpanBackend;
+/// pub struct CustomReqwestOtelSpanBackend;
 ///
-/// impl RequestOtelSpanBackend for CustomRequestOtelSpanBackend {
+/// impl ReqwestOtelSpanBackend for CustomReqwestOtelSpanBackend {
 ///     fn on_request_start(req: &Request, _extension: &mut Extensions) -> Span {
 ///         reqwest_otel_span!(req)
 ///     }

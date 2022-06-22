@@ -8,13 +8,13 @@ use tracing::Span;
 
 use crate::reqwest_otel_span;
 
-/// [`RequestOtelSpanBackend`] allows you to customise the span attached by
+/// [`ReqwestOtelSpanBackend`] allows you to customise the span attached by
 /// [`TracingMiddleware`] to incoming requests.
 ///
 /// Check out [`reqwest_otel_span`] documentation for examples.
 ///
 /// [`TracingMiddleware`]: crate::middleware::TracingMiddleware.
-pub trait RequestOtelSpanBackend {
+pub trait ReqwestOtelSpanBackend {
     /// Initalized a new span before the request is executed.
     fn on_request_start(req: &Request, extension: &mut Extensions) -> Span;
 
@@ -63,12 +63,12 @@ pub fn default_on_request_failure(span: &Span, e: &Error) {
     }
 }
 
-/// The default [`RequestOtelSpanBackend`] for [`TracingMiddleware`].
+/// The default [`ReqwestOtelSpanBackend`] for [`TracingMiddleware`].
 ///
 /// [`TracingMiddleware`]: crate::middleware::TracingMiddleware
 pub struct DefaultSpanBackend;
 
-impl RequestOtelSpanBackend for DefaultSpanBackend {
+impl ReqwestOtelSpanBackend for DefaultSpanBackend {
     fn on_request_start(req: &Request, _: &mut Extensions) -> Span {
         reqwest_otel_span!(req)
     }
