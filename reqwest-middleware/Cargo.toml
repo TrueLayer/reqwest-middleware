@@ -17,12 +17,12 @@ futures = "0.3"
 http = "0.2"
 reqwest = { version = "0.11", default-features = false, features = ["json", "multipart"] }
 serde = "1"
-thiserror = "1"
 task-local-extensions = "0.1.1"
+thiserror = "1"
 
 [dev-dependencies]
 reqwest = "0.11"
 reqwest-retry = { path = "../reqwest-retry" }
 reqwest-tracing = { path = "../reqwest-tracing" }
-wiremock = "0.5"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+wiremock = "0.5"
