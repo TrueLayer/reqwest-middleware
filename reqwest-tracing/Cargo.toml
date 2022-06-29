@@ -22,9 +22,9 @@ reqwest-middleware = { version = "^0.1.6" }
 
 async-trait = "0.1.51"
 reqwest = { version = "0.11", default-features = false }
+task-local-extensions = "0.1.1"
 tokio = { version = "1.6", features = ["time"] }
 tracing = "0.1.26"
-task-local-extensions = "0.1.1"
 
 opentelemetry_0_13_pkg = { package = "opentelemetry", version = "0.13", optional = true }
 opentelemetry_0_14_pkg = { package = "opentelemetry", version = "0.14", optional = true }
@@ -39,7 +39,7 @@ tracing-opentelemetry_0_17_pkg = { package = "tracing-opentelemetry",version = "
 
 
 [dev-dependencies]
-wiremock = "0.5"
 tokio = { version = "1", features = ["macros"] }
 tracing_subscriber_0_2 = { package = "tracing-subscriber", version = "0.2" }
 tracing_subscriber_0_3 = { package = "tracing-subscriber", version = "0.3" }
+wiremock = "0.5"
