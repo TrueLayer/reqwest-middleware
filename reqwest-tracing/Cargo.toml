@@ -1,6 +1,6 @@
 [package]
 name = "reqwest-tracing"
-version = "0.2.3-alpha.0"
+version = "0.2.3"
 authors = ["Rodrigo Gryzinski <rodrigo.gryzinski@truelayer.com>"]
 edition = "2018"
 description = "Opentracing middleware for reqwest."
@@ -18,13 +18,13 @@ opentelemetry_0_17 = ["opentelemetry_0_17_pkg", "tracing-opentelemetry_0_17_pkg"
 
 
 [dependencies]
-reqwest-middleware = { version = "^0.1.6", path = "../reqwest-middleware" }
+reqwest-middleware = { version = "^0.1.6" }
 
 async-trait = "0.1.51"
 reqwest = { version = "0.11", default-features = false }
+task-local-extensions = "0.1.1"
 tokio = { version = "1.6", features = ["time"] }
 tracing = "0.1.26"
-task-local-extensions = "0.1.1"
 
 opentelemetry_0_13_pkg = { package = "opentelemetry", version = "0.13", optional = true }
 opentelemetry_0_14_pkg = { package = "opentelemetry", version = "0.14", optional = true }
@@ -39,7 +39,7 @@ tracing-opentelemetry_0_17_pkg = { package = "tracing-opentelemetry",version = "
 
 
 [dev-dependencies]
-wiremock = "0.5"
 tokio = { version = "1", features = ["macros"] }
 tracing_subscriber_0_2 = { package = "tracing-subscriber", version = "0.2" }
 tracing_subscriber_0_3 = { package = "tracing-subscriber", version = "0.3" }
+wiremock = "0.5"
