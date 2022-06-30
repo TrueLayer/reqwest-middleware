@@ -1,6 +1,6 @@
 [package]
 name = "reqwest-tracing"
-version = "0.3.0"
+version = "0.3.1-alpha.0"
 authors = ["Rodrigo Gryzinski <rodrigo.gryzinski@truelayer.com>"]
 edition = "2018"
 description = "Opentracing middleware for reqwest."
@@ -18,7 +18,7 @@ opentelemetry_0_17 = ["opentelemetry_0_17_pkg", "tracing-opentelemetry_0_17_pkg"
 
 
 [dependencies]
-reqwest-middleware = { version = "^0.1.6" }
+reqwest-middleware = { version = "0.1.7-alpha.0", path = "../reqwest-middleware" }
 
 async-trait = "0.1.51"
 reqwest = { version = "0.11", default-features = false }
