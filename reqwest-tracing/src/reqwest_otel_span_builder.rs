@@ -6,6 +6,17 @@ use tracing::Span;
 
 use crate::reqwest_otel_span;
 
+/// The otel.status.code field added to the span
+const OTEL_STATUS_CODE: &str = "otel.status_code";
+/// The error.message field added to the span
+const ERROR_MESSAGE: &str = "error.message";
+/// The error.cause_chain field added to the span
+const ERROR_CAUSE_CHAIN: &str = "error.cause_chain";
+/// The http.status_code field added to the span
+const HTTP_STATUS_CODE: &str = "http.status_code";
+/// The http.user_agent added to the span
+const HTTP_USER_AGENT: &str = "http.user_agent";
+
 /// [`ReqwestOtelSpanBackend`] allows you to customise the span attached by
 /// [`TracingMiddleware`] to incoming requests.
 ///
@@ -36,10 +47,10 @@ pub fn default_on_request_success(span: &Span, response: &Response) {
     let status_code = response.status().as_u16() as i64;
     let user_agent = get_header_value("user_agent", response.headers());
     if let Some(span_status) = span_status {
-        span.record("otel.status_code", &span_status);
+        span.record(OTEL_STATUS_CODE, &span_status);
     }
-    span.record("http.status_code", &status_code);
-    span.record("http.user_agent", &user_agent.as_str());
+    span.record(HTTP_STATUS_CODE, &status_code);
+    span.record(HTTP_USER_AGENT, &user_agent.as_str());
 }
 
 /// Populates default failure fields for a given [`reqwest_otel_span!`] span.
@@ -47,12 +58,12 @@ pub fn default_on_request_success(span: &Span, response: &Response) {
 pub fn default_on_request_failure(span: &Span, e: &Error) {
     let error_message = e.to_string();
     let error_cause_chain = format!("{:?}", e);
-    span.record("otel.status_code", &"ERROR");
-    span.record("error.message", &error_message.as_str());
-    span.record("error.cause_chain", &error_cause_chain.as_str());
+    span.record(OTEL_STATUS_CODE, &"ERROR");
+    span.record(ERROR_MESSAGE, &error_message.as_str());
+    span.record(ERROR_CAUSE_CHAIN, &error_cause_chain.as_str());
     if let Error::Reqwest(e) = e {
         span.record(
-            "http.status_code",
+            HTTP_STATUS_CODE,
             &e.status()
                 .map(|s| s.to_string())
                 .unwrap_or_else(|| "".to_string())
