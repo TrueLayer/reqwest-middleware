@@ -1,6 +1,6 @@
 [package]
 name = "reqwest-tracing"
-version = "0.3.0-alpha.0"
+version = "0.3.0"
 authors = ["Rodrigo Gryzinski <rodrigo.gryzinski@truelayer.com>"]
 edition = "2018"
 description = "Opentracing middleware for reqwest."
