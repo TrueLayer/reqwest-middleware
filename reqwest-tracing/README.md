@@ -20,7 +20,7 @@ opentelemetry = "0.17"
 reqwest = "0.11"
 reqwest-middleware = "0.1.1"
 reqwest-retry = "0.1.1"
-reqwest-tracing = { version = "0.2.1", features = ["opentelemetry_0_17"] }
+reqwest-tracing = { version = "0.3.0", features = ["opentelemetry_0_17"] }
 tokio = { version = "1.12.0", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1"
 tracing-opentelemetry = "0.17"
@@ -28,28 +28,47 @@ tracing-subscriber = "0.3"
 ```
 
 ```rust,skip
+use reqwest_tracing::{default_on_request_end, reqwest_otel_span, ReqwestOtelSpanBackend, TracingMiddleware};
 use opentelemetry::sdk::export::trace::stdout;
-use reqwest_middleware::ClientBuilder;
-use reqwest_tracing::TracingMiddleware;
+use reqwest::{Request, Response};
+use reqwest_middleware::{ClientBuilder, Result};
+use std::time::Instant;
+use task_local_extensions::Extensions;
+use tracing::Span;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::Registry;
 
+pub struct TimeTrace;
+
+impl ReqwestOtelSpanBackend for TimeTrace {
+    fn on_request_start(req: &Request, extension: &mut Extensions) -> Span {
+        extension.insert(Instant::now());
+        reqwest_otel_span!(req, time_elapsed = tracing::field::Empty)
+    }
+
+    fn on_request_end(span: &Span, outcome: &Result<Response>, extension: &mut Extensions) {
+        let time_elapsed = extension.get::<Instant>().unwrap().elapsed().as_millis() as i64;
+        default_on_request_end(span, outcome);
+        span.record("time_elapsed", &time_elapsed);
+    }
+}
+
 #[tokio::main]
 async fn main() {
-  let tracer = stdout::new_pipeline().install_simple();
-  let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
-  let subscriber = Registry::default().with(telemetry);
-  tracing::subscriber::set_global_default(subscriber).unwrap();
+    let tracer = stdout::new_pipeline().install_simple();
+    let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
+    let subscriber = Registry::default().with(telemetry);
+    tracing::subscriber::set_global_default(subscriber).unwrap();
 
-  run().await;
+    run().await;
 }
 
 async fn run() {
-  let client = ClientBuilder::new(reqwest::Client::new())
-    .with(TracingMiddleware)
-    .build();
+    let client = ClientBuilder::new(reqwest::Client::new())
+        .with(TracingMiddleware::<TimeTrace>::new())
+        .build();
 
-  client.get("https://truelayer.com").send().await.unwrap();
+    client.get("https://truelayer.com").send().await.unwrap();
 }
 ```
 
