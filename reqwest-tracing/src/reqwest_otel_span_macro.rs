@@ -2,6 +2,19 @@
 /// [`reqwest_otel_span!`] creates a new [`tracing::Span`].
 /// It empowers you to add custom properties to the span on top of the default properties provided by the macro
 ///
+/// Default Fields:
+/// - http.method
+/// - http.scheme
+/// - http.host
+/// - net.host
+/// - otel.kind
+/// - otel.name
+/// - otel.status_code
+/// - http.user_agent
+/// - http.status_code
+/// - error.message
+/// - error.cause_chain
+///
 /// Here are some convenient functions to checkout [`default_on_request_success`], [`default_on_request_failure`],
 /// and [`default_on_request_end`].
 ///
