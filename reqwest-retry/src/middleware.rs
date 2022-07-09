@@ -58,33 +58,22 @@ impl<T: RetryPolicy + Send + Sync> Middleware for RetryTransientMiddleware<T> {
         // downstream. This will guard against previous retries poluting `Extensions`.
         // That is, we only return what's populated in the typemap for the last retry attempt
         // and copy those into the the `global` Extensions map.
-        self.execute_with_retry_recursive(req, next, extensions, 0)
-            .await
+        self.execute_with_retry(req, next, extensions).await
     }
 }
 
 impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
-    /// **RECURSIVE**.
-    ///
-    /// SAFETY: The condition for termination is the number of retries
-    /// set on the `RetryOption` object which is capped to 10 therefore
-    /// we can know that this will not cause a overflow of the stack.
-    ///
     /// This function will try to execute the request, if it fails
     /// with an error classified as transient it will call itself
     /// to retry the request.
-    ///
-    /// NOTE: This function is not async because calling an async function
-    /// recursively is not allowed.
-    ///
-    fn execute_with_retry_recursive<'a>(
+    async fn execute_with_retry<'a>(
         &'a self,
         req: Request,
         next: Next<'a>,
         ext: &'a mut Extensions,
-        n_past_retries: u32,
-    ) -> futures::future::BoxFuture<'a, Result<Response>> {
-        Box::pin(async move {
+    ) -> Result<Response> {
+        let mut n_past_retries = 0;
+        loop {
             // Cloning the request object before-the-fact is not ideal..
             // However, if the body of the request is not static, e.g of type `Bytes`,
             // the Clone operation should be of constant complexity and not O(N)
@@ -95,13 +84,11 @@ impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
                 ))
             })?;
 
-            let cloned_next = next.clone();
-
-            let result = next.run(req, ext).await;
+            let result = next.clone().run(duplicate_request, ext).await;
 
             // We classify the response which will return None if not
             // errors were returned.
-            match Retryable::from_reqwest_response(&result) {
+            break match Retryable::from_reqwest_response(&result) {
                 Some(retryable)
                     if retryable == Retryable::Transient
                         && n_past_retries < MAXIMUM_NUMBER_OF_RETRIES =>
@@ -121,19 +108,14 @@ impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
                         );
                         tokio::time::sleep(duration).await;
 
-                        self.execute_with_retry_recursive(
-                            duplicate_request,
-                            cloned_next,
-                            ext,
-                            n_past_retries + 1,
-                        )
-                        .await
+                        n_past_retries += 1;
+                        continue;
                     } else {
                         result
                     }
                 }
                 Some(_) | None => result,
-            }
-        })
+            };
+        }
     }
 }
