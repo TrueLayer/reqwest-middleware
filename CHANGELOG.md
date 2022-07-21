@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Implementation of `Debug` trait for `RequestBuilder`.
+
 ## [0.1.5] - 2022-02-21
 
 ### Added

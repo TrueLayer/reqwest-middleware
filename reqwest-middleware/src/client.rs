@@ -260,3 +260,12 @@ impl RequestBuilder {
             .map(|inner| RequestBuilder { inner, client })
     }
 }
+
+impl fmt::Debug for RequestBuilder {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // skipping middleware_stack field for now
+        f.debug_struct("RequestBuilder")
+            .field("inner", &self.inner)
+            .finish_non_exhaustive()
+    }
+}
