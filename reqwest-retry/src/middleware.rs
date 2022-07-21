@@ -35,6 +35,18 @@ static MAXIMUM_NUMBER_OF_RETRIES: u32 = 10;
 ///     let client = ClientBuilder::new(Client::new()).with(retry_transient_middleware).build();
 ///```
 ///
+/// # Note
+///
+/// This middleware always errors when given requests with streaming bodies, before even executing
+/// the request. When this happens you'll get an [`Error::Middleware`] with the message
+/// 'Request object is not clonable. Are you passing a streaming body?'.
+///
+/// Some workaround suggestions:
+/// * If you can fit the data in memory, you can instead build static request bodies e.g. with
+/// `Body`'s `From<String>` or `From<Bytes>` implementations.
+/// * You can wrap this middleware in a custom one which skips retries for streaming requests.
+/// * You can write a custom retry middleware that builds new streaming requests from the data
+/// source directly, avoiding the issue of streaming requests not being clonable.
 pub struct RetryTransientMiddleware<T: RetryPolicy + Send + Sync + 'static> {
     retry_policy: T,
 }
