@@ -12,14 +12,16 @@ pub const HTTP_METHOD: &str = "http.method";
 pub const HTTP_SCHEME: &str = "http.scheme";
 /// The `http.host` field added to the span by [`reqwest_otel_span`]
 pub const HTTP_HOST: &str = "http.host";
+/// The `http.url` field added to the span by [`reqwest_otel_span`]
+pub const HTTP_URL: &str = "http.url";
 /// The `host.port` field added to the span by [`reqwest_otel_span`]
 pub const NET_HOST_PORT: &str = "net.host.port";
 /// The `otel.kind` field added to the span by [`reqwest_otel_span`]
 pub const OTEL_KIND: &str = "otel.kind";
 /// The `otel.name` field added to the span by [`reqwest_otel_span`]
 pub const OTEL_NAME: &str = "otel.name";
-/// The `otel.status.code` field added to the span by [`reqwest_otel_span`]
-pub const OTEL_STATUS_CODE: &str = "otel.status_code";
+/// The `otel.status_code.code` field added to the span by [`reqwest_otel_span`]
+pub const OTEL_STATUS_CODE: &str = "http.status_code";
 /// The `error.message` field added to the span by [`reqwest_otel_span`]
 pub const ERROR_MESSAGE: &str = "error.message";
 /// The `error.cause_chain` field added to the span by [`reqwest_otel_span`]

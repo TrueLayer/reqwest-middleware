@@ -114,10 +114,11 @@ macro_rules! reqwest_otel_span {
     (level=$level:expr, $request:ident, $($field:tt)*) => {
         {
             let method = $request.method();
-            let scheme = $request.url().scheme();
-            let host = $request.url().host_str().unwrap_or("");
-            let host_port = $request.url().port().unwrap_or(0) as i64;
-            let path = $request.url().path();
+            let url = $request.url();
+            let scheme = url.scheme();
+            let host = url.host_str().unwrap_or("");
+            let host_port = url.port().unwrap_or(0) as i64;
+            let path = url.path();
             let otel_name = format!("{} {}", method, path);
 
             macro_rules! request_span {
@@ -128,6 +129,7 @@ macro_rules! reqwest_otel_span {
                         http.method = %method,
                         http.scheme = %scheme,
                         http.host = %host,
+                        http.url = %url,
                         net.host.port = %host_port,
                         otel.kind = "client",
                         otel.name = %otel_name,
