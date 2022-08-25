@@ -93,7 +93,7 @@ pub struct DefaultSpanBackend;
 
 impl ReqwestOtelSpanBackend for DefaultSpanBackend {
     fn on_request_start(req: &Request, _: &mut Extensions) -> Span {
-        reqwest_otel_span!(req)
+        reqwest_otel_span!(name = "reqwest-http-client", req)
     }
 
     fn on_request_end(span: &Span, outcome: &Result<Response>, _: &mut Extensions) {

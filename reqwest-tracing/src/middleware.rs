@@ -6,6 +6,7 @@ use tracing::Instrument;
 use crate::{DefaultSpanBackend, ReqwestOtelSpanBackend};
 
 /// Middleware for tracing requests using the current Opentelemetry Context.
+#[derive(Clone)]
 pub struct TracingMiddleware<S: ReqwestOtelSpanBackend> {
     span_backend: std::marker::PhantomData<S>,
 }
@@ -21,12 +22,6 @@ impl<S: ReqwestOtelSpanBackend> TracingMiddleware<S> {
 impl Default for TracingMiddleware<DefaultSpanBackend> {
     fn default() -> Self {
         TracingMiddleware::new()
-    }
-}
-
-impl<S: ReqwestOtelSpanBackend> Clone for TracingMiddleware<S> {
-    fn clone(&self) -> Self {
-        Self::new()
     }
 }
 
