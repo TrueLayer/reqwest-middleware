@@ -49,8 +49,8 @@ pub use middleware::TracingMiddleware;
 pub use reqwest_otel_span_builder::{
     default_on_request_end, default_on_request_failure, default_on_request_success,
     DefaultSpanBackend, ReqwestOtelSpanBackend, ERROR_CAUSE_CHAIN, ERROR_MESSAGE, HTTP_HOST,
-    HTTP_METHOD, HTTP_SCHEME, HTTP_STATUS_CODE, HTTP_USER_AGENT, NET_HOST_PORT, OTEL_KIND,
-    OTEL_NAME, OTEL_STATUS_CODE,
+    HTTP_METHOD, HTTP_SCHEME, HTTP_STATUS_CODE, HTTP_URL, HTTP_USER_AGENT, NET_HOST_PORT,
+    OTEL_KIND, OTEL_NAME, OTEL_STATUS_CODE,
 };
 
 #[doc(hidden)]
