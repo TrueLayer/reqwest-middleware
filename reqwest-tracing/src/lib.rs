@@ -21,7 +21,7 @@
 //! impl ReqwestOtelSpanBackend for TimeTrace {
 //!     fn on_request_start(req: &Request, extension: &mut Extensions) -> Span {
 //!         extension.insert(Instant::now());
-//!         reqwest_otel_span!(req, time_elapsed = tracing::field::Empty)
+//!         reqwest_otel_span!(name="example-request", req, time_elapsed = tracing::field::Empty)
 //!     }
 //!
 //!     fn on_request_end(span: &Span, outcome: &Result<Response>, extension: &mut Extensions) {

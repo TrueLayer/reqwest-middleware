@@ -26,7 +26,8 @@
 ///
 /// # Macro syntax
 ///
-/// The first argument passed to [`reqwest_otel_span!`](crate::reqwest_otel_span) is a reference to an [`reqwest::Request`].
+/// The first argument is a [span name](https://opentelemetry.io/docs/reference/specification/trace/api/#span).
+/// The second argument passed to [`reqwest_otel_span!`](crate::reqwest_otel_span) is a reference to an [`reqwest::Request`].
 ///
 /// ```rust
 /// use reqwest_middleware::Result;
@@ -41,7 +42,7 @@
 ///
 /// impl ReqwestOtelSpanBackend for CustomReqwestOtelSpanBackend {
 ///     fn on_request_start(req: &Request, _extension: &mut Extensions) -> Span {
-///         reqwest_otel_span!(req)
+///         reqwest_otel_span!(name = "reqwest-http-request", req)
 ///     }
 ///
 ///     fn on_request_end(span: &Span, outcome: &Result<Response>, _extension: &mut Extensions) {
@@ -61,17 +62,17 @@
 ///
 /// // Define a `time_elapsed` field as empty. It might be populated later.
 /// // (This example is just to show how to inject data - otel already tracks durations)
-/// reqwest_otel_span!(request, time_elapsed = tracing::field::Empty);
+/// reqwest_otel_span!(name = "reqwest-http-request", request, time_elapsed = tracing::field::Empty);
 ///
 /// // Define a `name` field with a known value, `AppName`.
-/// reqwest_otel_span!(request, name = "AppName");
+/// reqwest_otel_span!(name = "reqwest-http-request", request, name = "AppName");
 ///
 /// // Define an `app_id` field using the variable with the same name as value.
 /// let app_id = "XYZ";
-/// reqwest_otel_span!(request, app_id);
+/// reqwest_otel_span!(name = "reqwest-http-request", request, app_id);
 ///
 /// // All together
-/// reqwest_otel_span!(request, time_elapsed = tracing::field::Empty, name = "AppName", app_id);
+/// reqwest_otel_span!(name = "reqwest-http-request", request, time_elapsed = tracing::field::Empty, name = "AppName", app_id);
 /// ```
 ///
 /// You can also choose to customise the level of the generated span:
@@ -88,8 +89,8 @@
 ///     Level::INFO
 /// };
 ///
-/// // `level =` MUST be the first argument.
-/// reqwest_otel_span!(level = level, request);
+/// // `level =` and name MUST come before the request, in this order
+/// reqwest_otel_span!(level = level, name = "reqwest-http-request", request);
 /// ```
 ///
 ///
@@ -99,27 +100,26 @@
 /// [`default_on_request_end`]: crate::reqwest_otel_span_builder::default_on_request_end
 macro_rules! reqwest_otel_span {
     // Vanilla root span at default INFO level, with no additional fields
-    ($request:ident) => {
-        reqwest_otel_span!($request,)
+    (name=$name:expr, $request:ident) => {
+        reqwest_otel_span!(name=$name, $request,)
     };
     // Vanilla root span, with no additional fields but custom level
-    (level=$level:expr, $request:ident) => {
-        reqwest_otel_span!(level=$level, $request,)
+    (level=$level:expr, name=$name:expr, $request:ident) => {
+        reqwest_otel_span!(level=$level, name=$name, $request,)
     };
     // Root span with additional fields, default INFO level
-    ($request:ident, $($field:tt)*) => {
-        reqwest_otel_span!(level=$crate::reqwest_otel_span_macro::private::Level::INFO, $request, $($field)*)
+    (name=$name:expr, $request:ident, $($field:tt)*) => {
+        reqwest_otel_span!(level=$crate::reqwest_otel_span_macro::private::Level::INFO, name=$name, $request, $($field)*)
     };
     // Root span with additional fields and custom level
-    (level=$level:expr, $request:ident, $($field:tt)*) => {
+    (level=$level:expr, name=$name:expr, $request:ident, $($field:tt)*) => {
         {
             let method = $request.method();
             let url = $request.url();
             let scheme = url.scheme();
             let host = url.host_str().unwrap_or("");
             let host_port = url.port().unwrap_or(0) as i64;
-            let path = url.path();
-            let otel_name = format!("{} {}", method, path);
+            let otel_name = $name.to_string();
 
             macro_rules! request_span {
                 ($lvl:expr) => {
