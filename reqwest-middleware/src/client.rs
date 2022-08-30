@@ -108,6 +108,7 @@ impl ClientWithMiddleware {
         RequestBuilder {
             inner: self.inner.request(method, url),
             client: self.clone(),
+            extensions: Extensions::new(),
         }
     }
 
@@ -152,6 +153,7 @@ impl fmt::Debug for ClientWithMiddleware {
 pub struct RequestBuilder {
     inner: reqwest::RequestBuilder,
     client: ClientWithMiddleware,
+    extensions: Extensions,
 }
 
 impl RequestBuilder {
@@ -164,14 +166,14 @@ impl RequestBuilder {
     {
         RequestBuilder {
             inner: self.inner.header(key, value),
-            client: self.client,
+            ..self
         }
     }
 
     pub fn headers(self, headers: HeaderMap) -> Self {
         RequestBuilder {
             inner: self.inner.headers(headers),
-            client: self.client,
+            ..self
         }
     }
 
@@ -182,7 +184,7 @@ impl RequestBuilder {
     {
         RequestBuilder {
             inner: self.inner.basic_auth(username, password),
-            client: self.client,
+            ..self
         }
     }
 
@@ -192,49 +194,49 @@ impl RequestBuilder {
     {
         RequestBuilder {
             inner: self.inner.bearer_auth(token),
-            client: self.client,
+            ..self
         }
     }
 
     pub fn body<T: Into<Body>>(self, body: T) -> Self {
         RequestBuilder {
             inner: self.inner.body(body),
-            client: self.client,
+            ..self
         }
     }
 
     pub fn timeout(self, timeout: Duration) -> Self {
         RequestBuilder {
             inner: self.inner.timeout(timeout),
-            client: self.client,
+            ..self
         }
     }
 
     pub fn multipart(self, multipart: Form) -> Self {
         RequestBuilder {
             inner: self.inner.multipart(multipart),
-            client: self.client,
+            ..self
         }
     }
 
     pub fn query<T: Serialize + ?Sized>(self, query: &T) -> Self {
         RequestBuilder {
             inner: self.inner.query(query),
-            client: self.client,
+            ..self
         }
     }
 
     pub fn form<T: Serialize + ?Sized>(self, form: &T) -> Self {
         RequestBuilder {
             inner: self.inner.form(form),
-            client: self.client,
+            ..self
         }
     }
 
     pub fn json<T: Serialize + ?Sized>(self, json: &T) -> Self {
         RequestBuilder {
             inner: self.inner.json(json),
-            client: self.client,
+            ..self
         }
     }
 
@@ -242,22 +244,43 @@ impl RequestBuilder {
         self.inner.build()
     }
 
+    /// Inserts the extension into this request builder
+    pub fn with_extension<T: Send + Sync + 'static>(mut self, extension: T) -> Self {
+        self.extensions.insert(extension);
+        self
+    }
+
+    /// Returns a mutable reference to the internal set of extensions for this request
+    pub fn extensions(&mut self) -> &mut Extensions {
+        &mut self.extensions
+    }
+
     pub async fn send(self) -> Result<Response> {
-        let req = self.inner.build()?;
-        self.client.execute(req).await
+        let Self {
+            inner,
+            client,
+            mut extensions,
+        } = self;
+        let req = inner.build()?;
+        client.execute_with_extensions(req, &mut extensions).await
     }
 
     /// Sends a request with initial [`Extensions`].
+    #[deprecated = "use the with_extension method and send directly"]
     pub async fn send_with_extensions(self, ext: &mut Extensions) -> Result<Response> {
-        let req = self.inner.build()?;
-        self.client.execute_with_extensions(req, ext).await
+        let Self { inner, client, .. } = self;
+        let req = inner.build()?;
+        client.execute_with_extensions(req, ext).await
     }
 
+    // TODO(conradludgate): fix this method to take `&self`. It's currently useless as it is.
+    // I'm tempted to make this breaking change without a major bump, but I'll wait for now
     pub fn try_clone(self) -> Option<Self> {
-        let client = self.client;
-        self.inner
-            .try_clone()
-            .map(|inner| RequestBuilder { inner, client })
+        self.inner.try_clone().map(|inner| RequestBuilder {
+            inner,
+            client: self.client,
+            extensions: self.extensions,
+        })
     }
 }
 

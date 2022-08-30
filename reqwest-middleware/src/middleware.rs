@@ -97,3 +97,19 @@ impl<'a> Next<'a> {
         }
     }
 }
+
+/// A middleware that inserts the value into the [`Extensions`] during the call.
+pub struct WithExtension<T>(pub T);
+
+#[async_trait::async_trait]
+impl<T: Send + Sync + Clone + 'static> Middleware for WithExtension<T> {
+    async fn handle(
+        &self,
+        req: Request,
+        extensions: &mut Extensions,
+        next: Next<'_>,
+    ) -> Result<Response> {
+        extensions.insert(self.0.clone());
+        next.run(req, extensions).await
+    }
+}
