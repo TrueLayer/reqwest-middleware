@@ -10,6 +10,7 @@ use task_local_extensions::Extensions;
 
 use crate::error::Result;
 use crate::middleware::{Middleware, Next};
+use crate::RequestInitialiser;
 
 /// A `ClientBuilder` is used to build a [`ClientWithMiddleware`].
 ///
@@ -17,6 +18,7 @@ use crate::middleware::{Middleware, Next};
 pub struct ClientBuilder {
     client: Client,
     middleware_stack: Vec<Arc<dyn Middleware>>,
+    initialiser_stack: Vec<Arc<dyn RequestInitialiser>>,
 }
 
 impl ClientBuilder {
@@ -24,6 +26,7 @@ impl ClientBuilder {
         ClientBuilder {
             client,
             middleware_stack: Vec::new(),
+            initialiser_stack: Vec::new(),
         }
     }
 
@@ -47,9 +50,33 @@ impl ClientBuilder {
         self
     }
 
+    /// Convenience method to attach middleware.
+    ///
+    /// If you need to keep a reference to the middleware after attaching, use [`with_arc`].
+    ///
+    /// [`with_arc`]: Self::with_arc
+    pub fn with_init<I>(self, initialiser: I) -> Self
+    where
+        I: RequestInitialiser,
+    {
+        self.with_arc_init(Arc::new(initialiser))
+    }
+
+    /// Add initialiser to the chain. [`with`] is more ergonomic if you don't need the `Arc`.
+    ///
+    /// [`with`]: Self::with
+    pub fn with_arc_init(mut self, initialiser: Arc<dyn RequestInitialiser>) -> Self {
+        self.initialiser_stack.push(initialiser);
+        self
+    }
+
     /// Returns a `ClientWithMiddleware` using this builder configuration.
     pub fn build(self) -> ClientWithMiddleware {
-        ClientWithMiddleware::new(self.client, self.middleware_stack)
+        ClientWithMiddleware {
+            inner: self.client,
+            middleware_stack: self.middleware_stack.into_boxed_slice(),
+            initialiser_stack: self.initialiser_stack.into_boxed_slice(),
+        }
     }
 }
 
@@ -59,6 +86,7 @@ impl ClientBuilder {
 pub struct ClientWithMiddleware {
     inner: reqwest::Client,
     middleware_stack: Box<[Arc<dyn Middleware>]>,
+    initialiser_stack: Box<[Arc<dyn RequestInitialiser>]>,
 }
 
 impl ClientWithMiddleware {
@@ -70,6 +98,8 @@ impl ClientWithMiddleware {
         ClientWithMiddleware {
             inner: client,
             middleware_stack: middleware_stack.into(),
+            // TODO(conradludgate) - allow downstream code to control this manually if desired
+            initialiser_stack: Box::new([]),
         }
     }
 
@@ -105,11 +135,14 @@ impl ClientWithMiddleware {
 
     /// See [`Client::request`]
     pub fn request<U: IntoUrl>(&self, method: Method, url: U) -> RequestBuilder {
-        RequestBuilder {
+        let req = RequestBuilder {
             inner: self.inner.request(method, url),
             client: self.clone(),
             extensions: Extensions::new(),
-        }
+        };
+        self.initialiser_stack
+            .iter()
+            .fold(req, |req, i| i.init(req))
     }
 
     /// See [`Client::execute`]
@@ -135,6 +168,7 @@ impl From<Client> for ClientWithMiddleware {
         ClientWithMiddleware {
             inner: client,
             middleware_stack: Box::new([]),
+            initialiser_stack: Box::new([]),
         }
     }
 }
