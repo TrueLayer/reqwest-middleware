@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Implementation of `Debug` trait for `RequestBuilder`.
+- A new `RequestInitialiser` trait that can be added to `ClientWithMiddleware`
+- A new `Extension` initialiser that adds extensions to the request
+- Adds `with_extension` method functionality to `RequestBuilder` that can add extensions for the `send` method to use - deprecating `send_with_extensions`.
+
+## [0.1.6] - 2022-04-21
+
+Absolutely nothing changed
 
 ## [0.1.5] - 2022-02-21
 
