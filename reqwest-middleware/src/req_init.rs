@@ -22,9 +22,9 @@ where
 /// use reqwest_middleware::{ClientBuilder, Middleware, Next, Result, Extension};
 /// use task_local_extensions::Extensions;
 ///
-/// struct LoggingMiddleware;
 /// #[derive(Clone)]
-/// struct LogName(String);
+/// struct LogName(&'static str);
+/// struct LoggingMiddleware;
 ///
 /// #[async_trait::async_trait]
 /// impl Middleware for LoggingMiddleware {
@@ -37,9 +37,8 @@ where
 ///         // get the log name or default to "unknown"
 ///         let name = extensions
 ///             .get()
-///             .map(|LogName(name)| name.as_str())
-///             .unwrap_or("unknown")
-///             .to_owned();
+///             .map(|&LogName(name)| name)
+///             .unwrap_or("unknown");
 ///         println!("[{name}] Request started {req:?}");
 ///         let res = next.run(req, extensions).await;
 ///         println!("[{name}] Result: {res:?}");
@@ -50,7 +49,7 @@ where
 /// async fn run() {
 ///     let reqwest_client = Client::builder().build().unwrap();
 ///     let client = ClientBuilder::new(reqwest_client)
-///         .with_init(Extension(LogName("my-client".into())))
+///         .with_init(Extension(LogName("my-client")))
 ///         .with(LoggingMiddleware)
 ///         .build();
 ///     let resp = client.get("https://truelayer.com").send().await.unwrap();
