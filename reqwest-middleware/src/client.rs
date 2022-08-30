@@ -309,6 +309,7 @@ impl RequestBuilder {
 
     // TODO(conradludgate): fix this method to take `&self`. It's currently useless as it is.
     // I'm tempted to make this breaking change without a major bump, but I'll wait for now
+    #[deprecated = "This method was badly replicated from the base RequestBuilder. If you somehow made use of this method, it will break next major version"]
     pub fn try_clone(self) -> Option<Self> {
         self.inner.try_clone().map(|inner| RequestBuilder {
             inner,

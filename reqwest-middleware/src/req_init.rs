@@ -1,5 +1,24 @@
 use crate::RequestBuilder;
 
+/// When attached to a [`ClientWithMiddleware`] (generally using [`with_init`]), it is run
+/// whenever the client starts building a request, in the order it was attached.
+///
+/// # Example
+///
+/// ```
+/// use reqwest_middleware::{RequestInitialiser, RequestBuilder};
+///
+/// struct AuthInit;
+///
+/// impl RequestInitialiser for AuthInit {
+///     fn init(&self, req: RequestBuilder) -> RequestBuilder {
+///         req.bearer_auth("my_auth_token")
+///     }
+/// }
+/// ```
+///
+/// [`ClientWithMiddleware`]: crate::ClientWithMiddleware
+/// [`with_init`]: crate::ClientBuilder::with_init
 pub trait RequestInitialiser: 'static + Send + Sync {
     fn init(&self, req: RequestBuilder) -> RequestBuilder;
 }
@@ -13,7 +32,7 @@ where
     }
 }
 
-/// A middleware that inserts the value into the [`Extensions`] during the call.
+/// A middleware that inserts the value into the [`Extensions`](task_local_extensions::Extensions) during the call.
 ///
 /// This is a good way to inject extensions to middleware deeper in the stack
 ///
