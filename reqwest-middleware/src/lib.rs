@@ -55,4 +55,4 @@ mod middleware;
 
 pub use client::{ClientBuilder, ClientWithMiddleware, RequestBuilder};
 pub use error::{Error, Result};
-pub use middleware::{Middleware, Next};
+pub use middleware::{Extension, Middleware, Next};
