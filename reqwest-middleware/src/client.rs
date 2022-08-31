@@ -50,11 +50,11 @@ impl ClientBuilder {
         self
     }
 
-    /// Convenience method to attach middleware.
+    /// Convenience method to attach a request initialiser.
     ///
-    /// If you need to keep a reference to the middleware after attaching, use [`with_arc`].
+    /// If you need to keep a reference to the initialiser after attaching, use [`with_arc_init`].
     ///
-    /// [`with_arc`]: Self::with_arc
+    /// [`with_arc_init`]: Self::with_arc_init
     pub fn with_init<I>(self, initialiser: I) -> Self
     where
         I: RequestInitialiser,
@@ -62,9 +62,9 @@ impl ClientBuilder {
         self.with_arc_init(Arc::new(initialiser))
     }
 
-    /// Add initialiser to the chain. [`with`] is more ergonomic if you don't need the `Arc`.
+    /// Add a request initialiser to the chain. [`with_init`] is more ergonomic if you don't need the `Arc`.
     ///
-    /// [`with`]: Self::with
+    /// [`with_init`]: Self::with_init
     pub fn with_arc_init(mut self, initialiser: Arc<dyn RequestInitialiser>) -> Self {
         self.initialiser_stack.push(initialiser);
         self
