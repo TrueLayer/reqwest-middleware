@@ -52,6 +52,7 @@ where
                 feature = "opentelemetry_0_15",
                 feature = "opentelemetry_0_16",
                 feature = "opentelemetry_0_17",
+                feature = "opentelemetry_0_18",
             ))]
             let req = crate::otel::inject_opentelemetry_context_into_request(req);
 
