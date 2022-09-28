@@ -253,8 +253,8 @@ impl RequestBuilder {
         self.client.execute_with_extensions(req, ext).await
     }
 
-    pub fn try_clone(self) -> Option<Self> {
-        let client = self.client;
+    pub fn try_clone(&self) -> Option<Self> {
+        let client = self.client.clone();
         self.inner
             .try_clone()
             .map(|inner| RequestBuilder { inner, client })
