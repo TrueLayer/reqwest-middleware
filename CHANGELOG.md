@@ -8,7 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Implementation of `Debug` trait for `RequestBuilder`.
-- Added support for `opentelemetry` version `0.18`.
 
 ## [0.1.5] - 2022-02-21
 
