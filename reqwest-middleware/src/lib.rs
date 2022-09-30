@@ -52,7 +52,9 @@ pub struct ReadmeDoctests;
 mod client;
 mod error;
 mod middleware;
+mod req_init;
 
 pub use client::{ClientBuilder, ClientWithMiddleware, RequestBuilder};
 pub use error::{Error, Result};
 pub use middleware::{Middleware, Next};
+pub use req_init::{Extension, RequestInitialiser};
