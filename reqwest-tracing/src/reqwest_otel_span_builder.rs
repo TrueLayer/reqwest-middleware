@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{Request, Response, StatusCode as RequestStatusCode};
 use reqwest_middleware::{Error, Result};
@@ -92,8 +94,12 @@ pub fn default_on_request_failure(span: &Span, e: &Error) {
 pub struct DefaultSpanBackend;
 
 impl ReqwestOtelSpanBackend for DefaultSpanBackend {
-    fn on_request_start(req: &Request, _: &mut Extensions) -> Span {
-        reqwest_otel_span!(name = "reqwest-http-client", req)
+    fn on_request_start(req: &Request, ext: &mut Extensions) -> Span {
+        let name = ext
+            .get::<OtelName>()
+            .map(|on| on.0.as_ref())
+            .unwrap_or("reqwest-http-client");
+        reqwest_otel_span!(name = name, req)
     }
 
     fn on_request_end(span: &Span, outcome: &Result<Response>, _: &mut Extensions) {
@@ -123,6 +129,39 @@ fn get_span_status(request_status: RequestStatusCode) -> Option<&'static str> {
         _ => Some("ERROR"),
     }
 }
+
+/// [`OtelName`] allows customisation of the name of the spans created by
+/// DefaultSpanBackend.
+///
+/// Usage:
+/// ```no_run
+/// # use reqwest_middleware::Result;
+/// use reqwest_middleware::{ClientBuilder, Extension};
+/// use reqwest_tracing::{
+///     TracingMiddleware, OtelName
+/// };
+/// # async fn example() -> Result<()> {
+/// let reqwest_client = reqwest::Client::builder().build().unwrap();
+/// let client = ClientBuilder::new(reqwest_client)
+///    // Inserts the extension before the request is started
+///    .with_init(Extension(OtelName("my-client".into())))
+///    // Makes use of that extension to specify the otel name
+///    .with(TracingMiddleware::default())
+///    .build();
+///
+/// let resp = client.get("https://truelayer.com").send().await.unwrap();
+///
+/// // Or specify it on the individual request (will take priority)
+/// let resp = client.post("https://api.truelayer.com/payment")
+///     .with_extension(OtelName("POST /payment".into()))
+///    .send()
+///    .await
+///    .unwrap();
+/// # Ok(())
+/// # }
+/// ```
+#[derive(Clone)]
+pub struct OtelName(pub Cow<'static, str>);
 
 #[cfg(test)]
 mod tests {

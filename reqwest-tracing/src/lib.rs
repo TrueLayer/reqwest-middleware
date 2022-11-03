@@ -2,6 +2,52 @@
 //!
 //! Attach [`TracingMiddleware`] to your client to automatically trace HTTP requests.
 //!
+//! The simplest possible usage:
+//! ```no_run
+//! # use reqwest_middleware::Result;
+//! use reqwest_middleware::{ClientBuilder};
+//! use reqwest_tracing::TracingMiddleware;
+//!
+//! # async fn example() -> Result<()> {
+//! let reqwest_client = reqwest::Client::builder().build().unwrap();
+//! let client = ClientBuilder::new(reqwest_client)
+//!    // Insert the tracing middleware
+//!    .with(TracingMiddleware::default())
+//!    .build();
+//!
+//! let resp = client.get("https://truelayer.com").send().await.unwrap();
+//! # Ok(())
+//! # }
+//! ```
+//!
+//! To customise the span names use [`OtelName`].
+//! ```no_run
+//! # use reqwest_middleware::Result;
+//! use reqwest_middleware::{ClientBuilder, Extension};
+//! use reqwest_tracing::{
+//!     TracingMiddleware, OtelName
+//! };
+//! # async fn example() -> Result<()> {
+//! let reqwest_client = reqwest::Client::builder().build().unwrap();
+//! let client = ClientBuilder::new(reqwest_client)
+//!    // Inserts the extension before the request is started
+//!    .with_init(Extension(OtelName("my-client".into())))
+//!    // Makes use of that extension to specify the otel name
+//!    .with(TracingMiddleware::default())
+//!    .build();
+//!
+//! let resp = client.get("https://truelayer.com").send().await.unwrap();
+//!
+//! // Or specify it on the individual request (will take priority)
+//! let resp = client.post("https://api.truelayer.com/payment")
+//!     .with_extension(OtelName("POST /payment".into()))
+//!    .send()
+//!    .await
+//!    .unwrap();
+//! # Ok(())
+//! # }
+//! ```
+//!
 //! In this example we define a custom span builder to calculate the request time elapsed and we register the [`TracingMiddleware`].
 //!
 //! Note that Opentelemetry tracks start and stop already, there is no need to have a custom builder like this.
@@ -50,9 +96,9 @@ mod reqwest_otel_span_builder;
 pub use middleware::TracingMiddleware;
 pub use reqwest_otel_span_builder::{
     default_on_request_end, default_on_request_failure, default_on_request_success,
-    DefaultSpanBackend, ReqwestOtelSpanBackend, ERROR_CAUSE_CHAIN, ERROR_MESSAGE, HTTP_HOST,
-    HTTP_METHOD, HTTP_SCHEME, HTTP_STATUS_CODE, HTTP_URL, HTTP_USER_AGENT, NET_HOST_PORT,
-    OTEL_KIND, OTEL_NAME, OTEL_STATUS_CODE,
+    DefaultSpanBackend, OtelName, ReqwestOtelSpanBackend, ERROR_CAUSE_CHAIN, ERROR_MESSAGE,
+    HTTP_HOST, HTTP_METHOD, HTTP_SCHEME, HTTP_STATUS_CODE, HTTP_URL, HTTP_USER_AGENT,
+    NET_HOST_PORT, OTEL_KIND, OTEL_NAME, OTEL_STATUS_CODE,
 };
 
 #[doc(hidden)]
