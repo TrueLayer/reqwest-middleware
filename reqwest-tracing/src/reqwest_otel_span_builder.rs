@@ -91,14 +91,20 @@ pub fn default_on_request_failure(span: &Span, e: &Error) {
 /// The default [`ReqwestOtelSpanBackend`] for [`TracingMiddleware`].
 ///
 /// [`TracingMiddleware`]: crate::middleware::TracingMiddleware
+///
+/// Currently generates a high cardinality opentelemetry name containing the
+/// method and URL. In future this will be changed per the opentelemetry HTTP
+/// binding spec to be a low cardinality name.
 pub struct DefaultSpanBackend;
 
 impl ReqwestOtelSpanBackend for DefaultSpanBackend {
     fn on_request_start(req: &Request, ext: &mut Extensions) -> Span {
+        // FIXME: On next API break, convert this to a low cardinality default
+        // value. E.g. "reqwest-$method" or even a fixed string
         let name = ext
             .get::<OtelName>()
-            .map(|on| on.0.as_ref())
-            .unwrap_or("reqwest-http-client");
+            .map(|on| on.0.clone())
+            .unwrap_or_else(|| format!("{} {}", req.method(), req.url().path()).into());
         reqwest_otel_span!(name = name, req)
     }
 
