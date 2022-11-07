@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 - HTTP URL is captured in traces as the `http.url` attribute.
+ - Require an explicit otel name in the macros. Reduces cardinality and complies
+   with otel specification for HTTP bindings.
+ - Permit customisation of the otel name from the non-macro layer.
 
 ## [0.3.1] - 2022-09-21
 - Added support for `opentelemetry` version `0.18`.

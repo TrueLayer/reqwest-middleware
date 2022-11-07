@@ -18,15 +18,15 @@ impl<S: ReqwestOtelSpanBackend> TracingMiddleware<S> {
     }
 }
 
-impl Default for TracingMiddleware<DefaultSpanBackend> {
-    fn default() -> Self {
-        TracingMiddleware::new()
-    }
-}
-
 impl<S: ReqwestOtelSpanBackend> Clone for TracingMiddleware<S> {
     fn clone(&self) -> Self {
         Self::new()
+    }
+}
+
+impl Default for TracingMiddleware<DefaultSpanBackend> {
+    fn default() -> Self {
+        TracingMiddleware::new()
     }
 }
 
