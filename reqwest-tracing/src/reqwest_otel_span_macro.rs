@@ -1,5 +1,5 @@
 #[macro_export]
-/// [`reqwest_otel_span!`] creates a new [`tracing::Span`].
+/// [`reqwest_otel_span!`](crate::reqwest_otel_span) creates a new [`tracing::Span`].
 /// It empowers you to add custom properties to the span on top of the default properties provided by the macro
 ///
 /// Default Fields:
@@ -26,7 +26,7 @@
 ///
 /// # Macro syntax
 ///
-/// The first argument passed to [`reqwest_otel_span!`] is a reference to an [`reqwest::Request`].
+/// The first argument passed to [`reqwest_otel_span!`](crate::reqwest_otel_span) is a reference to an [`reqwest::Request`].
 ///
 /// ```rust
 /// use reqwest_middleware::Result;
