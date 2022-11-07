@@ -299,22 +299,18 @@ impl RequestBuilder {
         client.execute_with_extensions(req, &mut extensions).await
     }
 
-    /// Sends a request with initial [`Extensions`].
-    #[deprecated = "use the with_extension method and send directly"]
-    pub async fn send_with_extensions(self, ext: &mut Extensions) -> Result<Response> {
-        let Self { inner, client, .. } = self;
-        let req = inner.build()?;
-        client.execute_with_extensions(req, ext).await
-    }
-
-    // TODO(conradludgate): fix this method to take `&self`. It's currently useless as it is.
-    // I'm tempted to make this breaking change without a major bump, but I'll wait for now
-    #[deprecated = "This method was badly replicated from the base RequestBuilder. If you somehow made use of this method, it will break next major version"]
-    pub fn try_clone(self) -> Option<Self> {
+    /// Attempt to clone the RequestBuilder.
+    ///
+    /// `None` is returned if the RequestBuilder can not be cloned,
+    /// i.e. if the request body is a stream.
+    ///
+    /// # Extensions
+    /// Note that extensions are not preserved through cloning.
+    pub fn try_clone(&self) -> Option<Self> {
         self.inner.try_clone().map(|inner| RequestBuilder {
             inner,
-            client: self.client,
-            extensions: self.extensions,
+            client: self.client.clone(),
+            extensions: Extensions::new(),
         })
     }
 }
