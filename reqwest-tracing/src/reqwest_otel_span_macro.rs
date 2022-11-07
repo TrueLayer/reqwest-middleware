@@ -60,6 +60,7 @@
 /// # let request: &reqwest::Request = todo!();
 ///
 /// // Define a `time_elapsed` field as empty. It might be populated later.
+/// // (This example is just to show how to inject data - otel already tracks durations)
 /// reqwest_otel_span!(request, time_elapsed = tracing::field::Empty);
 ///
 /// // Define a `name` field with a known value, `AppName`.

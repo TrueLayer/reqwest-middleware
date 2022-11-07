@@ -3,6 +3,8 @@
 //! Attach [`TracingMiddleware`] to your client to automatically trace HTTP requests.
 //!
 //! In this example we define a custom span builder to calculate the request time elapsed and we register the [`TracingMiddleware`].
+//!
+//! Note that Opentelemetry tracks start and stop already, there is no need to have a custom builder like this.
 //! ```rust
 //! use reqwest_middleware::Result;
 //! use task_local_extensions::Extensions;
