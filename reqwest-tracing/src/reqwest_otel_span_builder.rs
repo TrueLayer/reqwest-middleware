@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use reqwest::header::{HeaderMap, HeaderValue};
-use reqwest::{Request, Response, StatusCode as RequestStatusCode};
+use reqwest::{Request, Response, StatusCode as RequestStatusCode, Url};
 use reqwest_middleware::{Error, Result};
 use task_local_extensions::Extensions;
 use tracing::Span;
@@ -88,7 +88,8 @@ pub fn default_on_request_failure(span: &Span, e: &Error) {
     }
 }
 
-/// The default [`ReqwestOtelSpanBackend`] for [`TracingMiddleware`].
+/// The default [`ReqwestOtelSpanBackend`] for [`TracingMiddleware`]. Note that it doesn't include
+/// the `http.url` field in spans, you can use [`SpanBackendWithUrl`] to add it.
 ///
 /// [`TracingMiddleware`]: crate::middleware::TracingMiddleware
 pub struct DefaultSpanBackend;
@@ -110,6 +111,26 @@ impl ReqwestOtelSpanBackend for DefaultSpanBackend {
 fn get_header_value(key: &str, headers: &HeaderMap) -> String {
     let header_default = &HeaderValue::from_static("");
     format!("{:?}", headers.get(key).unwrap_or(header_default)).replace('"', "")
+}
+
+/// Similar to [`DefaultSpanBackend`] but also adds the `http.url` attribute to request spans.
+///
+/// [`TracingMiddleware`]: crate::middleware::TracingMiddleware
+pub struct SpanBackendWithUrl;
+
+impl ReqwestOtelSpanBackend for SpanBackendWithUrl {
+    fn on_request_start(req: &Request, ext: &mut Extensions) -> Span {
+        let name = ext
+            .get::<OtelName>()
+            .map(|on| on.0.as_ref())
+            .unwrap_or("reqwest-http-client");
+
+        reqwest_otel_span!(name = name, req, http.url = %remove_credentials(req.url()))
+    }
+
+    fn on_request_end(span: &Span, outcome: &Result<Response>, _: &mut Extensions) {
+        default_on_request_end(span, outcome)
+    }
 }
 
 /// HTTP Mapping <https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md#status>
@@ -163,6 +184,21 @@ fn get_span_status(request_status: RequestStatusCode) -> Option<&'static str> {
 #[derive(Clone)]
 pub struct OtelName(pub Cow<'static, str>);
 
+/// Removes the username and/or password parts of the url, if present.
+fn remove_credentials(url: &Url) -> Cow<'_, str> {
+    if !url.username().is_empty() || url.password().is_some() {
+        let mut url = url.clone();
+        // Errors settings username/password are set when the URL can't have credentials, so
+        // they're just ignored.
+        url.set_username("")
+            .and_then(|_| url.set_password(None))
+            .ok();
+        url.to_string().into()
+    } else {
+        url.as_ref().into()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -175,5 +211,33 @@ mod tests {
 
         let value = get_header_value("test", &header_map);
         assert_eq!(value, expect);
+    }
+
+    #[test]
+    fn remove_credentials_from_url_without_credentials_is_noop() {
+        let url = "http://nocreds.com/".parse().unwrap();
+        let clean = remove_credentials(&url);
+        assert_eq!(clean, "http://nocreds.com/");
+    }
+
+    #[test]
+    fn remove_credentials_removes_username_only() {
+        let url = "http://user@withuser.com/".parse().unwrap();
+        let clean = remove_credentials(&url);
+        assert_eq!(clean, "http://withuser.com/");
+    }
+
+    #[test]
+    fn remove_credentials_removes_password_only() {
+        let url = "http://:123@withpwd.com/".parse().unwrap();
+        let clean = remove_credentials(&url);
+        assert_eq!(clean, "http://withpwd.com/");
+    }
+
+    #[test]
+    fn remove_credentials_removes_username_and_password() {
+        let url = "http://user:123@both.com/".parse().unwrap();
+        let clean = remove_credentials(&url);
+        assert_eq!(clean, "http://both.com/");
     }
 }

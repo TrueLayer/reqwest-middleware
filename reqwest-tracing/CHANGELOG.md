@@ -5,7 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-- HTTP URL is captured in traces as the `http.url` attribute.
+### Added
+- `SpanBackendWithUrl` for capturing `http.url` in traces
 - Require an explicit otel name in the macros. Reduces cardinality and complies
   with otel specification for HTTP bindings.
 - Permit customisation of the otel name from the non-macro layer.
