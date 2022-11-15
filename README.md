@@ -34,7 +34,7 @@ tower = "0.4"
 
 ```rust
 use reqwest::Response;
-use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, Error, MiddlewareRequest, RequestInitialiser, ReqwestService};
+use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, Error, Layer, RequestInitialiser, ReqwestService, Service};
 use reqwest_retry::{RetryTransientMiddleware, policies::ExponentialBackoff};
 use reqwest_tracing::TracingMiddleware;
 
@@ -53,8 +53,8 @@ async fn main() {
 
 async fn run<M, I>(client: ClientWithMiddleware<M, I>)
 where
-    M: tower::Layer<ReqwestService>,
-    M::Service: tower::Service<MiddlewareRequest, Response = Response, Error = Error>,
+    M: Layer<ReqwestService>,
+    M::Service: Service,
     I: RequestInitialiser,
 {
     client

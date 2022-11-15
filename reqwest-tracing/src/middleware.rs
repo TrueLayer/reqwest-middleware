@@ -4,9 +4,10 @@ use std::{
 };
 
 use pin_project_lite::pin_project;
-use reqwest::Response;
-use reqwest_middleware::{Error, MiddlewareRequest};
-use tower::{Layer, Service};
+use reqwest::{Request, Response};
+use reqwest_middleware::{Error, Layer, Service};
+use task_local_extensions::Extensions;
+// use tower::{Layer, Service};
 use tracing::Span;
 
 use crate::{DefaultSpanBackend, ReqwestOtelSpanBackend};
@@ -41,6 +42,7 @@ impl Default for TracingMiddleware<DefaultSpanBackend> {
 impl<ReqwestOtelSpan, Svc> Layer<Svc> for TracingMiddleware<ReqwestOtelSpan>
 where
     ReqwestOtelSpan: ReqwestOtelSpanBackend + Sync + Send + 'static,
+    Svc: Service,
 {
     type Service = TracingMiddlewareService<ReqwestOtelSpan, Svc>;
 
@@ -58,26 +60,15 @@ pub struct TracingMiddlewareService<S: ReqwestOtelSpanBackend, Svc> {
     service: Svc,
 }
 
-impl<ReqwestOtelSpan, Svc> Service<MiddlewareRequest>
-    for TracingMiddlewareService<ReqwestOtelSpan, Svc>
+impl<ReqwestOtelSpan, Svc> Service for TracingMiddlewareService<ReqwestOtelSpan, Svc>
 where
     ReqwestOtelSpan: ReqwestOtelSpanBackend + Sync + Send + 'static,
-    Svc: Service<MiddlewareRequest, Response = Response, Error = Error>,
+    Svc: Service,
 {
-    type Response = Response;
-    type Error = Error;
     type Future = TracingMiddlewareFuture<ReqwestOtelSpan, Svc::Future>;
 
-    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
-        self.service.poll_ready(cx)
-    }
-
-    fn call(&mut self, req: MiddlewareRequest) -> Self::Future {
-        let MiddlewareRequest {
-            request,
-            mut extensions,
-        } = req;
-        let (backend, span) = ReqwestOtelSpan::on_request_start(&request, &mut extensions);
+    fn call(&mut self, req: Request, ext: &mut Extensions) -> Self::Future {
+        let (backend, span) = ReqwestOtelSpan::on_request_start(&req, ext);
         // Adds tracing headers to the given request to propagate the OpenTelemetry context to downstream revivers of the request.
         // Spans added by downstream consumers will be part of the same trace.
         #[cfg(any(
@@ -90,10 +81,7 @@ where
         ))]
         let request = crate::otel::inject_opentelemetry_context_into_request(request);
 
-        let future = self.service.call(MiddlewareRequest {
-            request,
-            extensions,
-        });
+        let future = self.service.call(req, ext);
 
         TracingMiddlewareFuture {
             span,

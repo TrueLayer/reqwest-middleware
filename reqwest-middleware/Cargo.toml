@@ -18,7 +18,6 @@ reqwest = { version = "0.11", default-features = false, features = ["json", "mul
 serde = "1"
 task-local-extensions = "0.1.1"
 thiserror = "1"
-tower = { version = "0.4", features = ["util"] }
 futures = "0.3"
 
 [dev-dependencies]

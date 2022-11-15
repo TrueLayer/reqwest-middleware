@@ -15,7 +15,7 @@ impl Retryable {
     ///
     /// Returns `None` if the response object does not contain any errors.
     ///
-    pub fn from_reqwest_response(res: Result<&reqwest::Response, &Error>) -> Option<Self> {
+    pub fn from_reqwest_response(res: &Result<reqwest::Response, Error>) -> Option<Self> {
         match res {
             Ok(success) => {
                 let status = success.status();

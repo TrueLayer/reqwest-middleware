@@ -7,7 +7,7 @@
 //!
 //! ```
 //! use reqwest::{Client, Request, Response};
-//! use reqwest_middleware::{ClientBuilder, Error, Extension, MiddlewareRequest};
+//! use reqwest_middleware::{ClientBuilder, Error, Extension, Layer, Service};
 //! use task_local_extensions::Extensions;
 //! use futures::future::{BoxFuture, FutureExt};
 //! use std::task::{Context, Poll};
@@ -15,7 +15,7 @@
 //! struct LoggingLayer;
 //! struct LoggingService<S>(S);
 //!
-//! impl<S> tower::Layer<S> for LoggingLayer {
+//! impl<S> Layer<S> for LoggingLayer {
 //!     type Service = LoggingService<S>;
 //!
 //!     fn layer(&self, inner: S) -> Self::Service {
@@ -23,25 +23,19 @@
 //!     }
 //! }
 //!
-//! impl<S> tower::Service<MiddlewareRequest> for LoggingService<S>
+//! impl<S> Service for LoggingService<S>
 //! where
-//!     S: tower::Service<MiddlewareRequest, Response = Response, Error = Error>,
+//!     S: Service,
 //!     S::Future: Send + 'static,
 //! {
-//!     type Response = Response;
-//!     type Error = Error;
 //!     type Future = BoxFuture<'static, Result<Response, Error>>;
-//!
-//!     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
-//!         self.0.poll_ready(cx)
-//!     }
 //!     
-//!     fn call(&mut self, req: MiddlewareRequest) -> Self::Future {
-//!         println!("Request started {:?}", &req.request);
-//!         let fut = self.0.call(req);
+//!     fn call(&mut self, req: Request, ext: &mut Extensions) -> Self::Future {
+//!         println!("Request started {req:?}");
+//!         let fut = self.0.call(req, ext);
 //!         async {
 //!             let res = fut.await;
-//!             println!("Result: {:?}", res);
+//!             println!("Result: {res:?}");
 //!             res
 //!         }.boxed()
 //!     }
@@ -76,8 +70,49 @@ mod req_init;
 pub use client::{ClientBuilder, ClientWithMiddleware, RequestBuilder, ReqwestService};
 pub use error::Error;
 pub use req_init::{Extension, RequestInitialiser, RequestStack};
+use reqwest::{Request, Response};
+use task_local_extensions::Extensions;
 
-pub struct MiddlewareRequest {
-    pub request: reqwest::Request,
-    pub extensions: task_local_extensions::Extensions,
+/// Two [`RequestInitialiser`]s or [`Service`]s chained together.
+#[derive(Clone)]
+pub struct Stack<Inner, Outer> {
+    pub(crate) inner: Inner,
+    pub(crate) outer: Outer,
+}
+
+pub trait Service {
+    type Future: std::future::Future<Output = Result<Response, Error>>;
+    fn call(&mut self, req: Request, ext: &mut Extensions) -> Self::Future;
+}
+
+pub struct Identity;
+
+impl<S: Service> Layer<S> for Identity {
+    type Service = S;
+
+    fn layer(&self, inner: S) -> Self::Service {
+        inner
+    }
+}
+
+pub trait Layer<S> {
+    /// The wrapped service
+    type Service;
+    /// Wrap the given service with the middleware, returning a new service
+    /// that has been decorated with the middleware.
+    fn layer(&self, inner: S) -> Self::Service;
+}
+
+impl<S, Inner, Outer> Layer<S> for Stack<Inner, Outer>
+where
+    Inner: Layer<S>,
+    Outer: Layer<Inner::Service>,
+{
+    type Service = Outer::Service;
+
+    fn layer(&self, service: S) -> Self::Service {
+        let inner = self.inner.layer(service);
+
+        self.outer.layer(inner)
+    }
 }

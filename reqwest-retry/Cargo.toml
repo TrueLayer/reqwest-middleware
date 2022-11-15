@@ -23,7 +23,6 @@ retry-policies = "0.1"
 task-local-extensions = "0.1.1"
 tokio = { version = "1.6", features = ["time"] }
 tracing = "0.1.26"
-tower = { version = "0.4", features = ["retry"] }
 pin-project-lite = "0.2"
 
 [dev-dependencies]

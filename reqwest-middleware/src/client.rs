@@ -6,20 +6,18 @@ use reqwest::{Body, Client, IntoUrl, Method, Request, Response};
 use serde::Serialize;
 use std::convert::TryFrom;
 use std::fmt::{self, Display};
-use std::task::{Context, Poll};
 use std::time::Duration;
 use task_local_extensions::Extensions;
-use tower::layer::util::{Identity, Stack};
-use tower::{Layer, Service, ServiceBuilder, ServiceExt};
+// use tower::{Layer, Service, ServiceBuilder, ServiceExt};
 
-use crate::{Error, MiddlewareRequest, RequestInitialiser, RequestStack};
+use crate::{Error, Identity, Layer, RequestInitialiser, RequestStack, Service, Stack};
 
 /// A `ClientBuilder` is used to build a [`ClientWithMiddleware`].
 ///
 /// [`ClientWithMiddleware`]: crate::ClientWithMiddleware
 pub struct ClientBuilder<M, I> {
     client: Client,
-    middleware_stack: ServiceBuilder<M>,
+    middleware_stack: M,
     initialiser_stack: I,
 }
 
@@ -27,8 +25,8 @@ impl ClientBuilder<Identity, Identity> {
     pub fn new(client: Client) -> Self {
         ClientBuilder {
             client,
-            middleware_stack: ServiceBuilder::new(),
-            initialiser_stack: Identity::new(),
+            middleware_stack: Identity,
+            initialiser_stack: Identity,
         }
     }
 }
@@ -38,7 +36,10 @@ impl<M, I> ClientBuilder<M, I> {
     pub fn with<T>(self, layer: T) -> ClientBuilder<Stack<T, M>, I> {
         ClientBuilder {
             client: self.client,
-            middleware_stack: self.middleware_stack.layer(layer),
+            middleware_stack: Stack {
+                inner: layer,
+                outer: self.middleware_stack,
+            },
             initialiser_stack: self.initialiser_stack,
         }
     }
@@ -70,14 +71,11 @@ impl<M, I> ClientBuilder<M, I> {
 #[derive(Clone)]
 pub struct ClientWithMiddleware<M, I> {
     inner: reqwest::Client,
-    middleware_stack: ServiceBuilder<M>,
+    middleware_stack: M,
     initialiser_stack: I,
 }
 
-impl<M: Layer<ReqwestService>, I: RequestInitialiser> ClientWithMiddleware<M, I>
-where
-    M::Service: Service<MiddlewareRequest, Response = Response, Error = Error>,
-{
+impl<M: Layer<ReqwestService>, I: RequestInitialiser> ClientWithMiddleware<M, I> {
     /// See [`Client::get`]
     pub fn get<U: IntoUrl>(&self, url: U) -> RequestBuilder<M, I> {
         self.request(Method::GET, url)
@@ -122,12 +120,12 @@ where
 }
 
 /// Create a `ClientWithMiddleware` without any middleware.
-impl From<Client> for ClientWithMiddleware<Identity, ()> {
+impl From<Client> for ClientWithMiddleware<Identity, Identity> {
     fn from(client: Client) -> Self {
         ClientWithMiddleware {
             inner: client,
-            middleware_stack: ServiceBuilder::new(),
-            initialiser_stack: (),
+            middleware_stack: Identity,
+            initialiser_stack: Identity,
         }
     }
 }
@@ -152,25 +150,18 @@ pub struct RequestBuilder<'client, M, I> {
 #[derive(Clone)]
 pub struct ReqwestService(Client);
 
-impl Service<MiddlewareRequest> for ReqwestService {
-    type Response = Response;
-    type Error = Error;
+impl Service for ReqwestService {
     type Future = BoxFuture<'static, Result<Response, Error>>;
 
-    fn poll_ready(&mut self, _: &mut Context<'_>) -> Poll<Result<(), Error>> {
-        Poll::Ready(Ok(()))
-    }
-
-    fn call(&mut self, req: MiddlewareRequest) -> Self::Future {
-        let req = req.request;
-        let client = self.0.clone();
-        async move { client.execute(req).await.map_err(Error::from) }.boxed()
+    fn call(&mut self, req: Request, _: &mut Extensions) -> Self::Future {
+        let fut = self.0.execute(req);
+        async { fut.await.map_err(Error::from) }.boxed()
     }
 }
 
 impl<M: Layer<ReqwestService>, I: RequestInitialiser> RequestBuilder<'_, M, I>
 where
-    M::Service: Service<MiddlewareRequest, Response = Response, Error = Error>,
+    M::Service: Service,
 {
     pub fn header<K, V>(self, key: K, value: V) -> Self
     where
@@ -274,17 +265,13 @@ where
         let Self {
             inner,
             client,
-            extensions,
+            mut extensions,
         } = self;
         let req = inner.build()?;
-        client
+        let mut svc = client
             .middleware_stack
-            .service(ReqwestService(client.inner.clone()))
-            .oneshot(MiddlewareRequest {
-                request: req,
-                extensions,
-            })
-            .await
+            .layer(ReqwestService(client.inner.clone()));
+        svc.call(req, &mut extensions).await
 
         // client.execute_with_extensions(req, &mut extensions).await
     }
