@@ -1,4 +1,7 @@
-use std::{future::Future, task::ready};
+use std::{
+    future::Future,
+    task::{ready, Context, Poll},
+};
 
 use pin_project_lite::pin_project;
 use reqwest::Response;
@@ -65,10 +68,7 @@ where
     type Error = Error;
     type Future = TracingMiddlewareFuture<ReqwestOtelSpan, Svc::Future>;
 
-    fn poll_ready(
-        &mut self,
-        cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Result<(), Self::Error>> {
+    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         self.service.poll_ready(cx)
     }
 
@@ -117,16 +117,13 @@ impl<S: ReqwestOtelSpanBackend, F: Future<Output = Result<Response, Error>>> Fut
 {
     type Output = F::Output;
 
-    fn poll(
-        self: std::pin::Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Self::Output> {
+    fn poll(self: std::pin::Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         let this = self.project();
         let outcome = {
             let _guard = this.span.enter();
             ready!(this.future.poll(cx))
         };
         S::on_request_end(this.span, &outcome);
-        std::task::Poll::Ready(outcome)
+        Poll::Ready(outcome)
     }
 }

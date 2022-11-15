@@ -11,8 +11,8 @@ to allow for client middleware chains.
 This crate provides functionality for building and running middleware but no middleware
 implementations. This repository also contains a couple of useful concrete middleware crates:
 
-* [`reqwest-retry`](https://crates.io/crates/reqwest-retry): retry failed requests.
-* [`reqwest-tracing`](https://crates.io/crates/reqwest-tracing):
+- [`reqwest-retry`](https://crates.io/crates/reqwest-retry): retry failed requests.
+- [`reqwest-tracing`](https://crates.io/crates/reqwest-tracing):
   [`tracing`](https://crates.io/crates/tracing) integration, optional opentelemetry support.
 
 ## Overview
@@ -29,10 +29,12 @@ reqwest-middleware = "0.1.6"
 reqwest-retry = "0.1.5"
 reqwest-tracing = "0.2.3"
 tokio = { version = "1.12.0", features = ["macros", "rt-multi-thread"] }
+tower = "0.4"
 ```
 
 ```rust
-use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
+use reqwest::Response;
+use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, Error, MiddlewareRequest, RequestInitialiser, ReqwestService};
 use reqwest_retry::{RetryTransientMiddleware, policies::ExponentialBackoff};
 use reqwest_tracing::TracingMiddleware;
 
@@ -49,7 +51,12 @@ async fn main() {
     run(client).await;
 }
 
-async fn run(client: ClientWithMiddleware) {
+async fn run<M, I>(client: ClientWithMiddleware<M, I>)
+where
+    M: tower::Layer<ReqwestService>,
+    M::Service: tower::Service<MiddlewareRequest, Response = Response, Error = Error>,
+    I: RequestInitialiser,
+{
     client
         .get("https://truelayer.com")
         .header("foo", "bar")

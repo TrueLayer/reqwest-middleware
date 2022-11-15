@@ -1,80 +1,62 @@
+use futures::future::BoxFuture;
+use futures::FutureExt;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::multipart::Form;
 use reqwest::{Body, Client, IntoUrl, Method, Request, Response};
 use serde::Serialize;
 use std::convert::TryFrom;
 use std::fmt::{self, Display};
+use std::task::{Context, Poll};
 use std::time::Duration;
 use task_local_extensions::Extensions;
 use tower::layer::util::{Identity, Stack};
 use tower::{Layer, Service, ServiceBuilder, ServiceExt};
 
-use crate::error::Result;
-use crate::{Error, MiddlewareRequest, RequestInitialiser};
+use crate::{Error, MiddlewareRequest, RequestInitialiser, RequestStack};
 
 /// A `ClientBuilder` is used to build a [`ClientWithMiddleware`].
 ///
 /// [`ClientWithMiddleware`]: crate::ClientWithMiddleware
-pub struct ClientBuilder<M> {
+pub struct ClientBuilder<M, I> {
     client: Client,
     middleware_stack: ServiceBuilder<M>,
-    initialiser_stack: (),
+    initialiser_stack: I,
 }
 
-impl ClientBuilder<Identity> {
+impl ClientBuilder<Identity, Identity> {
     pub fn new(client: Client) -> Self {
         ClientBuilder {
             client,
             middleware_stack: ServiceBuilder::new(),
-            initialiser_stack: (),
+            initialiser_stack: Identity::new(),
         }
     }
 }
 
-impl<L> ClientBuilder<L> {
+impl<M, I> ClientBuilder<M, I> {
     /// Convenience method to attach middleware.
-    ///
-    /// If you need to keep a reference to the middleware after attaching, use [`with_arc`].
-    ///
-    /// [`with_arc`]: Self::with_arc
-    pub fn layer<T>(self, layer: T) -> ClientBuilder<Stack<T, L>> {
+    pub fn with<T>(self, layer: T) -> ClientBuilder<Stack<T, M>, I> {
         ClientBuilder {
             client: self.client,
             middleware_stack: self.middleware_stack.layer(layer),
-            initialiser_stack: (),
+            initialiser_stack: self.initialiser_stack,
         }
     }
 
-    // /// Add middleware to the chain. [`with`] is more ergonomic if you don't need the `Arc`.
-    // ///
-    // /// [`with`]: Self::with
-    // pub fn with_arc(mut self, middleware: Arc<dyn Middleware>) -> Self {
-    //     self.middleware_stack.push(middleware);
-    //     self
-    // }
-
-    // /// Convenience method to attach a request initialiser.
-    // ///
-    // /// If you need to keep a reference to the initialiser after attaching, use [`with_arc_init`].
-    // ///
-    // /// [`with_arc_init`]: Self::with_arc_init
-    // pub fn with_init<I>(self, initialiser: I) -> Self
-    // where
-    //     I: RequestInitialiser,
-    // {
-    //     self.with_arc_init(Arc::new(initialiser))
-    // }
-
-    // /// Add a request initialiser to the chain. [`with_init`] is more ergonomic if you don't need the `Arc`.
-    // ///
-    // /// [`with_init`]: Self::with_init
-    // pub fn with_arc_init(mut self, initialiser: Arc<dyn RequestInitialiser>) -> Self {
-    //     self.initialiser_stack.push(initialiser);
-    //     self
-    // }
+    /// Convenience method to attach a request initialiser.
+    pub fn with_init<T>(self, initialiser: T) -> ClientBuilder<M, RequestStack<T, I>> {
+        ClientBuilder {
+            client: self.client,
+            middleware_stack: self.middleware_stack,
+            initialiser_stack: RequestStack {
+                inner: initialiser,
+                outer: self.initialiser_stack,
+            },
+        }
+    }
 
     /// Returns a `ClientWithMiddleware` using this builder configuration.
-    pub fn build(self) -> ClientWithMiddleware<L, ()> {
+    pub fn build(self) -> ClientWithMiddleware<M, I> {
         ClientWithMiddleware {
             inner: self.client,
             middleware_stack: self.middleware_stack,
@@ -92,21 +74,7 @@ pub struct ClientWithMiddleware<M, I> {
     initialiser_stack: I,
 }
 
-// impl<M: Layer<ReqService>> ClientWithMiddleware<M, ()>
-// where
-//     M::Service: Service<MiddlewareRequest, Response = Response, Error = Error>,
-// {
-//     /// See [`ClientBuilder`] for a more ergonomic way to build `ClientWithMiddleware` instances.
-//     pub fn new(client: Client, middleware_stack: M) -> Self {
-//         ClientWithMiddleware {
-//             inner: client,
-//             middleware_stack,
-//             initialiser_stack: (),
-//         }
-//     }
-// }
-
-impl<M: Layer<ReqService>, I: RequestInitialiser> ClientWithMiddleware<M, I>
+impl<M: Layer<ReqwestService>, I: RequestInitialiser> ClientWithMiddleware<M, I>
 where
     M::Service: Service<MiddlewareRequest, Response = Response, Error = Error>,
 {
@@ -181,28 +149,26 @@ pub struct RequestBuilder<'client, M, I> {
     extensions: Extensions,
 }
 
-pub type BoxFuture<'a, T> = std::pin::Pin<Box<dyn std::future::Future<Output = T> + Send + 'a>>;
-
 #[derive(Clone)]
-pub struct ReqService(Client);
+pub struct ReqwestService(Client);
 
-impl Service<MiddlewareRequest> for ReqService {
+impl Service<MiddlewareRequest> for ReqwestService {
     type Response = Response;
     type Error = Error;
-    type Future = BoxFuture<'static, Result<Response>>;
+    type Future = BoxFuture<'static, Result<Response, Error>>;
 
-    fn poll_ready(&mut self, _: &mut std::task::Context<'_>) -> std::task::Poll<Result<()>> {
-        std::task::Poll::Ready(Ok(()))
+    fn poll_ready(&mut self, _: &mut Context<'_>) -> Poll<Result<(), Error>> {
+        Poll::Ready(Ok(()))
     }
 
     fn call(&mut self, req: MiddlewareRequest) -> Self::Future {
         let req = req.request;
         let client = self.0.clone();
-        Box::pin(async move { client.execute(req).await.map_err(Error::from) })
+        async move { client.execute(req).await.map_err(Error::from) }.boxed()
     }
 }
 
-impl<M: Layer<ReqService>, I: RequestInitialiser> RequestBuilder<'_, M, I>
+impl<M: Layer<ReqwestService>, I: RequestInitialiser> RequestBuilder<'_, M, I>
 where
     M::Service: Service<MiddlewareRequest, Response = Response, Error = Error>,
 {
@@ -304,7 +270,7 @@ where
         &mut self.extensions
     }
 
-    pub async fn send(self) -> Result<Response> {
+    pub async fn send(self) -> Result<Response, Error> {
         let Self {
             inner,
             client,
@@ -313,7 +279,7 @@ where
         let req = inner.build()?;
         client
             .middleware_stack
-            .service(ReqService(client.inner.clone()))
+            .service(ReqwestService(client.inner.clone()))
             .oneshot(MiddlewareRequest {
                 request: req,
                 extensions,

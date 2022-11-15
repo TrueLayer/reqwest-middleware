@@ -7,27 +7,31 @@
 //!
 //! ```
 //! use reqwest::{Client, Request, Response};
-//! use reqwest_middleware::{ClientBuilder, Middleware, Next, Result};
+//! use reqwest_middleware::{ClientBuilder, Error, Extension, MiddlewareRequest};
 //! use task_local_extensions::Extensions;
-//! use futures::FutureExt;
+//! use futures::future::{BoxFuture, FutureExt};
 //! use std::task::{Context, Poll};
 //!
 //! struct LoggingLayer;
 //! struct LoggingService<S>(S);
-//! 
+//!
 //! impl<S> tower::Layer<S> for LoggingLayer {
 //!     type Service = LoggingService<S>;
-//! 
+//!
 //!     fn layer(&self, inner: S) -> Self::Service {
 //!         LoggingService(inner)
 //!     }
 //! }
 //!
-//! impl<S: tower::Service<MiddlewareRequest>> tower::Service<MiddlewareRequest> for LoggingService<S> {
-//!     type Response = S::Response;
-//!     type Error = S::Error;
-//!     type Future = futures::BoxFuture<'static, Result<S::Response, S::Error>>;
-//! 
+//! impl<S> tower::Service<MiddlewareRequest> for LoggingService<S>
+//! where
+//!     S: tower::Service<MiddlewareRequest, Response = Response, Error = Error>,
+//!     S::Future: Send + 'static,
+//! {
+//!     type Response = Response;
+//!     type Error = Error;
+//!     type Future = BoxFuture<'static, Result<Response, Error>>;
+//!
 //!     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
 //!         self.0.poll_ready(cx)
 //!     }
@@ -46,7 +50,7 @@
 //! async fn run() {
 //!     let reqwest_client = Client::builder().build().unwrap();
 //!     let client = ClientBuilder::new(reqwest_client)
-//!         .layer(LoggingLayer)
+//!         .with(LoggingLayer)
 //!         .build();
 //!     let resp = client.get("https://truelayer.com").send().await.unwrap();
 //!     println!("TrueLayer page HTML: {}", resp.text().await.unwrap());
@@ -69,9 +73,9 @@ mod client;
 mod error;
 mod req_init;
 
-pub use client::{ClientBuilder, ClientWithMiddleware, ReqService, RequestBuilder};
-pub use error::{Error, Result};
-pub use req_init::{Extension, RequestInitialiser};
+pub use client::{ClientBuilder, ClientWithMiddleware, RequestBuilder, ReqwestService};
+pub use error::Error;
+pub use req_init::{Extension, RequestInitialiser, RequestStack};
 
 pub struct MiddlewareRequest {
     pub request: reqwest::Request,

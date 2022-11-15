@@ -30,7 +30,7 @@
 /// The second argument passed to [`reqwest_otel_span!`](crate::reqwest_otel_span) is a reference to an [`reqwest::Request`].
 ///
 /// ```rust
-/// use reqwest_middleware::Result;
+/// use reqwest_middleware::Error;
 /// use task_local_extensions::Extensions;
 /// use reqwest::{Request, Response};
 /// use reqwest_tracing::{
@@ -45,7 +45,7 @@
 ///         reqwest_otel_span!(name = "reqwest-http-request", req)
 ///     }
 ///
-///     fn on_request_end(span: &Span, outcome: &Result<Response>, _extension: &mut Extensions) {
+///     fn on_request_end(span: &Span, outcome: &Result<Response, Error>) {
 ///         default_on_request_end(span, outcome)
 ///     }
 /// }

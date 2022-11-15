@@ -4,11 +4,11 @@
 //!
 //! The simplest possible usage:
 //! ```no_run
-//! # use reqwest_middleware::Result;
+//! # use reqwest_middleware::Error;
 //! use reqwest_middleware::{ClientBuilder};
 //! use reqwest_tracing::TracingMiddleware;
 //!
-//! # async fn example() -> Result<()> {
+//! # async fn example() -> Result<(), Error> {
 //! let reqwest_client = reqwest::Client::builder().build().unwrap();
 //! let client = ClientBuilder::new(reqwest_client)
 //!    // Insert the tracing middleware
@@ -22,12 +22,12 @@
 //!
 //! To customise the span names use [`OtelName`].
 //! ```no_run
-//! # use reqwest_middleware::Result;
+//! # use reqwest_middleware::Error;
 //! use reqwest_middleware::{ClientBuilder, Extension};
 //! use reqwest_tracing::{
 //!     TracingMiddleware, OtelName
 //! };
-//! # async fn example() -> Result<()> {
+//! # async fn example() -> Result<(), Error> {
 //! let reqwest_client = reqwest::Client::builder().build().unwrap();
 //! let client = ClientBuilder::new(reqwest_client)
 //!    // Inserts the extension before the request is started
@@ -52,7 +52,7 @@
 //!
 //! Note that Opentelemetry tracks start and stop already, there is no need to have a custom builder like this.
 //! ```rust
-//! use reqwest_middleware::Result;
+//! use reqwest_middleware::Error;
 //! use task_local_extensions::Extensions;
 //! use reqwest::{Request, Response};
 //! use reqwest_middleware::ClientBuilder;
@@ -70,7 +70,7 @@
 //!         reqwest_otel_span!(name="example-request", req, time_elapsed = tracing::field::Empty)
 //!     }
 //!
-//!     fn on_request_end(span: &Span, outcome: &Result<Response>, extension: &mut Extensions) {
+//!     fn on_request_end(span: &Span, outcome: &Result<Response, Error>, extension: &mut Extensions) {
 //!         let time_elapsed = extension.get::<Instant>().unwrap().elapsed().as_millis() as i64;
 //!         default_on_request_end(span, outcome);
 //!         span.record("time_elapsed", &time_elapsed);
@@ -103,18 +103,3 @@ pub use reqwest_otel_span_builder::{
 
 #[doc(hidden)]
 pub mod reqwest_otel_span_macro;
-
-#[cfg(test)]
-mod tests {
-    use crate::{TracingMiddleware, DefaultSpanBackend};
-    use reqwest_middleware::ClientBuilder;
-
-    #[tokio::test]
-    async fn compiles() {
-        let client = ClientBuilder::new(reqwest::Client::new())
-            .layer(TracingMiddleware::<DefaultSpanBackend>::new())
-            .build();
-        let resp = client.get("http://example.com").send().await.unwrap();
-        dbg!(resp);
-    }
-}

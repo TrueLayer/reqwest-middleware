@@ -36,7 +36,7 @@ use tower::{Layer, Service};
 ///     };
 ///
 ///     let retry_transient_middleware = RetryTransientMiddleware::new_with_policy(retry_policy);
-///     let client = ClientBuilder::new(Client::new()).layer(retry_transient_middleware).build();
+///     let client = ClientBuilder::new(Client::new()).with(retry_transient_middleware).build();
 ///```
 ///
 /// # Note

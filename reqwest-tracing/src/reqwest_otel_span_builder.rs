@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{Request, Response, StatusCode as RequestStatusCode, Url};
-use reqwest_middleware::{Error, Result};
+use reqwest_middleware::Error;
 use task_local_extensions::Extensions;
 use tracing::Span;
 
@@ -44,12 +44,12 @@ pub trait ReqwestOtelSpanBackend {
     fn on_request_start(req: &Request, extension: &mut Extensions) -> Span;
 
     /// Runs after the request call has executed.
-    fn on_request_end(span: &Span, outcome: &Result<Response>);
+    fn on_request_end(span: &Span, outcome: &Result<Response, Error>);
 }
 
 /// Populates default success/failure fields for a given [`reqwest_otel_span!`] span.
 #[inline]
-pub fn default_on_request_end(span: &Span, outcome: &Result<Response>) {
+pub fn default_on_request_end(span: &Span, outcome: &Result<Response, Error>) {
     match outcome {
         Ok(res) => default_on_request_success(span, res),
         Err(err) => default_on_request_failure(span, err),
@@ -103,7 +103,7 @@ impl ReqwestOtelSpanBackend for DefaultSpanBackend {
         reqwest_otel_span!(name = name, req)
     }
 
-    fn on_request_end(span: &Span, outcome: &Result<Response>) {
+    fn on_request_end(span: &Span, outcome: &Result<Response, Error>) {
         default_on_request_end(span, outcome)
     }
 }
@@ -128,7 +128,7 @@ impl ReqwestOtelSpanBackend for SpanBackendWithUrl {
         reqwest_otel_span!(name = name, req, http.url = %remove_credentials(req.url()))
     }
 
-    fn on_request_end(span: &Span, outcome: &Result<Response>) {
+    fn on_request_end(span: &Span, outcome: &Result<Response, Error>) {
         default_on_request_end(span, outcome)
     }
 }
@@ -156,28 +156,28 @@ fn get_span_status(request_status: RequestStatusCode) -> Option<&'static str> {
 ///
 /// Usage:
 /// ```no_run
-/// # use reqwest_middleware::Result;
+/// # use reqwest_middleware::Error;
 /// use reqwest_middleware::{ClientBuilder, Extension};
 /// use reqwest_tracing::{
 ///     TracingMiddleware, OtelName
 /// };
-/// # async fn example() -> Result<()> {
+/// # async fn example() -> Result<(), Error> {
 /// let reqwest_client = reqwest::Client::builder().build().unwrap();
 /// let client = ClientBuilder::new(reqwest_client)
-///    // Inserts the extension before the request is started
-///    .with_init(Extension(OtelName("my-client".into())))
-///    // Makes use of that extension to specify the otel name
-///    .with(TracingMiddleware::default())
-///    .build();
+///     // Inserts the extension before the request is started
+///     .with_init(Extension(OtelName("my-client".into())))
+///     // Makes use of that extension to specify the otel name
+///     .with(TracingMiddleware::default())
+///     .build();
 ///
 /// let resp = client.get("https://truelayer.com").send().await.unwrap();
 ///
 /// // Or specify it on the individual request (will take priority)
 /// let resp = client.post("https://api.truelayer.com/payment")
 ///     .with_extension(OtelName("POST /payment".into()))
-///    .send()
-///    .await
-///    .unwrap();
+///     .send()
+///     .await
+///     .unwrap();
 /// # Ok(())
 /// # }
 /// ```

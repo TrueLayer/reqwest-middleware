@@ -48,7 +48,7 @@ macro_rules! assert_retry_succeeds_inner {
 
             let reqwest_client = Client::builder().build().unwrap();
             let client = ClientBuilder::new(reqwest_client)
-                .layer(RetryTransientMiddleware::new_with_policy(
+                .with(RetryTransientMiddleware::new_with_policy(
                     ExponentialBackoff {
                         max_n_retries: retry_amount,
                         max_retry_interval: std::time::Duration::from_millis(30),
@@ -184,7 +184,7 @@ async fn assert_retry_on_request_timeout() {
 
     let reqwest_client = Client::builder().build().unwrap();
     let client = ClientBuilder::new(reqwest_client)
-        .layer(RetryTransientMiddleware::new_with_policy(
+        .with(RetryTransientMiddleware::new_with_policy(
             ExponentialBackoff {
                 max_n_retries: 3,
                 max_retry_interval: std::time::Duration::from_millis(100),
@@ -239,7 +239,7 @@ async fn assert_retry_on_incomplete_message() {
 
     let reqwest_client = Client::builder().build().unwrap();
     let client = ClientBuilder::new(reqwest_client)
-        .layer(RetryTransientMiddleware::new_with_policy(
+        .with(RetryTransientMiddleware::new_with_policy(
             ExponentialBackoff {
                 max_n_retries: 3,
                 max_retry_interval: std::time::Duration::from_millis(100),
