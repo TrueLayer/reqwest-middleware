@@ -62,16 +62,17 @@
 //! use tracing::Span;
 //! use std::time::{Duration, Instant};
 //!
-//! pub struct TimeTrace;
+//! pub struct TimeTrace(Instant);
 //!
 //! impl ReqwestOtelSpanBackend for TimeTrace {
-//!     fn on_request_start(req: &Request, extension: &mut Extensions) -> Span {
-//!         extension.insert(Instant::now());
-//!         reqwest_otel_span!(name="example-request", req, time_elapsed = tracing::field::Empty)
+//!     fn on_request_start(req: &Request, _extension: &mut Extensions) -> (Self, Span) {
+//!         let now = Self(Instant::now());
+//!         let span = reqwest_otel_span!(name="example-request", req, time_elapsed = tracing::field::Empty);
+//!         (now, span)
 //!     }
 //!
-//!     fn on_request_end(span: &Span, outcome: &Result<Response, Error>, extension: &mut Extensions) {
-//!         let time_elapsed = extension.get::<Instant>().unwrap().elapsed().as_millis() as i64;
+//!     fn on_request_end(self, span: &Span, outcome: &Result<Response, Error>) {
+//!         let time_elapsed = self.0.elapsed().as_millis() as i64;
 //!         default_on_request_end(span, outcome);
 //!         span.record("time_elapsed", &time_elapsed);
 //!     }

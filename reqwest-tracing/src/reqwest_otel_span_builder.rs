@@ -39,12 +39,12 @@ pub const HTTP_USER_AGENT: &str = "http.user_agent";
 /// Check out [`reqwest_otel_span`] documentation for examples.
 ///
 /// [`TracingMiddleware`]: crate::middleware::TracingMiddleware.
-pub trait ReqwestOtelSpanBackend {
+pub trait ReqwestOtelSpanBackend: Sized {
     /// Initalized a new span before the request is executed.
-    fn on_request_start(req: &Request, extension: &mut Extensions) -> Span;
+    fn on_request_start(req: &Request, extension: &mut Extensions) -> (Self, Span);
 
     /// Runs after the request call has executed.
-    fn on_request_end(span: &Span, outcome: &Result<Response, Error>);
+    fn on_request_end(self, span: &Span, outcome: &Result<Response, Error>);
 }
 
 /// Populates default success/failure fields for a given [`reqwest_otel_span!`] span.
@@ -95,15 +95,15 @@ pub fn default_on_request_failure(span: &Span, e: &Error) {
 pub struct DefaultSpanBackend;
 
 impl ReqwestOtelSpanBackend for DefaultSpanBackend {
-    fn on_request_start(req: &Request, ext: &mut Extensions) -> Span {
+    fn on_request_start(req: &Request, ext: &mut Extensions) -> (DefaultSpanBackend, Span) {
         let name = ext
             .get::<OtelName>()
             .map(|on| on.0.as_ref())
             .unwrap_or("reqwest-http-client");
-        reqwest_otel_span!(name = name, req)
+        (Self, reqwest_otel_span!(name = name, req))
     }
 
-    fn on_request_end(span: &Span, outcome: &Result<Response, Error>) {
+    fn on_request_end(self, span: &Span, outcome: &Result<Response, Error>) {
         default_on_request_end(span, outcome)
     }
 }
@@ -119,16 +119,19 @@ fn get_header_value(key: &str, headers: &HeaderMap) -> String {
 pub struct SpanBackendWithUrl;
 
 impl ReqwestOtelSpanBackend for SpanBackendWithUrl {
-    fn on_request_start(req: &Request, ext: &mut Extensions) -> Span {
+    fn on_request_start(req: &Request, ext: &mut Extensions) -> (Self, Span) {
         let name = ext
             .get::<OtelName>()
             .map(|on| on.0.as_ref())
             .unwrap_or("reqwest-http-client");
 
-        reqwest_otel_span!(name = name, req, http.url = %remove_credentials(req.url()))
+        (
+            Self,
+            reqwest_otel_span!(name = name, req, http.url = %remove_credentials(req.url())),
+        )
     }
 
-    fn on_request_end(span: &Span, outcome: &Result<Response, Error>) {
+    fn on_request_end(self, span: &Span, outcome: &Result<Response, Error>) {
         default_on_request_end(span, outcome)
     }
 }

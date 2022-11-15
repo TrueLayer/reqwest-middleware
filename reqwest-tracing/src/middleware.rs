@@ -47,14 +47,14 @@ where
     fn layer(&self, inner: Svc) -> Self::Service {
         TracingMiddlewareService {
             service: inner,
-            layer: *self,
+            _layer: *self,
         }
     }
 }
 
 /// Middleware Service for tracing requests using the current Opentelemetry Context.
 pub struct TracingMiddlewareService<S: ReqwestOtelSpanBackend, Svc> {
-    layer: TracingMiddleware<S>,
+    _layer: TracingMiddleware<S>,
     service: Svc,
 }
 
@@ -77,7 +77,7 @@ where
             request,
             mut extensions,
         } = req;
-        let request_span = ReqwestOtelSpan::on_request_start(&request, &mut extensions);
+        let (backend, span) = ReqwestOtelSpan::on_request_start(&request, &mut extensions);
         // Adds tracing headers to the given request to propagate the OpenTelemetry context to downstream revivers of the request.
         // Spans added by downstream consumers will be part of the same trace.
         #[cfg(any(
@@ -96,8 +96,8 @@ where
         });
 
         TracingMiddlewareFuture {
-            layer: self.layer,
-            span: request_span,
+            span,
+            backend: Some(backend),
             future,
         }
     }
@@ -105,8 +105,8 @@ where
 
 pin_project!(
     pub struct TracingMiddlewareFuture<S: ReqwestOtelSpanBackend, F> {
-        layer: TracingMiddleware<S>,
         span: Span,
+        backend: Option<S>,
         #[pin]
         future: F,
     }
@@ -123,7 +123,10 @@ impl<S: ReqwestOtelSpanBackend, F: Future<Output = Result<Response, Error>>> Fut
             let _guard = this.span.enter();
             ready!(this.future.poll(cx))
         };
-        S::on_request_end(this.span, &outcome);
+        this.backend
+            .take()
+            .expect("poll should not be called after completion")
+            .on_request_end(this.span, &outcome);
         Poll::Ready(outcome)
     }
 }

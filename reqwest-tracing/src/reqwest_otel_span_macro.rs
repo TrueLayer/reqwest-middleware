@@ -41,11 +41,11 @@
 /// pub struct CustomReqwestOtelSpanBackend;
 ///
 /// impl ReqwestOtelSpanBackend for CustomReqwestOtelSpanBackend {
-///     fn on_request_start(req: &Request, _extension: &mut Extensions) -> Span {
-///         reqwest_otel_span!(name = "reqwest-http-request", req)
+///     fn on_request_start(req: &Request, _extension: &mut Extensions) -> (Self, Span) {
+///         (Self, reqwest_otel_span!(name = "reqwest-http-request", req))
 ///     }
 ///
-///     fn on_request_end(span: &Span, outcome: &Result<Response, Error>) {
+///     fn on_request_end(self, span: &Span, outcome: &Result<Response, Error>) {
 ///         default_on_request_end(span, outcome)
 ///     }
 /// }
