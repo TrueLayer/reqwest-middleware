@@ -48,7 +48,7 @@ macro_rules! assert_retry_succeeds_inner {
 
             let reqwest_client = Client::builder().build().unwrap();
             let client = ClientBuilder::new(reqwest_client)
-                .with(RetryTransientMiddleware::new_with_policy(
+                .layer(RetryTransientMiddleware::new_with_policy(
                     ExponentialBackoff {
                         max_n_retries: retry_amount,
                         max_retry_interval: std::time::Duration::from_millis(30),
@@ -147,17 +147,6 @@ assert_retry_succeeds!(429, StatusCode::OK);
 assert_no_retry!(431, StatusCode::REQUEST_HEADER_FIELDS_TOO_LARGE);
 assert_no_retry!(451, StatusCode::UNAVAILABLE_FOR_LEGAL_REASONS);
 
-// We assert that we cap retries at 10, which means that we will
-// get 11 calls to the RetryResponder.
-assert_retry_succeeds_inner!(
-    500,
-    assert_maximum_retries_is_not_exceeded,
-    StatusCode::INTERNAL_SERVER_ERROR,
-    100,
-    11,
-    RetryResponder::new(100_u32, 500)
-);
-
 pub struct RetryTimeoutResponder(Arc<AtomicU32>, u32, std::time::Duration);
 
 impl RetryTimeoutResponder {
@@ -195,7 +184,7 @@ async fn assert_retry_on_request_timeout() {
 
     let reqwest_client = Client::builder().build().unwrap();
     let client = ClientBuilder::new(reqwest_client)
-        .with(RetryTransientMiddleware::new_with_policy(
+        .layer(RetryTransientMiddleware::new_with_policy(
             ExponentialBackoff {
                 max_n_retries: 3,
                 max_retry_interval: std::time::Duration::from_millis(100),
@@ -250,7 +239,7 @@ async fn assert_retry_on_incomplete_message() {
 
     let reqwest_client = Client::builder().build().unwrap();
     let client = ClientBuilder::new(reqwest_client)
-        .with(RetryTransientMiddleware::new_with_policy(
+        .layer(RetryTransientMiddleware::new_with_policy(
             ExponentialBackoff {
                 max_n_retries: 3,
                 max_retry_interval: std::time::Duration::from_millis(100),

@@ -103,3 +103,18 @@ pub use reqwest_otel_span_builder::{
 
 #[doc(hidden)]
 pub mod reqwest_otel_span_macro;
+
+#[cfg(test)]
+mod tests {
+    use crate::{TracingMiddleware, DefaultSpanBackend};
+    use reqwest_middleware::ClientBuilder;
+
+    #[tokio::test]
+    async fn compiles() {
+        let client = ClientBuilder::new(reqwest::Client::new())
+            .layer(TracingMiddleware::<DefaultSpanBackend>::new())
+            .build();
+        let resp = client.get("http://example.com").send().await.unwrap();
+        dbg!(resp);
+    }
+}

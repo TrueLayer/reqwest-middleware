@@ -1,4 +1,5 @@
-use crate::RequestBuilder;
+use reqwest::RequestBuilder;
+use task_local_extensions::Extensions;
 
 /// When attached to a [`ClientWithMiddleware`] (generally using [`with_init`]), it is run
 /// whenever the client starts building a request, in the order it was attached.
@@ -6,12 +7,12 @@ use crate::RequestBuilder;
 /// # Example
 ///
 /// ```
-/// use reqwest_middleware::{RequestInitialiser, RequestBuilder};
+/// use reqwest_middleware::{RequestInitialiser, MiddlewareRequest};
 ///
 /// struct AuthInit;
 ///
 /// impl RequestInitialiser for AuthInit {
-///     fn init(&self, req: RequestBuilder) -> RequestBuilder {
+///     fn init(&self, req: MiddlewareRequest) -> MiddlewareRequest {
 ///         req.bearer_auth("my_auth_token")
 ///     }
 /// }
@@ -20,17 +21,23 @@ use crate::RequestBuilder;
 /// [`ClientWithMiddleware`]: crate::ClientWithMiddleware
 /// [`with_init`]: crate::ClientBuilder::with_init
 pub trait RequestInitialiser: 'static + Send + Sync {
-    fn init(&self, req: RequestBuilder) -> RequestBuilder;
+    fn init(&self, req: RequestBuilder, ext: &mut Extensions) -> RequestBuilder;
 }
 
-impl<F> RequestInitialiser for F
-where
-    F: Send + Sync + 'static + Fn(RequestBuilder) -> RequestBuilder,
-{
-    fn init(&self, req: RequestBuilder) -> RequestBuilder {
-        (self)(req)
+impl RequestInitialiser for () {
+    fn init(&self, req: RequestBuilder, _: &mut Extensions) -> RequestBuilder {
+        req
     }
 }
+
+// impl<F> RequestInitialiser for F
+// where
+//     F: Send + Sync + 'static + Fn(MiddlewareRequest) -> MiddlewareRequest,
+// {
+//     fn init(&self, req: RequestBuilder, ext: &mut Extensions) -> RequestBuilder {
+//         (self)(req)
+//     }
+// }
 
 /// A middleware that inserts the value into the [`Extensions`](task_local_extensions::Extensions) during the call.
 ///
@@ -78,7 +85,8 @@ where
 pub struct Extension<T>(pub T);
 
 impl<T: Send + Sync + Clone + 'static> RequestInitialiser for Extension<T> {
-    fn init(&self, req: RequestBuilder) -> RequestBuilder {
-        req.with_extension(self.0.clone())
+    fn init(&self, req: RequestBuilder, ext: &mut Extensions) -> RequestBuilder {
+        ext.insert(self.0.clone());
+        req
     }
 }

@@ -9,28 +9,44 @@
 //! use reqwest::{Client, Request, Response};
 //! use reqwest_middleware::{ClientBuilder, Middleware, Next, Result};
 //! use task_local_extensions::Extensions;
+//! use futures::FutureExt;
+//! use std::task::{Context, Poll};
 //!
-//! struct LoggingMiddleware;
+//! struct LoggingLayer;
+//! struct LoggingService<S>(S);
+//! 
+//! impl<S> tower::Layer<S> for LoggingLayer {
+//!     type Service = LoggingService<S>;
+//! 
+//!     fn layer(&self, inner: S) -> Self::Service {
+//!         LoggingService(inner)
+//!     }
+//! }
 //!
-//! #[async_trait::async_trait]
-//! impl Middleware for LoggingMiddleware {
-//!     async fn handle(
-//!         &self,
-//!         req: Request,
-//!         extensions: &mut Extensions,
-//!         next: Next<'_>,
-//!     ) -> Result<Response> {
-//!         println!("Request started {:?}", req);
-//!         let res = next.run(req, extensions).await;
-//!         println!("Result: {:?}", res);
-//!         res
+//! impl<S: tower::Service<MiddlewareRequest>> tower::Service<MiddlewareRequest> for LoggingService<S> {
+//!     type Response = S::Response;
+//!     type Error = S::Error;
+//!     type Future = futures::BoxFuture<'static, Result<S::Response, S::Error>>;
+//! 
+//!     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+//!         self.0.poll_ready(cx)
+//!     }
+//!     
+//!     fn call(&mut self, req: MiddlewareRequest) -> Self::Future {
+//!         println!("Request started {:?}", &req.request);
+//!         let fut = self.0.call(req);
+//!         async {
+//!             let res = fut.await;
+//!             println!("Result: {:?}", res);
+//!             res
+//!         }.boxed()
 //!     }
 //! }
 //!
 //! async fn run() {
 //!     let reqwest_client = Client::builder().build().unwrap();
 //!     let client = ClientBuilder::new(reqwest_client)
-//!         .with(LoggingMiddleware)
+//!         .layer(LoggingLayer)
 //!         .build();
 //!     let resp = client.get("https://truelayer.com").send().await.unwrap();
 //!     println!("TrueLayer page HTML: {}", resp.text().await.unwrap());
@@ -51,10 +67,13 @@ pub struct ReadmeDoctests;
 
 mod client;
 mod error;
-mod middleware;
 mod req_init;
 
-pub use client::{ClientBuilder, ClientWithMiddleware, RequestBuilder};
+pub use client::{ClientBuilder, ClientWithMiddleware, ReqService, RequestBuilder};
 pub use error::{Error, Result};
-pub use middleware::{Middleware, Next};
 pub use req_init::{Extension, RequestInitialiser};
+
+pub struct MiddlewareRequest {
+    pub request: reqwest::Request,
+    pub extensions: task_local_extensions::Extensions,
+}

@@ -1,15 +1,19 @@
 //! `RetryTransientMiddleware` implements retrying requests on transient errors.
 
+use std::pin::Pin;
+use std::task::{ready, Context, Poll};
+
 use crate::retryable::Retryable;
-use anyhow::anyhow;
 use chrono::Utc;
-use reqwest::{Request, Response};
-use reqwest_middleware::{Error, Middleware, Next, Result};
+use futures::Future;
+use pin_project_lite::pin_project;
+use reqwest::Response;
+use reqwest_middleware::{Error, MiddlewareRequest};
 use retry_policies::RetryPolicy;
 use task_local_extensions::Extensions;
-
-/// We limit the number of retries to a maximum of `10` to avoid stack-overflow issues due to the recursion.
-static MAXIMUM_NUMBER_OF_RETRIES: u32 = 10;
+use tokio::time::Sleep;
+use tower::retry::{Policy, Retry};
+use tower::{Layer, Service};
 
 /// `RetryTransientMiddleware` offers retry logic for requests that fail in a transient manner
 /// and can be safely executed again.
@@ -32,7 +36,7 @@ static MAXIMUM_NUMBER_OF_RETRIES: u32 = 10;
 ///     };
 ///
 ///     let retry_transient_middleware = RetryTransientMiddleware::new_with_policy(retry_policy);
-///     let client = ClientBuilder::new(Client::new()).with(retry_transient_middleware).build();
+///     let client = ClientBuilder::new(Client::new()).layer(retry_transient_middleware).build();
 ///```
 ///
 /// # Note
@@ -58,76 +62,95 @@ impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
     }
 }
 
-#[async_trait::async_trait]
-impl<T: RetryPolicy + Send + Sync> Middleware for RetryTransientMiddleware<T> {
-    async fn handle(
-        &self,
-        req: Request,
-        extensions: &mut Extensions,
-        next: Next<'_>,
-    ) -> Result<Response> {
-        // TODO: Ideally we should create a new instance of the `Extensions` map to pass
-        // downstream. This will guard against previous retries poluting `Extensions`.
-        // That is, we only return what's populated in the typemap for the last retry attempt
-        // and copy those into the the `global` Extensions map.
-        self.execute_with_retry(req, next, extensions).await
+impl<T: RetryPolicy + Clone + Send + Sync + 'static, Svc> Layer<Svc> for RetryTransientMiddleware<T>
+where
+    Svc: Service<MiddlewareRequest, Response = Response, Error = Error>,
+{
+    type Service = Retry<TowerRetryPolicy<T>, Svc>;
+
+    fn layer(&self, inner: Svc) -> Self::Service {
+        Retry::new(
+            TowerRetryPolicy {
+                n_past_retries: 0,
+                retry_policy: self.retry_policy.clone(),
+            },
+            inner,
+        )
     }
 }
 
-impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
-    /// This function will try to execute the request, if it fails
-    /// with an error classified as transient it will call itself
-    /// to retry the request.
-    async fn execute_with_retry<'a>(
-        &'a self,
-        req: Request,
-        next: Next<'a>,
-        ext: &'a mut Extensions,
-    ) -> Result<Response> {
-        let mut n_past_retries = 0;
-        loop {
-            // Cloning the request object before-the-fact is not ideal..
-            // However, if the body of the request is not static, e.g of type `Bytes`,
-            // the Clone operation should be of constant complexity and not O(N)
-            // since the byte abstraction is a shared pointer over a buffer.
-            let duplicate_request = req.try_clone().ok_or_else(|| {
-                Error::Middleware(anyhow!(
-                    "Request object is not clonable. Are you passing a streaming body?".to_string()
-                ))
-            })?;
+#[derive(Clone)]
+pub struct TowerRetryPolicy<T> {
+    n_past_retries: u32,
+    retry_policy: T,
+}
 
-            let result = next.clone().run(duplicate_request, ext).await;
+pin_project! {
+    pub struct RetryFuture<T>
+    {
+        retry: Option<TowerRetryPolicy<T>>,
+        #[pin]
+        sleep: Sleep,
+    }
+}
 
-            // We classify the response which will return None if not
-            // errors were returned.
-            break match Retryable::from_reqwest_response(&result) {
-                Some(retryable)
-                    if retryable == Retryable::Transient
-                        && n_past_retries < MAXIMUM_NUMBER_OF_RETRIES =>
-                {
-                    // If the response failed and the error type was transient
-                    // we can safely try to retry the request.
-                    let retry_decicion = self.retry_policy.should_retry(n_past_retries);
-                    if let retry_policies::RetryDecision::Retry { execute_after } = retry_decicion {
-                        let duration = (execute_after - Utc::now())
-                            .to_std()
-                            .map_err(Error::middleware)?;
-                        // Sleep the requested amount before we try again.
-                        tracing::warn!(
-                            "Retry attempt #{}. Sleeping {:?} before the next attempt",
-                            n_past_retries,
-                            duration
-                        );
-                        tokio::time::sleep(duration).await;
+impl<T> Future for RetryFuture<T> {
+    type Output = TowerRetryPolicy<T>;
 
-                        n_past_retries += 1;
-                        continue;
-                    } else {
-                        result
-                    }
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        let this = self.project();
+        ready!(this.sleep.poll(cx));
+        Poll::Ready(
+            this.retry
+                .take()
+                .expect("poll should not be called more than once"),
+        )
+    }
+}
+
+impl<T: RetryPolicy + Clone> Policy<MiddlewareRequest, Response, Error> for TowerRetryPolicy<T> {
+    type Future = RetryFuture<T>;
+
+    fn retry(
+        &self,
+        _req: &MiddlewareRequest,
+        result: std::result::Result<&Response, &Error>,
+    ) -> Option<Self::Future> {
+        // We classify the response which will return None if not
+        // errors were returned.
+        match Retryable::from_reqwest_response(result) {
+            Some(Retryable::Transient) => {
+                // If the response failed and the error type was transient
+                // we can safely try to retry the request.
+                let retry_decicion = self.retry_policy.should_retry(self.n_past_retries);
+                if let retry_policies::RetryDecision::Retry { execute_after } = retry_decicion {
+                    let duration = (execute_after - Utc::now()).to_std().ok()?;
+                    // Sleep the requested amount before we try again.
+                    tracing::warn!(
+                        "Retry attempt #{}. Sleeping {:?} before the next attempt",
+                        self.n_past_retries,
+                        duration
+                    );
+                    let sleep = tokio::time::sleep(duration);
+                    Some(RetryFuture {
+                        retry: Some(TowerRetryPolicy {
+                            n_past_retries: self.n_past_retries + 1,
+                            retry_policy: self.retry_policy.clone(),
+                        }),
+                        sleep,
+                    })
+                } else {
+                    None
                 }
-                Some(_) | None => result,
-            };
+            }
+            Some(_) | None => None,
         }
+    }
+
+    fn clone_request(&self, req: &MiddlewareRequest) -> Option<MiddlewareRequest> {
+        Some(MiddlewareRequest {
+            request: req.request.try_clone()?,
+            extensions: Extensions::new(),
+        })
     }
 }

@@ -44,7 +44,7 @@ pub trait ReqwestOtelSpanBackend {
     fn on_request_start(req: &Request, extension: &mut Extensions) -> Span;
 
     /// Runs after the request call has executed.
-    fn on_request_end(span: &Span, outcome: &Result<Response>, extension: &mut Extensions);
+    fn on_request_end(span: &Span, outcome: &Result<Response>);
 }
 
 /// Populates default success/failure fields for a given [`reqwest_otel_span!`] span.
@@ -103,7 +103,7 @@ impl ReqwestOtelSpanBackend for DefaultSpanBackend {
         reqwest_otel_span!(name = name, req)
     }
 
-    fn on_request_end(span: &Span, outcome: &Result<Response>, _: &mut Extensions) {
+    fn on_request_end(span: &Span, outcome: &Result<Response>) {
         default_on_request_end(span, outcome)
     }
 }
@@ -128,7 +128,7 @@ impl ReqwestOtelSpanBackend for SpanBackendWithUrl {
         reqwest_otel_span!(name = name, req, http.url = %remove_credentials(req.url()))
     }
 
-    fn on_request_end(span: &Span, outcome: &Result<Response>, _: &mut Extensions) {
+    fn on_request_end(span: &Span, outcome: &Result<Response>) {
         default_on_request_end(span, outcome)
     }
 }
