@@ -5,11 +5,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.4.0] - 2022-11-15
+
+### Changed
+- Updated `reqwest-middleware` to `0.2.0`
+- Before, `root_span!`/`DefaultSpanBacked` would name your spans `{METHOD} {PATH}`. Since this can be quite
+  high cardinality, this was changed and now the macro requires an explicit otel name.
+  `DefaultSpanBacked`/`SpanBackendWithUrl` will default to `reqwest-http-client` but this can be configured
+  using the `OtelName` Request Initialiser.
+
 ### Added
 - `SpanBackendWithUrl` for capturing `http.url` in traces
-- Require an explicit otel name in the macros. Reduces cardinality and complies
-  with otel specification for HTTP bindings.
-- Permit customisation of the otel name from the non-macro layer.
+- `OtelName` Request Initialiser Extension for configuring
 
 ## [0.3.1] - 2022-09-21
 - Added support for `opentelemetry` version `0.18`.

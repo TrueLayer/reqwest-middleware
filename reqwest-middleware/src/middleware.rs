@@ -1,4 +1,3 @@
-use futures::future::{BoxFuture, FutureExt, TryFutureExt};
 use reqwest::{Client, Request, Response};
 use std::sync::Arc;
 use task_local_extensions::Extensions;
@@ -76,6 +75,8 @@ pub struct Next<'a> {
     middlewares: &'a [Arc<dyn Middleware>],
 }
 
+pub type BoxFuture<'a, T> = std::pin::Pin<Box<dyn std::future::Future<Output = T> + Send + 'a>>;
+
 impl<'a> Next<'a> {
     pub(crate) fn new(client: &'a Client, middlewares: &'a [Arc<dyn Middleware>]) -> Self {
         Next {
@@ -91,9 +92,9 @@ impl<'a> Next<'a> {
     ) -> BoxFuture<'a, Result<Response>> {
         if let Some((current, rest)) = self.middlewares.split_first() {
             self.middlewares = rest;
-            current.handle(req, extensions, self).boxed()
+            Box::pin(current.handle(req, extensions, self))
         } else {
-            self.client.execute(req).map_err(Error::from).boxed()
+            Box::pin(async move { self.client.execute(req).await.map_err(Error::from) })
         }
     }
 }
