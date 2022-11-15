@@ -6,11 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2022-11-15
+
+### Changed
+- `RequestBuilder::try_clone` has a fixed function signature now
+
+### Removed
+- `RequestBuilder::send_with_extensions` - use `RequestBuilder::with_extensions` + `RequestBuilder::send` instead.
+
 ### Added
 - Implementation of `Debug` trait for `RequestBuilder`.
 - A new `RequestInitialiser` trait that can be added to `ClientWithMiddleware`
-- A new `Extension` initialiser that adds extensions to the request
-- Adds `with_extension` method functionality to `RequestBuilder` that can add extensions for the `send` method to use - deprecating `send_with_extensions`.
+- A new `Extension` initialiser that adds extensions to each request
+- Adds `with_extension` method functionality to `RequestBuilder` that can add extensions for the `send` method to use.
 
 ## [0.1.6] - 2022-04-21
 

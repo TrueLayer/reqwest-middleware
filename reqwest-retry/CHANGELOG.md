@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2022-11-15
+
+### Changed
+- Updated `reqwest-middleware` to `0.2.0`
+
 ## [0.1.4] - 2022-02-21
 ### Changed
 - Updated `reqwest-middleware` to `0.1.5`
