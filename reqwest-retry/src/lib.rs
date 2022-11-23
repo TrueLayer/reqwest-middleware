@@ -33,4 +33,7 @@ pub use retry_policies::{policies, RetryPolicy};
 
 pub use middleware::RetryTransientMiddleware;
 pub use retryable::Retryable;
-pub use retryable_strategy::RetryableStrategy;
+pub use retryable_strategy::{
+    default_on_request_failure, default_on_request_success, DefaultRetryableStrategy,
+    RetryableStrategy,
+};

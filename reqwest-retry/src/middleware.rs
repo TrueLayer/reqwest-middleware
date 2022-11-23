@@ -53,12 +53,9 @@ pub struct RetryTransientMiddleware<
 }
 
 impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T, DefaultRetryableStrategy> {
-    /// Construct `RetryTransientMiddleware` with  a [retry_policy][retry_policies::RetryPolicy].
+    /// Construct `RetryTransientMiddleware` with  a [retry_policy][RetryPolicy].
     pub fn new_with_policy(retry_policy: T) -> Self {
-        Self {
-            retry_policy,
-            retryable_strategy: DefaultRetryableStrategy,
-        }
+        Self::new_with_policy_and_strategy(retry_policy, DefaultRetryableStrategy)
     }
 }
 
@@ -67,7 +64,7 @@ where
     T: RetryPolicy + Send + Sync,
     R: RetryableStrategy + Send + Sync,
 {
-    /// Construct `RetryTransientMiddleware` with  a [retry_policy][retry_policies::RetryPolicy].
+    /// Construct `RetryTransientMiddleware` with  a [retry_policy][RetryPolicy] and [retryable_strategy](RetryableStrategy).
     pub fn new_with_policy_and_strategy(retry_policy: T, retryable_strategy: R) -> Self {
         Self {
             retry_policy,
