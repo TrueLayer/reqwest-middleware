@@ -1,4 +1,4 @@
-use crate::retryable_strategy::RetryableStrategy;
+use crate::retryable_strategy::{DefaultRetryableStrategy, RetryableStrategy};
 use reqwest_middleware::Error;
 
 /// Classification of an error/status returned by request.
@@ -16,7 +16,7 @@ impl Retryable {
     /// Returns `None` if the response object does not contain any errors.
     ///
     pub fn from_reqwest_response(res: &Result<reqwest::Response, Error>) -> Option<Self> {
-        RetryableStrategy::default().handle(res)
+        DefaultRetryableStrategy.handle(res)
     }
 }
 

@@ -1,7 +1,6 @@
 //! `RetryTransientMiddleware` implements retrying requests on transient errors.
-
-use crate::retryable::Retryable;
 use crate::retryable_strategy::RetryableStrategy;
+use crate::{retryable::Retryable, retryable_strategy::DefaultRetryableStrategy};
 use anyhow::anyhow;
 use chrono::Utc;
 use reqwest::{Request, Response};
@@ -45,25 +44,31 @@ use task_local_extensions::Extensions;
 /// * You can wrap this middleware in a custom one which skips retries for streaming requests.
 /// * You can write a custom retry middleware that builds new streaming requests from the data
 /// source directly, avoiding the issue of streaming requests not being clonable.
-pub struct RetryTransientMiddleware<T: RetryPolicy + Send + Sync + 'static> {
+pub struct RetryTransientMiddleware<
+    T: RetryPolicy + Send + Sync + 'static,
+    R: RetryableStrategy + Send + Sync + 'static = DefaultRetryableStrategy,
+> {
     retry_policy: T,
-    retryable_strategy: RetryableStrategy,
+    retryable_strategy: R,
 }
 
-impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
+impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T, DefaultRetryableStrategy> {
     /// Construct `RetryTransientMiddleware` with  a [retry_policy][retry_policies::RetryPolicy].
     pub fn new_with_policy(retry_policy: T) -> Self {
         Self {
             retry_policy,
-            retryable_strategy: RetryableStrategy::default(),
+            retryable_strategy: DefaultRetryableStrategy,
         }
     }
+}
 
-    /// Construct a [`RetryTransientMiddleware`] With a given [`RetryPolicy`] and [`RetryableStrategy`]
-    pub fn new_with_retryable_strat(
-        retry_policy: T,
-        retryable_strategy: RetryableStrategy,
-    ) -> Self {
+impl<T, R> RetryTransientMiddleware<T, R>
+where
+    T: RetryPolicy + Send + Sync,
+    R: RetryableStrategy + Send + Sync,
+{
+    /// Construct `RetryTransientMiddleware` with  a [retry_policy][retry_policies::RetryPolicy].
+    pub fn new_with_policy_and_strategy(retry_policy: T, retryable_strategy: R) -> Self {
         Self {
             retry_policy,
             retryable_strategy,
@@ -73,7 +78,11 @@ impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait::async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait::async_trait(?Send))]
-impl<T: RetryPolicy + Send + Sync> Middleware for RetryTransientMiddleware<T> {
+impl<T, R> Middleware for RetryTransientMiddleware<T, R>
+where
+    T: RetryPolicy + Send + Sync,
+    R: RetryableStrategy + Send + Sync + 'static,
+{
     async fn handle(
         &self,
         req: Request,
@@ -88,7 +97,11 @@ impl<T: RetryPolicy + Send + Sync> Middleware for RetryTransientMiddleware<T> {
     }
 }
 
-impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
+impl<T, R> RetryTransientMiddleware<T, R>
+where
+    T: RetryPolicy + Send + Sync,
+    R: RetryableStrategy + Send + Sync,
+{
     /// This function will try to execute the request, if it fails
     /// with an error classified as transient it will call itself
     /// to retry the request.
