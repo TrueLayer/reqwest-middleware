@@ -62,7 +62,9 @@ impl Retryable {
 
                             // Try and downcast the hyper error to io::Error if that is the
                             // underlying error, and try and classify it.
-                            } else if let Some(io_error) = try_io_error(hyper_error) {
+                            } else if let Some(io_error) =
+                                get_source_error_type::<io::Error>(hyper_error)
+                            {
                                 Some(classify_io_error(io_error))
                             } else {
                                 Some(Retryable::Fatal)
@@ -93,14 +95,6 @@ fn classify_io_error(error: &io::Error) -> Retryable {
         io::ErrorKind::ConnectionReset | io::ErrorKind::ConnectionAborted => Retryable::Transient,
         _ => Retryable::Fatal,
     }
-}
-
-fn try_io_error(error: &hyper::Error) -> Option<&io::Error> {
-    // We would prefer being able to check that the error kind
-    // is IO here, but hyper::Error does not expose it.
-    error
-        .source()
-        .and_then(|err| err.downcast_ref::<io::Error>())
 }
 
 /// Downcasts the given err source into T.
