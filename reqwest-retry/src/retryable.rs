@@ -59,8 +59,11 @@ impl Retryable {
                             // We can safely retry the call, hence marking this error as [`Retryable::Transient`].
                             if hyper_error.is_incomplete_message() || hyper_error.is_canceled() {
                                 Some(Retryable::Transient)
+
+                            // Try and downcast the hyper error to io::Error if that is the
+                            // underlying error, and try and classify it.
                             } else if let Some(io_error) = try_io_error(hyper_error) {
-                                Some(classify_io_error(&io_error))
+                                Some(classify_io_error(io_error))
                             } else {
                                 Some(Retryable::Fatal)
                             }
