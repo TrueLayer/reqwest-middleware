@@ -97,8 +97,7 @@ fn try_io_error(error: &hyper::Error) -> Option<&io::Error> {
     // is IO here, but hyper::Error does not expose it.
     error
         .source()
-        .map(|err| err.downcast_ref::<io::Error>())
-        .flatten()
+        .and_then(|err| err.downcast_ref::<io::Error>())
 }
 
 /// Downcasts the given err source into T.
