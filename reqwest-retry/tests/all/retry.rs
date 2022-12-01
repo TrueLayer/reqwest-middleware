@@ -286,6 +286,7 @@ async fn assert_retry_on_hyper_canceled() {
             let mut buffer = Vec::new();
             stream.read(&mut buffer).await.unwrap();
             if counter.fetch_add(1, Ordering::SeqCst) > 1 {
+                // This triggeres hyper:Error(Canceled).
                 let _res = stream.shutdown(std::net::Shutdown::Both);
             } else {
                 let _res = stream.write("HTTP/1.1 200 OK\r\n\r\n".as_bytes()).await;
@@ -333,6 +334,7 @@ async fn assert_retry_on_connection_reset_by_peer() {
             let mut buffer = Vec::new();
             stream.read(&mut buffer).await.unwrap();
             if counter.fetch_add(1, Ordering::SeqCst) > 1 {
+                // This triggeres hyper:Error(Io, io::Error(ConnectionReset)).
                 drop(stream);
             } else {
                 let _res = stream.write("HTTP/1.1 200 OK\r\n\r\n".as_bytes()).await;
