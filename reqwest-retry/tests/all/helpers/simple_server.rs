@@ -1,6 +1,7 @@
 use async_std::io::ReadExt;
 use async_std::io::WriteExt;
 use async_std::net::{TcpListener, TcpStream};
+use futures::future::BoxFuture;
 use futures::stream::StreamExt;
 use std::error::Error;
 use std::fmt;
@@ -12,6 +13,13 @@ pub struct SimpleServer {
     host: String,
     raw_http_responses: Vec<String>,
     calls_counter: usize,
+    custom_handler: Option<
+        Box<
+            dyn Fn(TcpStream) -> BoxFuture<'static, Result<(), Box<dyn std::error::Error>>>
+                + Send
+                + Sync,
+        >,
+    >,
 }
 
 /// Request-Line = Method SP Request-URI SP HTTP-Version CRLF
@@ -46,7 +54,19 @@ impl SimpleServer {
             host: host.to_string(),
             raw_http_responses,
             calls_counter: 0,
+            custom_handler: None,
         })
+    }
+
+    pub fn set_custom_handler(
+        &mut self,
+        custom_handler: impl Fn(TcpStream) -> BoxFuture<'static, Result<(), Box<dyn std::error::Error>>>
+            + Send
+            + Sync
+            + 'static,
+    ) -> &mut Self {
+        self.custom_handler.replace(Box::new(custom_handler));
+        self
     }
 
     /// Returns the uri in which the server is listening to.
@@ -79,6 +99,10 @@ impl SimpleServer {
     ///
     /// Returns a 400 if the request if formatted badly.
     async fn handle_connection(&self, mut stream: TcpStream) -> Result<(), Box<dyn Error>> {
+        if let Some(ref custom_handler) = self.custom_handler {
+            return custom_handler(stream).await;
+        }
+
         let mut buffer = vec![0; 1024];
 
         stream.read(&mut buffer).await.unwrap();

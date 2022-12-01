@@ -1,8 +1,12 @@
+use async_std::io::ReadExt;
+use futures::AsyncWriteExt;
+use futures::FutureExt;
 use paste::paste;
 use reqwest::Client;
 use reqwest::StatusCode;
 use reqwest_middleware::ClientBuilder;
 use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
+use std::sync::atomic::AtomicI8;
 use std::sync::{
     atomic::{AtomicU32, Ordering},
     Arc,
@@ -243,6 +247,100 @@ async fn assert_retry_on_incomplete_message() {
     )
     .await
     .expect("Error when creating a simple server");
+
+    let uri = simple_server.uri();
+
+    tokio::spawn(simple_server.start());
+
+    let reqwest_client = Client::builder().build().unwrap();
+    let client = ClientBuilder::new(reqwest_client)
+        .with(RetryTransientMiddleware::new_with_policy(
+            ExponentialBackoff {
+                max_n_retries: 3,
+                max_retry_interval: std::time::Duration::from_millis(100),
+                min_retry_interval: std::time::Duration::from_millis(30),
+                backoff_exponent: 2,
+            },
+        ))
+        .build();
+
+    let resp = client
+        .get(&format!("{}/foo", uri))
+        .timeout(std::time::Duration::from_millis(100))
+        .send()
+        .await
+        .expect("call failed");
+
+    assert_eq!(resp.status(), 200);
+}
+
+#[tokio::test]
+async fn assert_retry_on_hyper_canceled() {
+    let counter = Arc::new(AtomicI8::new(0));
+    let mut simple_server = SimpleServer::new("127.0.0.1", None, vec![])
+        .await
+        .expect("Error when creating a simple server");
+    simple_server.set_custom_handler(move |mut stream| {
+        let counter = counter.clone();
+        async move {
+            let mut buffer = Vec::new();
+            stream.read(&mut buffer).await.unwrap();
+            if counter.fetch_add(1, Ordering::SeqCst) > 1 {
+                let _res = stream.shutdown(std::net::Shutdown::Both);
+            } else {
+                let _res = stream.write("HTTP/1.1 200 OK\r\n\r\n".as_bytes()).await;
+            }
+            Ok(())
+        }
+        .boxed()
+    });
+
+    let uri = simple_server.uri();
+
+    tokio::spawn(simple_server.start());
+
+    let reqwest_client = Client::builder().build().unwrap();
+    let client = ClientBuilder::new(reqwest_client)
+        .with(RetryTransientMiddleware::new_with_policy(
+            ExponentialBackoff {
+                max_n_retries: 3,
+                max_retry_interval: std::time::Duration::from_millis(100),
+                min_retry_interval: std::time::Duration::from_millis(30),
+                backoff_exponent: 2,
+            },
+        ))
+        .build();
+
+    let resp = client
+        .get(&format!("{}/foo", uri))
+        .timeout(std::time::Duration::from_millis(100))
+        .send()
+        .await
+        .expect("call failed");
+
+    assert_eq!(resp.status(), 200);
+}
+
+#[tokio::test]
+async fn assert_retry_on_connection_reset_by_peer() {
+    let counter = Arc::new(AtomicI8::new(0));
+    let mut simple_server = SimpleServer::new("127.0.0.1", None, vec![])
+        .await
+        .expect("Error when creating a simple server");
+    simple_server.set_custom_handler(move |mut stream| {
+        let counter = counter.clone();
+        async move {
+            let mut buffer = Vec::new();
+            stream.read(&mut buffer).await.unwrap();
+            if counter.fetch_add(1, Ordering::SeqCst) > 1 {
+                drop(stream);
+            } else {
+                let _res = stream.write("HTTP/1.1 200 OK\r\n\r\n".as_bytes()).await;
+            }
+            Ok(())
+        }
+        .boxed()
+    });
 
     let uri = simple_server.uri();
 
