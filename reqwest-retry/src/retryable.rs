@@ -1,4 +1,4 @@
-use std::{error::Error as StdError, io};
+use std::io;
 
 use http::StatusCode;
 use reqwest_middleware::Error;
