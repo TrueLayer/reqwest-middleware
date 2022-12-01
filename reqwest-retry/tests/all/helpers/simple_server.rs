@@ -6,6 +6,10 @@ use futures::stream::StreamExt;
 use std::error::Error;
 use std::fmt;
 
+type CustomMessageHandler = Box<
+    dyn Fn(TcpStream) -> BoxFuture<'static, Result<(), Box<dyn std::error::Error>>> + Send + Sync,
+>;
+
 /// This is a simple server that returns the responses given at creation time: [`self.raw_http_responses`] following a round-robin mechanism.
 pub struct SimpleServer {
     listener: TcpListener,
@@ -13,13 +17,7 @@ pub struct SimpleServer {
     host: String,
     raw_http_responses: Vec<String>,
     calls_counter: usize,
-    custom_handler: Option<
-        Box<
-            dyn Fn(TcpStream) -> BoxFuture<'static, Result<(), Box<dyn std::error::Error>>>
-                + Send
-                + Sync,
-        >,
-    >,
+    custom_handler: Option<CustomMessageHandler>,
 }
 
 /// Request-Line = Method SP Request-URI SP HTTP-Version CRLF
