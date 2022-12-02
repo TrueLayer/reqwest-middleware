@@ -57,6 +57,8 @@ impl Retryable {
                             // The hyper::Error(IncompleteMessage) is raised if the HTTP response is well formatted but does not contain all the bytes.
                             // This can happen when the server has started sending back the response but the connection is cut halfway thorugh.
                             // We can safely retry the call, hence marking this error as [`Retryable::Transient`].
+                            // Instead hyper::Error(Canceled) is raised when the connection is
+                            // gracefully closed on the server side.
                             if hyper_error.is_incomplete_message() || hyper_error.is_canceled() {
                                 Some(Retryable::Transient)
 
