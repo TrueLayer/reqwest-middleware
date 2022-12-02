@@ -1,3 +1,5 @@
+use std::io;
+
 use http::StatusCode;
 use reqwest_middleware::Error;
 
@@ -55,8 +57,17 @@ impl Retryable {
                             // The hyper::Error(IncompleteMessage) is raised if the HTTP response is well formatted but does not contain all the bytes.
                             // This can happen when the server has started sending back the response but the connection is cut halfway thorugh.
                             // We can safely retry the call, hence marking this error as [`Retryable::Transient`].
-                            if hyper_error.is_incomplete_message() {
+                            // Instead hyper::Error(Canceled) is raised when the connection is
+                            // gracefully closed on the server side.
+                            if hyper_error.is_incomplete_message() || hyper_error.is_canceled() {
                                 Some(Retryable::Transient)
+
+                            // Try and downcast the hyper error to io::Error if that is the
+                            // underlying error, and try and classify it.
+                            } else if let Some(io_error) =
+                                get_source_error_type::<io::Error>(hyper_error)
+                            {
+                                Some(classify_io_error(io_error))
                             } else {
                                 Some(Retryable::Fatal)
                             }
@@ -78,6 +89,13 @@ impl Retryable {
 impl From<&reqwest::Error> for Retryable {
     fn from(_status: &reqwest::Error) -> Retryable {
         Retryable::Transient
+    }
+}
+
+fn classify_io_error(error: &io::Error) -> Retryable {
+    match error.kind() {
+        io::ErrorKind::ConnectionReset | io::ErrorKind::ConnectionAborted => Retryable::Transient,
+        _ => Retryable::Fatal,
     }
 }
 

@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2022-12-01
+
+### Changed
+- Classify `io::Error`s and `hyper::Error(Canceled)` as transient
+
 ## [0.2.0] - 2022-11-15
 
 ### Changed
