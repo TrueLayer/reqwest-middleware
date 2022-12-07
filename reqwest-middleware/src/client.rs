@@ -1,3 +1,4 @@
+use http::Extensions;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::multipart::Form;
 use reqwest::{Body, Client, IntoUrl, Method, Request, Response};
@@ -5,8 +6,6 @@ use serde::Serialize;
 use std::convert::TryFrom;
 use std::fmt::{self, Display};
 use std::sync::Arc;
-use std::time::Duration;
-use task_local_extensions::Extensions;
 
 use crate::error::Result;
 use crate::middleware::{Middleware, Next};
@@ -239,7 +238,8 @@ impl RequestBuilder {
         }
     }
 
-    pub fn timeout(self, timeout: Duration) -> Self {
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn timeout(self, timeout: std::time::Duration) -> Self {
         RequestBuilder {
             inner: self.inner.timeout(timeout),
             ..self

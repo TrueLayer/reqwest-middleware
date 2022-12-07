@@ -1,5 +1,3 @@
-use std::io;
-
 use http::StatusCode;
 use reqwest_middleware::Error;
 
@@ -42,7 +40,11 @@ impl Retryable {
                 // If something fails in the middleware we're screwed.
                 Error::Middleware(_) => Some(Retryable::Fatal),
                 Error::Reqwest(error) => {
-                    if error.is_timeout() || error.is_connect() {
+                    #[cfg(not(target_arch = "wasm32"))]
+                    let is_connect = error.is_connect();
+                    #[cfg(target_arch = "wasm32")]
+                    let is_connect = false;
+                    if error.is_timeout() || is_connect {
                         Some(Retryable::Transient)
                     } else if error.is_body()
                         || error.is_decode()
@@ -53,6 +55,7 @@ impl Retryable {
                     } else if error.is_request() {
                         // It seems that hyper::Error(IncompleteMessage) is not correctly handled by reqwest.
                         // Here we check if the Reqwest error was originated by hyper and map it consistently.
+                        #[cfg(not(target_arch = "wasm32"))]
                         if let Some(hyper_error) = get_source_error_type::<hyper::Error>(&error) {
                             // The hyper::Error(IncompleteMessage) is raised if the HTTP response is well formatted but does not contain all the bytes.
                             // This can happen when the server has started sending back the response but the connection is cut halfway thorugh.
@@ -65,7 +68,7 @@ impl Retryable {
                             // Try and downcast the hyper error to io::Error if that is the
                             // underlying error, and try and classify it.
                             } else if let Some(io_error) =
-                                get_source_error_type::<io::Error>(hyper_error)
+                                get_source_error_type::<std::io::Error>(hyper_error)
                             {
                                 Some(classify_io_error(io_error))
                             } else {
@@ -74,6 +77,8 @@ impl Retryable {
                         } else {
                             Some(Retryable::Fatal)
                         }
+                        #[cfg(target_arch = "wasm32")]
+                        Some(Retryable::Fatal)
                     } else {
                         // We omit checking if error.is_status() since we check that already.
                         // However, if Response::error_for_status is used the status will still
@@ -92,14 +97,18 @@ impl From<&reqwest::Error> for Retryable {
     }
 }
 
-fn classify_io_error(error: &io::Error) -> Retryable {
+#[cfg(not(target_arch = "wasm32"))]
+fn classify_io_error(error: &std::io::Error) -> Retryable {
     match error.kind() {
-        io::ErrorKind::ConnectionReset | io::ErrorKind::ConnectionAborted => Retryable::Transient,
+        std::io::ErrorKind::ConnectionReset | std::io::ErrorKind::ConnectionAborted => {
+            Retryable::Transient
+        }
         _ => Retryable::Fatal,
     }
 }
 
 /// Downcasts the given err source into T.
+#[cfg(not(target_arch = "wasm32"))]
 fn get_source_error_type<T: std::error::Error + 'static>(
     err: &dyn std::error::Error,
 ) -> Option<&T> {

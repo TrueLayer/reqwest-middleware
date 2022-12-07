@@ -3,10 +3,10 @@
 use crate::retryable::Retryable;
 use anyhow::anyhow;
 use chrono::Utc;
+use http::Extensions;
 use reqwest::{Request, Response};
 use reqwest_middleware::{Error, Middleware, Next, Result};
 use retry_policies::RetryPolicy;
-use task_local_extensions::Extensions;
 
 /// We limit the number of retries to a maximum of `10` to avoid stack-overflow issues due to the recursion.
 static MAXIMUM_NUMBER_OF_RETRIES: u32 = 10;
@@ -58,7 +58,8 @@ impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
     }
 }
 
-#[async_trait::async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait::async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait::async_trait(?Send))]
 impl<T: RetryPolicy + Send + Sync> Middleware for RetryTransientMiddleware<T> {
     async fn handle(
         &self,
@@ -118,7 +119,12 @@ impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
                             n_past_retries,
                             duration
                         );
+                        #[cfg(not(target_arch = "wasm32"))]
                         tokio::time::sleep(duration).await;
+                        #[cfg(target_arch = "wasm32")]
+                        wasm_timer::Delay::new(duration)
+                            .await
+                            .expect("failed sleeping");
 
                         n_past_retries += 1;
                         continue;

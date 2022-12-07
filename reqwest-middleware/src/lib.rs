@@ -6,9 +6,9 @@
 //! requests is the same as with reqwest:
 //!
 //! ```
+//! use http::Extensions;
 //! use reqwest::{Client, Request, Response};
 //! use reqwest_middleware::{ClientBuilder, Middleware, Next, Result};
-//! use task_local_extensions::Extensions;
 //!
 //! struct LoggingMiddleware;
 //!

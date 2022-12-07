@@ -16,6 +16,7 @@ Attach `TracingMiddleware` to your client to automatically trace HTTP requests:
 # Cargo.toml
 # ...
 [dependencies]
+http = "0.2.8"
 opentelemetry = "0.18"
 reqwest = "0.11"
 reqwest-middleware = "0.1.1"
@@ -25,7 +26,6 @@ tokio = { version = "1.12.0", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1"
 tracing-opentelemetry = "0.18"
 tracing-subscriber = "0.3"
-task-local-extensions = "0.1.0"
 ```
 
 ```rust,skip
@@ -34,7 +34,7 @@ use opentelemetry::sdk::export::trace::stdout;
 use reqwest::{Request, Response};
 use reqwest_middleware::{ClientBuilder, Result};
 use std::time::Instant;
-use task_local_extensions::Extensions;
+use http::Extensions;
 use tracing::Span;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::Registry;

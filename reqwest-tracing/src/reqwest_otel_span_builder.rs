@@ -1,9 +1,9 @@
 use std::borrow::Cow;
 
+use http::Extensions;
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{Request, Response, StatusCode as RequestStatusCode, Url};
 use reqwest_middleware::{Error, Result};
-use task_local_extensions::Extensions;
 use tracing::Span;
 
 use crate::reqwest_otel_span;
