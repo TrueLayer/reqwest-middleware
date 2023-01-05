@@ -110,12 +110,16 @@ impl RetryableStrategy for DefaultRetryableStrategy {
 /// Note that success here means that the request finished without interruption, not that it was logically OK.
 pub fn default_on_request_success(success: &reqwest::Response) -> Option<Retryable> {
     let status = success.status();
-    if status.is_success() {
-        None
-    } else if status.is_server_error()
-        || status == StatusCode::REQUEST_TIMEOUT
-        || status == StatusCode::TOO_MANY_REQUESTS
+    if status.is_server_error() {
+        Some(Retryable::Transient)
+    } else if status.is_client_error()
+        && status != StatusCode::REQUEST_TIMEOUT
+        && status != StatusCode::TOO_MANY_REQUESTS
     {
+        Some(Retryable::Fatal)
+    } else if status.is_success() {
+        None
+    } else if status == StatusCode::REQUEST_TIMEOUT || status == StatusCode::TOO_MANY_REQUESTS {
         Some(Retryable::Transient)
     } else {
         Some(Retryable::Fatal)
