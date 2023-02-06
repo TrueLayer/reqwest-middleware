@@ -21,11 +21,11 @@ reqwest = "0.11"
 reqwest-middleware = "0.1.1"
 reqwest-retry = "0.1.1"
 reqwest-tracing = { version = "0.3.1", features = ["opentelemetry_0_18"] }
-tokio = { version = "1.12.0", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.25", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1"
 tracing-opentelemetry = "0.18"
 tracing-subscriber = "0.3"
-task-local-extensions = "0.1.0"
+task-local-extensions = "0.1.3"
 ```
 
 ```rust,skip
