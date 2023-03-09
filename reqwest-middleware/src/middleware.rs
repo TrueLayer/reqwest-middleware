@@ -31,6 +31,7 @@ use crate::error::{Error, Result};
 ///
 /// [`ClientWithMiddleware`]: crate::ClientWithMiddleware
 /// [`with`]: crate::ClientBuilder::with
+#[cfg(not(target_arch = "wasm32"))]
 #[async_trait::async_trait]
 pub trait Middleware: 'static + Send + Sync {
     /// Invoked with a request before sending it. If you want to continue processing the request,
@@ -46,12 +47,46 @@ pub trait Middleware: 'static + Send + Sync {
     ) -> Result<Response>;
 }
 
+#[cfg(target_arch = "wasm32")]
+#[async_trait::async_trait(?Send)]
+pub trait Middleware: 'static {
+    /// Invoked with a request before sending it. If you want to continue processing the request,
+    /// you should explicitly call `next.run(req, extensions)`.
+    ///
+    /// If you need to forward data down the middleware stack, you can use the `extensions`
+    /// argument.
+    async fn handle(
+        &self,
+        req: Request,
+        extensions: &mut Extensions,
+        next: Next<'_>,
+    ) -> Result<Response>;
+}
+
+#[cfg(not(target_arch = "wasm32"))]
 #[async_trait::async_trait]
 impl<F> Middleware for F
 where
     F: Send
         + Sync
         + 'static
+        + for<'a> Fn(Request, &'a mut Extensions, Next<'a>) -> BoxFuture<'a, Result<Response>>,
+{
+    async fn handle(
+        &self,
+        req: Request,
+        extensions: &mut Extensions,
+        next: Next<'_>,
+    ) -> Result<Response> {
+        (self)(req, extensions, next).await
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+#[async_trait::async_trait(?Send)]
+impl<F> Middleware for F
+where
+    F: 'static
         + for<'a> Fn(Request, &'a mut Extensions, Next<'a>) -> BoxFuture<'a, Result<Response>>,
 {
     async fn handle(
@@ -75,7 +110,11 @@ pub struct Next<'a> {
     middlewares: &'a [Arc<dyn Middleware>],
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub type BoxFuture<'a, T> = std::pin::Pin<Box<dyn std::future::Future<Output = T> + Send + 'a>>;
+
+#[cfg(target_arch = "wasm32")]
+pub type BoxFuture<'a, T> = std::pin::Pin<Box<dyn std::future::Future<Output = T> + 'a>>;
 
 impl<'a> Next<'a> {
     pub(crate) fn new(client: &'a Client, middlewares: &'a [Arc<dyn Middleware>]) -> Self {

@@ -239,6 +239,7 @@ impl RequestBuilder {
         }
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn timeout(self, timeout: Duration) -> Self {
         RequestBuilder {
             inner: self.inner.timeout(timeout),
