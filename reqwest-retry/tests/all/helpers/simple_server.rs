@@ -1,10 +1,8 @@
-use async_std::io::ReadExt;
-use async_std::io::WriteExt;
-use async_std::net::{TcpListener, TcpStream};
 use futures::future::BoxFuture;
-use futures::stream::StreamExt;
 use std::error::Error;
 use std::fmt;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::{TcpListener, TcpStream};
 
 type CustomMessageHandler = Box<
     dyn Fn(TcpStream) -> BoxFuture<'static, Result<(), Box<dyn std::error::Error>>> + Send + Sync,
@@ -74,9 +72,9 @@ impl SimpleServer {
 
     /// Starts the TcpListener and handles the requests.
     pub async fn start(mut self) {
-        while let Some(stream) = self.listener.incoming().next().await {
-            match stream {
-                Ok(stream) => {
+        loop {
+            match self.listener.accept().await {
+                Ok((stream, _)) => {
                     match self.handle_connection(stream).await {
                         Ok(_) => (),
                         Err(e) => {
@@ -103,9 +101,9 @@ impl SimpleServer {
 
         let mut buffer = vec![0; 1024];
 
-        stream.read(&mut buffer).await.unwrap();
+        let n = stream.read(&mut buffer).await.unwrap();
 
-        let request = String::from_utf8_lossy(&buffer[..]);
+        let request = String::from_utf8_lossy(&buffer[..n]);
         let request_line = request.lines().next().unwrap();
 
         let response = match Self::parse_request_line(request_line) {
@@ -120,7 +118,7 @@ impl SimpleServer {
         };
 
         println!("-- Response --\n{}\n--------------", response.clone());
-        stream.write(response.as_bytes()).await.unwrap();
+        stream.write_all(response.as_bytes()).await.unwrap();
         stream.flush().await.unwrap();
 
         Ok(())

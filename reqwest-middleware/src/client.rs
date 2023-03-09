@@ -1,4 +1,3 @@
-use http::Extensions;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::multipart::Form;
 use reqwest::{Body, Client, IntoUrl, Method, Request, Response};
@@ -6,6 +5,7 @@ use serde::Serialize;
 use std::convert::TryFrom;
 use std::fmt::{self, Display};
 use std::sync::Arc;
+use task_local_extensions::Extensions;
 
 use crate::error::Result;
 use crate::middleware::{Middleware, Next};

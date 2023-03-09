@@ -3,10 +3,10 @@
 use crate::retryable::Retryable;
 use anyhow::anyhow;
 use chrono::Utc;
-use http::Extensions;
 use reqwest::{Request, Response};
 use reqwest_middleware::{Error, Middleware, Next, Result};
 use retry_policies::RetryPolicy;
+use task_local_extensions::Extensions;
 
 /// We limit the number of retries to a maximum of `10` to avoid stack-overflow issues due to the recursion.
 static MAXIMUM_NUMBER_OF_RETRIES: u32 = 10;

@@ -31,7 +31,7 @@
 ///
 /// ```rust
 /// use reqwest_middleware::Result;
-/// use http::Extensions;
+/// use task_local_extensions::Extensions;
 /// use reqwest::{Request, Response};
 /// use reqwest_tracing::{
 ///     default_on_request_end, reqwest_otel_span, ReqwestOtelSpanBackend

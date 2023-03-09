@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
-- Added support for `wasm32-unknown-unknown` by replacing extensions with async-runtime-independent `http::Extensions`
+- Added support for `wasm32-unknown-unknown`
 
 ## [0.2.0] - 2022-11-15
 

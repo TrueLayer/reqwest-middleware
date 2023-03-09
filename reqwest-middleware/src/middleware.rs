@@ -1,6 +1,6 @@
-use http::Extensions;
 use reqwest::{Client, Request, Response};
 use std::sync::Arc;
+use task_local_extensions::Extensions;
 
 use crate::error::{Error, Result};
 
@@ -12,7 +12,7 @@ use crate::error::{Error, Result};
 /// ```
 /// use reqwest::{Client, Request, Response};
 /// use reqwest_middleware::{ClientBuilder, Middleware, Next, Result};
-/// use http::Extensions;
+/// use task_local_extensions::Extensions;
 ///
 /// struct TransparentMiddleware;
 ///
