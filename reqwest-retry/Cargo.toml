@@ -1,6 +1,6 @@
 [package]
 name = "reqwest-retry"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Rodrigo Gryzinski <rodrigo.gryzinski@truelayer.com>"]
 edition = "2018"
 description = "Retry middleware for reqwest."
@@ -17,16 +17,22 @@ async-trait = "0.1.51"
 chrono = { version = "0.4.19", features = ["clock"], default-features = false }
 futures = "0.3"
 http = "0.2"
-hyper = "0.14"
 reqwest = { version = "0.11", default-features = false }
 retry-policies = "0.1"
-task-local-extensions = "0.1.1"
-tokio = { version = "1.6", features = ["time"] }
+task-local-extensions = "0.1.4"
 tracing = "0.1.26"
 
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+hyper = "0.14"
+tokio = { version = "1.6", features = ["time"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+parking_lot = { version = "0.11.2", features = ["wasm-bindgen"] } # work around https://github.com/tomaka/wasm-timer/issues/14
+wasm-timer = "0.2.5"
+getrandom = { version = "0.2", features = ["js"] }
+
 [dev-dependencies]
-async-std = { version = "1.10"}
 paste = "1"
-tokio = { version = "1", features = ["macros"] }
+tokio = { version = "1", features = ["full"] }
 wiremock = "0.5"
 futures = "0.3"

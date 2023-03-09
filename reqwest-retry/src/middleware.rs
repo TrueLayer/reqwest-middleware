@@ -58,7 +58,8 @@ impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
     }
 }
 
-#[async_trait::async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait::async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait::async_trait(?Send))]
 impl<T: RetryPolicy + Send + Sync> Middleware for RetryTransientMiddleware<T> {
     async fn handle(
         &self,
@@ -118,7 +119,12 @@ impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
                             n_past_retries,
                             duration
                         );
+                        #[cfg(not(target_arch = "wasm32"))]
                         tokio::time::sleep(duration).await;
+                        #[cfg(target_arch = "wasm32")]
+                        wasm_timer::Delay::new(duration)
+                            .await
+                            .expect("failed sleeping");
 
                         n_past_retries += 1;
                         continue;

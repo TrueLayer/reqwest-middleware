@@ -5,7 +5,6 @@ use serde::Serialize;
 use std::convert::TryFrom;
 use std::fmt::{self, Display};
 use std::sync::Arc;
-use std::time::Duration;
 use task_local_extensions::Extensions;
 
 use crate::error::Result;
@@ -239,7 +238,8 @@ impl RequestBuilder {
         }
     }
 
-    pub fn timeout(self, timeout: Duration) -> Self {
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn timeout(self, timeout: std::time::Duration) -> Self {
         RequestBuilder {
             inner: self.inner.timeout(timeout),
             ..self

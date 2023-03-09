@@ -1,6 +1,6 @@
 [package]
 name = "reqwest-tracing"
-version = "0.4.0"
+version = "0.4.1"
 authors = ["Rodrigo Gryzinski <rodrigo.gryzinski@truelayer.com>"]
 edition = "2018"
 description = "Opentracing middleware for reqwest."
@@ -23,7 +23,7 @@ reqwest-middleware = { version = "0.2.0", path = "../reqwest-middleware" }
 
 async-trait = "0.1.51"
 reqwest = { version = "0.11", default-features = false }
-task-local-extensions = "0.1.1"
+task-local-extensions = "0.1.4"
 tracing = "0.1.26"
 
 opentelemetry_0_13_pkg = { package = "opentelemetry", version = "0.13", optional = true }
@@ -39,6 +39,8 @@ tracing-opentelemetry_0_16_pkg = { package = "tracing-opentelemetry",version = "
 tracing-opentelemetry_0_17_pkg = { package = "tracing-opentelemetry",version = "0.17", optional = true }
 tracing-opentelemetry_0_18_pkg = { package = "tracing-opentelemetry",version = "0.18", optional = true }
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["macros"] }

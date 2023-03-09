@@ -1,5 +1,3 @@
-use async_std::io::ReadExt;
-use futures::AsyncWriteExt;
 use futures::FutureExt;
 use paste::paste;
 use reqwest::Client;
@@ -11,6 +9,8 @@ use std::sync::{
     atomic::{AtomicU32, Ordering},
     Arc,
 };
+use tokio::io::AsyncReadExt;
+use tokio::io::AsyncWriteExt;
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, MockServer, Respond, ResponseTemplate};
 
@@ -284,10 +284,13 @@ async fn assert_retry_on_hyper_canceled() {
         let counter = counter.clone();
         async move {
             let mut buffer = Vec::new();
-            stream.read(&mut buffer).await.unwrap();
+            stream.read_buf(&mut buffer).await.unwrap();
             if counter.fetch_add(1, Ordering::SeqCst) > 1 {
                 // This triggeres hyper:Error(Canceled).
-                let _res = stream.shutdown(std::net::Shutdown::Both);
+                let _res = stream
+                    .into_std()
+                    .unwrap()
+                    .shutdown(std::net::Shutdown::Both);
             } else {
                 let _res = stream.write("HTTP/1.1 200 OK\r\n\r\n".as_bytes()).await;
             }
@@ -332,7 +335,7 @@ async fn assert_retry_on_connection_reset_by_peer() {
         let counter = counter.clone();
         async move {
             let mut buffer = Vec::new();
-            stream.read(&mut buffer).await.unwrap();
+            stream.read_buf(&mut buffer).await.unwrap();
             if counter.fetch_add(1, Ordering::SeqCst) > 1 {
                 // This triggeres hyper:Error(Io, io::Error(ConnectionReset)).
                 drop(stream);

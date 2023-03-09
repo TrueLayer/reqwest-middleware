@@ -25,7 +25,7 @@ tokio = { version = "1.12.0", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1"
 tracing-opentelemetry = "0.18"
 tracing-subscriber = "0.3"
-task-local-extensions = "0.1.0"
+task-local-extensions = "0.1.4"
 ```
 
 ```rust,skip
