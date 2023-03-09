@@ -6,8 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-- Added support for `wasm32-unknown-unknown`
+## [0.2.1] - 2023-03-09
+
+### Added
+- Support for `wasm32-unknown-unknown`
 
 ## [0.2.0] - 2022-11-15
 
