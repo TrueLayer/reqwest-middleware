@@ -57,7 +57,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --workspace --all-targets --features ${{ matrix.otel_version }} --target wasm32-unknown-unknown
+          args: --workspace --features ${{ matrix.otel_version }} --target wasm32-unknown-unknown
 
   rustfmt:
     name: Rustfmt
