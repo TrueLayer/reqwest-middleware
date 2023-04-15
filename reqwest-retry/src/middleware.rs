@@ -49,12 +49,34 @@ static MAXIMUM_NUMBER_OF_RETRIES: u32 = 10;
 /// source directly, avoiding the issue of streaming requests not being clonable.
 pub struct RetryTransientMiddleware<T: RetryPolicy + Send + Sync + 'static> {
     retry_policy: T,
+    max_retries: u32,
 }
 
 impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
     /// Construct `RetryTransientMiddleware` with  a [retry_policy][retry_policies::RetryPolicy].
+    ///
+    /// # Arguments
+    ///
+    /// * `retry_policy` - The retry policy to use.
+    /// * `The maximum number of times to retry before giving up is set to 10. If you want to change this value, use `new_with_policy_and_upper_retry_bound`.
     pub fn new_with_policy(retry_policy: T) -> Self {
-        Self { retry_policy }
+        Self {
+            retry_policy,
+            max_retries: MAXIMUM_NUMBER_OF_RETRIES,
+        }
+    }
+
+    /// Construct `RetryTransientMiddleware` with  a [retry_policy][retry_policies::RetryPolicy].
+    ///
+    /// # Arguments
+    ///
+    /// * `retry_policy` - The retry policy to use.
+    /// * `upper_retry_bound` - The maximum number of times to retry before returning response regardless of policy.
+    pub fn new_with_policy_and_max_retries(retry_policy: T, max_retries: u32) -> Self {
+        Self {
+            retry_policy,
+            max_retries,
+        }
     }
 }
 
@@ -103,13 +125,12 @@ impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
             // errors were returned.
             break match Retryable::from_reqwest_response(&result) {
                 Some(retryable)
-                    if retryable == Retryable::Transient
-                        && n_past_retries < MAXIMUM_NUMBER_OF_RETRIES =>
+                    if retryable == Retryable::Transient && n_past_retries < self.max_retries =>
                 {
                     // If the response failed and the error type was transient
                     // we can safely try to retry the request.
-                    let retry_decicion = self.retry_policy.should_retry(n_past_retries);
-                    if let retry_policies::RetryDecision::Retry { execute_after } = retry_decicion {
+                    let retry_decision = self.retry_policy.should_retry(n_past_retries);
+                    if let retry_policies::RetryDecision::Retry { execute_after } = retry_decision {
                         let duration = (execute_after - Utc::now())
                             .to_std()
                             .map_err(Error::middleware)?;
