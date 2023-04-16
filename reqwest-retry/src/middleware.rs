@@ -8,9 +8,6 @@ use reqwest_middleware::{Error, Middleware, Next, Result};
 use retry_policies::RetryPolicy;
 use task_local_extensions::Extensions;
 
-/// We limit the number of retries to a maximum of `10` to avoid stack-overflow issues due to the recursion.
-static MAXIMUM_NUMBER_OF_RETRIES: u32 = 10;
-
 /// `RetryTransientMiddleware` offers retry logic for requests that fail in a transient manner
 /// and can be safely executed again.
 ///
@@ -102,14 +99,11 @@ impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T> {
             // We classify the response which will return None if not
             // errors were returned.
             break match Retryable::from_reqwest_response(&result) {
-                Some(retryable)
-                    if retryable == Retryable::Transient
-                        && n_past_retries < MAXIMUM_NUMBER_OF_RETRIES =>
-                {
+                Some(Retryable::Transient) => {
                     // If the response failed and the error type was transient
                     // we can safely try to retry the request.
-                    let retry_decicion = self.retry_policy.should_retry(n_past_retries);
-                    if let retry_policies::RetryDecision::Retry { execute_after } = retry_decicion {
+                    let retry_decision = self.retry_policy.should_retry(n_past_retries);
+                    if let retry_policies::RetryDecision::Retry { execute_after } = retry_decision {
                         let duration = (execute_after - Utc::now())
                             .to_std()
                             .map_err(Error::middleware)?;
