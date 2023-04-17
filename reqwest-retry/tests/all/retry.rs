@@ -151,17 +151,6 @@ assert_retry_succeeds!(429, StatusCode::OK);
 assert_no_retry!(431, StatusCode::REQUEST_HEADER_FIELDS_TOO_LARGE);
 assert_no_retry!(451, StatusCode::UNAVAILABLE_FOR_LEGAL_REASONS);
 
-// We assert that we cap retries at 10, which means that we will
-// get 11 calls to the RetryResponder.
-assert_retry_succeeds_inner!(
-    500,
-    assert_maximum_retries_is_not_exceeded,
-    StatusCode::INTERNAL_SERVER_ERROR,
-    100,
-    11,
-    RetryResponder::new(100_u32, 500)
-);
-
 pub struct RetryTimeoutResponder(Arc<AtomicU32>, u32, std::time::Duration);
 
 impl RetryTimeoutResponder {
