@@ -104,7 +104,7 @@ impl ReqwestOtelSpanBackend for DefaultSpanBackend {
                 .find(req.url().path())
                 .map(|path| Cow::Owned(format!("{} {}", req.method(), path)))
                 .unwrap_or_else(|| {
-                    warn!(target: "No OTEL path name found", path = %req.url().path());
+                    warn!("no OTEL path name found");
                     Cow::Owned(format!("{} UNKNOWN", req.method().as_str()))
                 })
         } else {
@@ -138,7 +138,7 @@ impl ReqwestOtelSpanBackend for SpanBackendWithUrl {
                 .find(req.url().path())
                 .map(|path| Cow::Owned(format!("{} {}", req.method(), path)))
                 .unwrap_or_else(|| {
-                    warn!(target: "No OTEL path name found", path = req.url().path());
+                    warn!("no OTEL path name found");
                     Cow::Owned(format!("{} UNKNOWN", req.method().as_str()))
                 })
         } else {
@@ -222,7 +222,7 @@ pub struct OtelName(pub Cow<'static, str>);
 /// let reqwest_client = reqwest::Client::builder().build()?;
 /// let client = ClientBuilder::new(reqwest_client)
 ///    // Inserts the extension before the request is started
-///    .with_init(Extension(OtelPathNames::known_paths(["/payment/:paymentId"])))
+///    .with_init(Extension(OtelPathNames::known_paths(["/payment/:paymentId"])?))
 ///    // Makes use of that extension to specify the otel name
 ///    .with(TracingMiddleware::default())
 ///    .build();
@@ -231,7 +231,7 @@ pub struct OtelName(pub Cow<'static, str>);
 ///
 /// // Or specify it on the individual request (will take priority)
 /// let resp = client.post("https://api.truelayer.com/payment/id-123/authorization-flow")
-///     .with_extension(OtelPathNames::known_paths(["/payment/:paymentId/authorization-flow"]))
+///     .with_extension(OtelPathNames::known_paths(["/payment/:paymentId/authorization-flow"])?)
 ///    .send()
 ///    .await?;
 /// # Ok(())
@@ -255,27 +255,22 @@ impl OtelPathNames {
     ///     "/payment",
     ///     "/payment/:paymentId",
     ///     "/payment/:paymentId/*action",
-    /// ]);
+    /// ]).unwrap();
     /// ```
-    pub fn known_paths<Paths, Path>(paths: Paths) -> Self
+    pub fn known_paths<Paths, Path>(paths: Paths) -> Result<Self>
     where
         Paths: IntoIterator<Item = Path>,
         Path: Into<String>,
     {
-        let router = paths.into_iter().fold(Router::new(), |mut router, path| {
+        let mut router = Router::new();
+        for path in paths {
             let path = path.into();
-            if let Err(error) = router.insert(path.clone(), path.clone()) {
-                warn!(
-                    target: "Invalid path cannot be added to known paths",
-                    path = %path,
-                    error = %error
-                );
-            }
-
             router
-        });
+                .insert(path.clone(), path)
+                .map_err(Error::middleware)?;
+        }
 
-        Self(router)
+        Ok(Self(router))
     }
 
     /// Find the templated path from the actual path.
@@ -284,7 +279,7 @@ impl OtelPathNames {
     ///
     /// ```
     /// # use reqwest_tracing::OtelPathNames;
-    /// let path_names = OtelPathNames::known_paths(["/payment/:paymentId"]);
+    /// let path_names = OtelPathNames::known_paths(["/payment/:paymentId"]).unwrap();
     /// let path = path_names.find("/payment/payment-id-123");
     /// assert_eq!(path, Some("/payment/:paymentId"));
     /// ```
