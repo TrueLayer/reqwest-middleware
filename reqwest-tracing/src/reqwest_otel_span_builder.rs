@@ -1,10 +1,11 @@
 use std::borrow::Cow;
 
+use matchit::Router;
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{Request, Response, StatusCode as RequestStatusCode, Url};
 use reqwest_middleware::{Error, Result};
 use task_local_extensions::Extensions;
-use tracing::Span;
+use tracing::{warn, Span};
 
 use crate::reqwest_otel_span;
 
@@ -96,10 +97,20 @@ pub struct DefaultSpanBackend;
 
 impl ReqwestOtelSpanBackend for DefaultSpanBackend {
     fn on_request_start(req: &Request, ext: &mut Extensions) -> Span {
-        let name = ext
-            .get::<OtelName>()
-            .map(|on| on.0.as_ref())
-            .unwrap_or("reqwest-http-client");
+        let name = if let Some(name) = ext.get::<OtelName>() {
+            Cow::Borrowed(name.0.as_ref())
+        } else if let Some(path_names) = ext.get::<OtelPathNames>() {
+            path_names
+                .find(req.url().path())
+                .map(|path| Cow::Owned(format!("{} {}", req.method(), path)))
+                .unwrap_or_else(|| {
+                    warn!("no OTEL path name found");
+                    Cow::Owned(format!("{} UNKNOWN", req.method().as_str()))
+                })
+        } else {
+            Cow::Borrowed(req.method().as_str())
+        };
+
         reqwest_otel_span!(name = name, req)
     }
 
@@ -120,10 +131,19 @@ pub struct SpanBackendWithUrl;
 
 impl ReqwestOtelSpanBackend for SpanBackendWithUrl {
     fn on_request_start(req: &Request, ext: &mut Extensions) -> Span {
-        let name = ext
-            .get::<OtelName>()
-            .map(|on| on.0.as_ref())
-            .unwrap_or("reqwest-http-client");
+        let name = if let Some(name) = ext.get::<OtelName>() {
+            Cow::Borrowed(name.0.as_ref())
+        } else if let Some(path_names) = ext.get::<OtelPathNames>() {
+            path_names
+                .find(req.url().path())
+                .map(|path| Cow::Owned(format!("{} {}", req.method(), path)))
+                .unwrap_or_else(|| {
+                    warn!("no OTEL path name found");
+                    Cow::Owned(format!("{} UNKNOWN", req.method().as_str()))
+                })
+        } else {
+            Cow::Borrowed(req.method().as_str())
+        };
 
         reqwest_otel_span!(name = name, req, http.url = %remove_credentials(req.url()))
     }
@@ -152,7 +172,7 @@ fn get_span_status(request_status: RequestStatusCode) -> Option<&'static str> {
 }
 
 /// [`OtelName`] allows customisation of the name of the spans created by
-/// DefaultSpanBackend.
+/// [`DefaultSpanBackend`] and [`SpanBackendWithUrl`].
 ///
 /// Usage:
 /// ```no_run
@@ -183,6 +203,88 @@ fn get_span_status(request_status: RequestStatusCode) -> Option<&'static str> {
 /// ```
 #[derive(Clone)]
 pub struct OtelName(pub Cow<'static, str>);
+
+/// [`OtelPathNames`] allows including templated paths in the spans created by
+/// [`DefaultSpanBackend`] and [`SpanBackendWithUrl`].
+///
+/// When creating spans this can be used to try to match the path against some
+/// known paths. If the path matches value returned is the templated path. This
+/// can be used in span names as it will not contain values that would
+/// increase the cardinality.
+///
+/// ```
+/// /// # use reqwest_middleware::Result;
+/// use reqwest_middleware::{ClientBuilder, Extension};
+/// use reqwest_tracing::{
+///     TracingMiddleware, OtelPathNames
+/// };
+/// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+/// let reqwest_client = reqwest::Client::builder().build()?;
+/// let client = ClientBuilder::new(reqwest_client)
+///    // Inserts the extension before the request is started
+///    .with_init(Extension(OtelPathNames::known_paths(["/payment/:paymentId"])?))
+///    // Makes use of that extension to specify the otel name
+///    .with(TracingMiddleware::default())
+///    .build();
+///
+/// let resp = client.get("https://truelayer.com/payment/id-123").send().await?;
+///
+/// // Or specify it on the individual request (will take priority)
+/// let resp = client.post("https://api.truelayer.com/payment/id-123/authorization-flow")
+///     .with_extension(OtelPathNames::known_paths(["/payment/:paymentId/authorization-flow"])?)
+///    .send()
+///    .await?;
+/// # Ok(())
+/// # }
+/// ```
+#[derive(Clone)]
+pub struct OtelPathNames(matchit::Router<String>);
+
+impl OtelPathNames {
+    /// Create a new [`OtelPathNames`] from a set of known paths.
+    ///
+    /// Paths in this set will be found with `find`.
+    ///
+    /// Paths can have different parameters:
+    /// - Named parameters like `:paymentId` match anything until the next `/` or the end of the path.
+    /// - Catch-all parameters start with `*` and match everything after the `/`. They must be at the end of the route.
+    /// ```
+    /// # use reqwest_tracing::OtelPathNames;
+    /// OtelPathNames::known_paths([
+    ///     "/",
+    ///     "/payment",
+    ///     "/payment/:paymentId",
+    ///     "/payment/:paymentId/*action",
+    /// ]).unwrap();
+    /// ```
+    pub fn known_paths<Paths, Path>(paths: Paths) -> anyhow::Result<Self>
+    where
+        Paths: IntoIterator<Item = Path>,
+        Path: Into<String>,
+    {
+        let mut router = Router::new();
+        for path in paths {
+            let path = path.into();
+            router.insert(path.clone(), path)?;
+        }
+
+        Ok(Self(router))
+    }
+
+    /// Find the templated path from the actual path.
+    ///
+    /// Returns the templated path if a match is found.
+    ///
+    /// ```
+    /// # use reqwest_tracing::OtelPathNames;
+    /// let path_names = OtelPathNames::known_paths(["/payment/:paymentId"]).unwrap();
+    /// let path = path_names.find("/payment/payment-id-123");
+    /// assert_eq!(path, Some("/payment/:paymentId"));
+    /// ```
+    pub fn find(&self, path: &str) -> Option<&str> {
+        self.0.at(path).map(|mtch| mtch.value.as_str()).ok()
+    }
+}
 
 /// Removes the username and/or password parts of the url, if present.
 fn remove_credentials(url: &Url) -> Cow<'_, str> {
