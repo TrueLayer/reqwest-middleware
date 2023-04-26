@@ -257,7 +257,7 @@ impl OtelPathNames {
     ///     "/payment/:paymentId/*action",
     /// ]).unwrap();
     /// ```
-    pub fn known_paths<Paths, Path>(paths: Paths) -> Result<Self>
+    pub fn known_paths<Paths, Path>(paths: Paths) -> anyhow::Result<Self>
     where
         Paths: IntoIterator<Item = Path>,
         Path: Into<String>,
@@ -265,9 +265,7 @@ impl OtelPathNames {
         let mut router = Router::new();
         for path in paths {
             let path = path.into();
-            router
-                .insert(path.clone(), path)
-                .map_err(Error::middleware)?;
+            router.insert(path.clone(), path)?;
         }
 
         Ok(Self(router))
