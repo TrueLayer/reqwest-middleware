@@ -210,6 +210,7 @@ impl RequestBuilder {
         }
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn version(self, version: reqwest::Version) -> Self {
         RequestBuilder {
             inner: self.inner.version(version),
