@@ -210,6 +210,14 @@ impl RequestBuilder {
         }
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn version(self, version: reqwest::Version) -> Self {
+        RequestBuilder {
+            inner: self.inner.version(version),
+            ..self
+        }
+    }
+
     pub fn basic_auth<U, P>(self, username: U, password: Option<P>) -> Self
     where
         U: Display,
