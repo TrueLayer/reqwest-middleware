@@ -6,11 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2] - 2023-05-12
+
 ### Added
 - `OtelPathNames` extension to provide known parameterized paths that will be used in span names
 
 ### Changed
 - `DefaultSpanBackend` and `SpanBackendWithUrl` default span name to HTTP method name instead of `reqwest-http-client`
+
+## [0.4.1] - 2023-03-09
+
+### Added
+
+- Support for `wasm32-unknown-unknown` target
 
 ## [0.4.0] - 2022-11-15
 
