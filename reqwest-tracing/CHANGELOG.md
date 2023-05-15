@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.4] - 2023-05-15
+
+### Added
+- A new `default_span_name` method for use in custom span backends.
+
 ## [0.4.3] - 2023-05-15
 
 ### Fixed
