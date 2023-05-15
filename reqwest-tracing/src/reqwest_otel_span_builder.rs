@@ -84,6 +84,27 @@ pub fn default_on_request_failure(span: &Span, e: &Error) {
     }
 }
 
+/// Determine the name of the span that should be associated with this request.
+///
+/// This tries to be PII safe by default, not including any path information unless
+/// specifically opted in using either [`OtelName`] or [`OtelPathNames`]
+#[inline]
+pub fn default_span_name<'a>(req: &'a Request, ext: &'a Extensions) -> Cow<'a, str> {
+    if let Some(name) = ext.get::<OtelName>() {
+        Cow::Borrowed(name.0.as_ref())
+    } else if let Some(path_names) = ext.get::<OtelPathNames>() {
+        path_names
+            .find(req.url().path())
+            .map(|path| Cow::Owned(format!("{} {}", req.method(), path)))
+            .unwrap_or_else(|| {
+                warn!("no OTEL path name found");
+                Cow::Owned(format!("{} UNKNOWN", req.method().as_str()))
+            })
+    } else {
+        Cow::Borrowed(req.method().as_str())
+    }
+}
+
 /// The default [`ReqwestOtelSpanBackend`] for [`TracingMiddleware`]. Note that it doesn't include
 /// the `http.url` field in spans, you can use [`SpanBackendWithUrl`] to add it.
 ///
@@ -92,20 +113,7 @@ pub struct DefaultSpanBackend;
 
 impl ReqwestOtelSpanBackend for DefaultSpanBackend {
     fn on_request_start(req: &Request, ext: &mut Extensions) -> Span {
-        let name = if let Some(name) = ext.get::<OtelName>() {
-            Cow::Borrowed(name.0.as_ref())
-        } else if let Some(path_names) = ext.get::<OtelPathNames>() {
-            path_names
-                .find(req.url().path())
-                .map(|path| Cow::Owned(format!("{} {}", req.method(), path)))
-                .unwrap_or_else(|| {
-                    warn!("no OTEL path name found");
-                    Cow::Owned(format!("{} UNKNOWN", req.method().as_str()))
-                })
-        } else {
-            Cow::Borrowed(req.method().as_str())
-        };
-
+        let name = default_span_name(req, ext);
         reqwest_otel_span!(name = name, req)
     }
 
@@ -126,20 +134,7 @@ pub struct SpanBackendWithUrl;
 
 impl ReqwestOtelSpanBackend for SpanBackendWithUrl {
     fn on_request_start(req: &Request, ext: &mut Extensions) -> Span {
-        let name = if let Some(name) = ext.get::<OtelName>() {
-            Cow::Borrowed(name.0.as_ref())
-        } else if let Some(path_names) = ext.get::<OtelPathNames>() {
-            path_names
-                .find(req.url().path())
-                .map(|path| Cow::Owned(format!("{} {}", req.method(), path)))
-                .unwrap_or_else(|| {
-                    warn!("no OTEL path name found");
-                    Cow::Owned(format!("{} UNKNOWN", req.method().as_str()))
-                })
-        } else {
-            Cow::Borrowed(req.method().as_str())
-        };
-
+        let name = default_span_name(req, ext);
         reqwest_otel_span!(name = name, req, http.url = %remove_credentials(req.url()))
     }
 
