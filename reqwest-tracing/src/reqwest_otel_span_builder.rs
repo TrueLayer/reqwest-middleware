@@ -23,8 +23,8 @@ pub const NET_HOST_PORT: &str = "net.host.port";
 pub const OTEL_KIND: &str = "otel.kind";
 /// The `otel.name` field added to the span by [`reqwest_otel_span`]
 pub const OTEL_NAME: &str = "otel.name";
-/// The `otel.status_code.code` field added to the span by [`reqwest_otel_span`]
-pub const OTEL_STATUS_CODE: &str = "http.status_code";
+/// The `otel.status_code` field added to the span by [`reqwest_otel_span`]
+pub const OTEL_STATUS_CODE: &str = "otel.status_code";
 /// The `error.message` field added to the span by [`reqwest_otel_span`]
 pub const ERROR_MESSAGE: &str = "error.message";
 /// The `error.cause_chain` field added to the span by [`reqwest_otel_span`]
@@ -61,12 +61,11 @@ pub fn default_on_request_end(span: &Span, outcome: &Result<Response>) {
 #[inline]
 pub fn default_on_request_success(span: &Span, response: &Response) {
     let span_status = get_span_status(response.status());
-    let status_code = response.status().as_u16() as i64;
     let user_agent = get_header_value("user_agent", response.headers());
     if let Some(span_status) = span_status {
         span.record(OTEL_STATUS_CODE, span_status);
     }
-    span.record(HTTP_STATUS_CODE, status_code);
+    span.record(HTTP_STATUS_CODE, response.status().as_u16());
     span.record(HTTP_USER_AGENT, user_agent.as_str());
 }
 
@@ -79,13 +78,9 @@ pub fn default_on_request_failure(span: &Span, e: &Error) {
     span.record(ERROR_MESSAGE, error_message.as_str());
     span.record(ERROR_CAUSE_CHAIN, error_cause_chain.as_str());
     if let Error::Reqwest(e) = e {
-        span.record(
-            HTTP_STATUS_CODE,
-            e.status()
-                .map(|s| s.to_string())
-                .unwrap_or_else(|| "".to_string())
-                .as_str(),
-        );
+        if let Some(status) = e.status() {
+            span.record(HTTP_STATUS_CODE, status.as_u16());
+        }
     }
 }
 
