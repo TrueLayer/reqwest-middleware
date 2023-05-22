@@ -4,9 +4,8 @@ use reqwest_middleware::Error;
 
 /// A strategy to create a [`Retryable`] from a [`Result<reqwest::Response, reqwest_middleware::Error>`]
 ///
-/// A [`RetryableStrategy`] has two functions, a `success_handler` and a `error_handler`
-/// The correct handler will be called based on what the result of calling the request was.
-/// The result of calling the request could be:\
+/// A [`RetryableStrategy`] has a single `handler` functions.
+/// The result of calling the request could be:
 /// - [`reqwest::Response`] In case the request has been sent and received correctly
 ///     This could however still mean that the server responded with a erroneous response.
 ///     For example a HTTP statuscode of 500
@@ -44,8 +43,11 @@ use reqwest_middleware::Error;
 /// impl RetryableStrategy for Retry201 {
 ///     fn handle(&self, res: &Result<reqwest::Response>) -> Option<Retryable> {
 ///          match res {
+///              // retry if 201
 ///              Ok(success) if success.status() == 201 => Some(Retryable::Transient),
+///              // otherwise do not retry a successful request
 ///              Ok(success) => None,
+///              // but maybe retry a request failure
 ///              Err(error) => default_on_request_failure(error),
 ///         }
 ///     }
