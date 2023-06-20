@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.5] - 2023-06-20
+
+### Added
+- A new extension `DisableOtelPropagation` which stops opentelemetry contexts propagating
+- Support for opentelemetry 0.19
+
 ## [0.4.4] - 2023-05-15
 
 ### Added
