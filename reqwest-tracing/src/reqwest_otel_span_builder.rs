@@ -276,6 +276,41 @@ impl OtelPathNames {
     }
 }
 
+/// `DisableOtelPropagation` disables opentelemetry header propagation, while still tracing the HTTP request.
+///
+/// By default, the [`TracingMiddleware`](super::TracingMiddleware) middleware will also propagate any opentelemtry
+/// contexts to the server. For any external facing requests, this can be problematic and it should be disabled.
+///
+/// Usage:
+/// ```no_run
+/// # use reqwest_middleware::Result;
+/// use reqwest_middleware::{ClientBuilder, Extension};
+/// use reqwest_tracing::{
+///     TracingMiddleware, DisableOtelPropagation
+/// };
+/// # async fn example() -> Result<()> {
+/// let reqwest_client = reqwest::Client::builder().build().unwrap();
+/// let client = ClientBuilder::new(reqwest_client)
+///    // Inserts the extension before the request is started
+///    .with_init(Extension(DisableOtelPropagation))
+///    // Makes use of that extension to specify the otel name
+///    .with(TracingMiddleware::default())
+///    .build();
+///
+/// let resp = client.get("https://truelayer.com").send().await.unwrap();
+///
+/// // Or specify it on the individual request (will take priority)
+/// let resp = client.post("https://api.truelayer.com/payment")
+///     .with_extension(DisableOtelPropagation)
+///     .send()
+///     .await
+///     .unwrap();
+/// # Ok(())
+/// # }
+/// ```
+#[derive(Clone)]
+pub struct DisableOtelPropagation;
+
 /// Removes the username and/or password parts of the url, if present.
 fn remove_credentials(url: &Url) -> Cow<'_, str> {
     if !url.username().is_empty() || url.password().is_some() {

@@ -21,6 +21,9 @@ use opentelemetry_0_17_pkg as opentelemetry;
 #[cfg(feature = "opentelemetry_0_18")]
 use opentelemetry_0_18_pkg as opentelemetry;
 
+#[cfg(feature = "opentelemetry_0_19")]
+use opentelemetry_0_19_pkg as opentelemetry;
+
 #[cfg(feature = "opentelemetry_0_13")]
 pub use tracing_opentelemetry_0_12_pkg as tracing_opentelemetry;
 
@@ -38,6 +41,9 @@ pub use tracing_opentelemetry_0_17_pkg as tracing_opentelemetry;
 
 #[cfg(feature = "opentelemetry_0_18")]
 pub use tracing_opentelemetry_0_18_pkg as tracing_opentelemetry;
+
+#[cfg(feature = "opentelemetry_0_19")]
+pub use tracing_opentelemetry_0_19_pkg as tracing_opentelemetry;
 
 use opentelemetry::global;
 use opentelemetry::propagation::Injector;
@@ -81,9 +87,10 @@ impl<'a> Injector for RequestCarrier<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::TracingMiddleware;
+    use crate::{DisableOtelPropagation, TracingMiddleware};
     use opentelemetry::sdk::propagation::TraceContextPropagator;
-    use reqwest_middleware::ClientBuilder;
+    use reqwest::Response;
+    use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, Extension};
     use tracing::{info_span, Instrument, Level};
     #[cfg(any(
         feature = "opentelemetry_0_13",
@@ -99,8 +106,7 @@ mod test {
     use tracing_subscriber_0_3::{filter, layer::SubscriberExt, Registry};
     use wiremock::{matchers::any, Mock, MockServer, ResponseTemplate};
 
-    #[tokio::test]
-    async fn tracing_middleware_propagates_otel_data_even_when_the_span_is_disabled() {
+    async fn make_echo_request_in_otel_context(client: ClientWithMiddleware) -> Response {
         let tracer = opentelemetry::sdk::export::trace::stdout::new_pipeline()
             .with_writer(std::io::sink())
             .install_simple();
@@ -124,17 +130,40 @@ mod test {
             .mount(&server)
             .await;
 
-        let client = ClientBuilder::new(reqwest::Client::new())
-            .with(TracingMiddleware::default())
-            .build();
-
-        let resp = client
+        client
             .get(server.uri())
             .send()
             .instrument(info_span!("some_span"))
             .await
-            .unwrap();
+            .unwrap()
+    }
 
-        assert!(resp.headers().contains_key("traceparent"));
+    #[tokio::test]
+    async fn tracing_middleware_propagates_otel_data_even_when_the_span_is_disabled() {
+        let client = ClientBuilder::new(reqwest::Client::new())
+            .with(TracingMiddleware::default())
+            .build();
+
+        let resp = make_echo_request_in_otel_context(client).await;
+
+        assert!(
+            resp.headers().contains_key("traceparent"),
+            "by default, the tracing middleware will propagate otel contexts"
+        );
+    }
+
+    #[tokio::test]
+    async fn context_no_propagated() {
+        let client = ClientBuilder::new(reqwest::Client::new())
+            .with_init(Extension(DisableOtelPropagation))
+            .with(TracingMiddleware::default())
+            .build();
+
+        let resp = make_echo_request_in_otel_context(client).await;
+
+        assert!(
+            !resp.headers().contains_key("traceparent"),
+            "request should not contain traceparent if context propagation is disabled"
+        );
     }
 }

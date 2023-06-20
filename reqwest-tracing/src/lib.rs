@@ -90,16 +90,17 @@ mod middleware;
     feature = "opentelemetry_0_16",
     feature = "opentelemetry_0_17",
     feature = "opentelemetry_0_18",
+    feature = "opentelemetry_0_19",
 ))]
 mod otel;
 mod reqwest_otel_span_builder;
 pub use middleware::TracingMiddleware;
 pub use reqwest_otel_span_builder::{
     default_on_request_end, default_on_request_failure, default_on_request_success,
-    default_span_name, DefaultSpanBackend, OtelName, OtelPathNames, ReqwestOtelSpanBackend,
-    SpanBackendWithUrl, ERROR_CAUSE_CHAIN, ERROR_MESSAGE, HTTP_HOST, HTTP_METHOD, HTTP_SCHEME,
-    HTTP_STATUS_CODE, HTTP_URL, HTTP_USER_AGENT, NET_HOST_PORT, OTEL_KIND, OTEL_NAME,
-    OTEL_STATUS_CODE,
+    default_span_name, DefaultSpanBackend, DisableOtelPropagation, OtelName, OtelPathNames,
+    ReqwestOtelSpanBackend, SpanBackendWithUrl, ERROR_CAUSE_CHAIN, ERROR_MESSAGE, HTTP_HOST,
+    HTTP_METHOD, HTTP_SCHEME, HTTP_STATUS_CODE, HTTP_URL, HTTP_USER_AGENT, NET_HOST_PORT,
+    OTEL_KIND, OTEL_NAME, OTEL_STATUS_CODE,
 };
 
 #[doc(hidden)]
