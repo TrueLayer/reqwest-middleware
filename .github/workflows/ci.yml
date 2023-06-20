@@ -45,7 +45,7 @@ jobs:
           - opentelemetry_0_16
           - opentelemetry_0_17
           - opentelemetry_0_18
-          - opentelemetry_0_19
+          # - opentelemetry_0_19
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2

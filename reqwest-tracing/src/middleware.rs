@@ -3,7 +3,7 @@ use reqwest_middleware::{Middleware, Next, Result};
 use task_local_extensions::Extensions;
 use tracing::Instrument;
 
-use crate::{DefaultSpanBackend, DisableOtelPropagation, ReqwestOtelSpanBackend};
+use crate::{DefaultSpanBackend, ReqwestOtelSpanBackend};
 
 /// Middleware for tracing requests using the current Opentelemetry Context.
 pub struct TracingMiddleware<S: ReqwestOtelSpanBackend> {
@@ -38,7 +38,7 @@ where
 {
     async fn handle(
         &self,
-        mut req: Request,
+        req: Request,
         extensions: &mut Extensions,
         next: Next<'_>,
     ) -> Result<Response> {
@@ -54,11 +54,13 @@ where
                 feature = "opentelemetry_0_18",
                 feature = "opentelemetry_0_19",
             ))]
-            if !extensions.contains::<DisableOtelPropagation>() {
+            let req = if !extensions.contains::<crate::DisableOtelPropagation>() {
                 // Adds tracing headers to the given request to propagate the OpenTelemetry context to downstream revivers of the request.
                 // Spans added by downstream consumers will be part of the same trace.
-                req = crate::otel::inject_opentelemetry_context_into_request(req);
-            }
+                crate::otel::inject_opentelemetry_context_into_request(req)
+            } else {
+                req
+            };
 
             // Run the request
             let outcome = next.run(req, extensions).await;

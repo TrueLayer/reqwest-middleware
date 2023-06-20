@@ -86,6 +86,8 @@ impl<'a> Injector for RequestCarrier<'a> {
 
 #[cfg(test)]
 mod test {
+    use std::sync::OnceLock;
+
     use super::*;
     use crate::{DisableOtelPropagation, TracingMiddleware};
     use opentelemetry::sdk::propagation::TraceContextPropagator;
@@ -107,15 +109,21 @@ mod test {
     use wiremock::{matchers::any, Mock, MockServer, ResponseTemplate};
 
     async fn make_echo_request_in_otel_context(client: ClientWithMiddleware) -> Response {
-        let tracer = opentelemetry::sdk::export::trace::stdout::new_pipeline()
-            .with_writer(std::io::sink())
-            .install_simple();
-        let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
-        let subscriber = Registry::default()
-            .with(filter::Targets::new().with_target("reqwest_tracing::otel::test", Level::DEBUG))
-            .with(telemetry);
-        tracing::subscriber::set_global_default(subscriber).unwrap();
-        global::set_text_map_propagator(TraceContextPropagator::new());
+        static TELEMETRY: OnceLock<()> = OnceLock::new();
+
+        TELEMETRY.get_or_init(|| {
+            let tracer = opentelemetry::sdk::export::trace::stdout::new_pipeline()
+                .with_writer(std::io::sink())
+                .install_simple();
+            let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
+            let subscriber = Registry::default()
+                .with(
+                    filter::Targets::new().with_target("reqwest_tracing::otel::test", Level::DEBUG),
+                )
+                .with(telemetry);
+            tracing::subscriber::set_global_default(subscriber).unwrap();
+            global::set_text_map_propagator(TraceContextPropagator::new());
+        });
 
         // Mock server - sends all request headers back in the response
         let server = MockServer::start().await;
