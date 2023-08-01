@@ -29,7 +29,7 @@ impl Error {
         }
     }
 
-    /// Returns a mutable reference to the URL related to this error
+    /// Returns a mutable reference to the URL related to this error.
     ///
     /// This is useful if you need to remove sensitive information from the URL
     /// (e.g. an API key in the query), but do not want to remove the URL
@@ -41,7 +41,7 @@ impl Error {
         }
     }
 
-    /// Add a url related to this error (overwriting any existing)
+    /// Adds a url related to this error (overwriting any existing).
     pub fn with_url(self, url: Url) -> Self {
         match self {
             Error::Middleware(_) => self,
@@ -49,8 +49,8 @@ impl Error {
         }
     }
 
-    /// Strip the related url from this error (if, for example, it contains
-    /// sensitive information)
+    /// Strips the related URL from this error (if, for example, it contains
+    /// sensitive information).
     pub fn without_url(self) -> Self {
         match self {
             Error::Middleware(_) => self,
@@ -58,7 +58,7 @@ impl Error {
         }
     }
 
-    /// Returns true if the error is from a type Builder.
+    /// Returns true if the error is from a type `Builder`.
     pub fn is_builder(&self) -> bool {
         match self {
             Error::Middleware(_) => false,
@@ -90,7 +90,7 @@ impl Error {
         }
     }
 
-    /// Returns true if the error is related to the request
+    /// Returns true if the error is related to the request.
     pub fn is_request(&self) -> bool {
         match self {
             Error::Middleware(_) => false,
@@ -99,7 +99,7 @@ impl Error {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    /// Returns true if the error is related to connect
+    /// Returns true if the error is related to connect.
     pub fn is_connect(&self) -> bool {
         match self {
             Error::Middleware(_) => false,
@@ -107,7 +107,7 @@ impl Error {
         }
     }
 
-    /// Returns true if the error is related to the request or response body
+    /// Returns true if the error is related to the request or response body.
     pub fn is_body(&self) -> bool {
         match self {
             Error::Middleware(_) => false,
@@ -115,7 +115,7 @@ impl Error {
         }
     }
 
-    /// Returns true if the error is related to decoding the response's body
+    /// Returns true if the error is related to decoding the response's body.
     pub fn is_decode(&self) -> bool {
         match self {
             Error::Middleware(_) => false,
