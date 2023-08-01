@@ -86,7 +86,7 @@ impl Error {
     pub fn is_timeout(&self) -> bool {
         match self {
             Error::Middleware(_) => false,
-            Error::Reqwest(e) => e.is_status(),
+            Error::Reqwest(e) => e.is_timeout(),
         }
     }
 
