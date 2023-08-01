@@ -1,4 +1,4 @@
-use reqwest::Url;
+use reqwest::{StatusCode, Url};
 use thiserror::Error;
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -124,7 +124,7 @@ impl Error {
     }
 
     /// Returns the status code, if the error was generated from a response.
-    pub fn status(&self) -> Option<reqwest::StatusCode> {
+    pub fn status(&self) -> Option<StatusCode> {
         match self {
             Error::Middleware(_) => None,
             Error::Reqwest(e) => e.status(),
