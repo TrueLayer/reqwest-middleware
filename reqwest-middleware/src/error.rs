@@ -58,6 +58,14 @@ impl Error {
         }
     }
 
+    /// Returns true if the error is from any middleware.
+    pub fn is_middleware(&self) -> bool {
+        match self {
+            Error::Middleware(_) => true,
+            Error::Reqwest(_) => false,
+        }
+    }
+
     /// Returns true if the error is from a type `Builder`.
     pub fn is_builder(&self) -> bool {
         match self {
