@@ -1,2 +1,10 @@
-/target
+# OS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+
+# Rust
 Cargo.lock
+/target
