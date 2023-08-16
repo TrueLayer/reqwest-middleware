@@ -19,6 +19,7 @@ jobs:
           - opentelemetry_0_17
           - opentelemetry_0_18
           - opentelemetry_0_19
+          - opentelemetry_0_20
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -46,6 +47,7 @@ jobs:
           - opentelemetry_0_17
           - opentelemetry_0_18
           - opentelemetry_0_19
+          - opentelemetry_0_20
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -93,6 +95,7 @@ jobs:
           - opentelemetry_0_17
           - opentelemetry_0_18
           - opentelemetry_0_19
+          - opentelemetry_0_20
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -122,6 +125,7 @@ jobs:
           - opentelemetry_0_17
           - opentelemetry_0_18
           - opentelemetry_0_19
+          - opentelemetry_0_20
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
