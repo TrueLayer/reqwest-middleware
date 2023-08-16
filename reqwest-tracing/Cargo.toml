@@ -49,3 +49,9 @@ tracing-opentelemetry_0_20_pkg = { package = "tracing-opentelemetry", version = 
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.2.0", features = ["js"] }
+
+[dev-dependencies]
+tokio = { version = "1.0.0", features = ["macros"] }
+tracing_subscriber_0_2 = { package = "tracing-subscriber", version = "0.2.0" }
+tracing_subscriber_0_3 = { package = "tracing-subscriber", version = "0.3.0" }
+wiremock = "0.5.0"

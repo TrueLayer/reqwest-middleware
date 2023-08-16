@@ -30,3 +30,9 @@ tokio = { version = "1.6.0", features = ["time"] }
 parking_lot = { version = "0.11.2", features = ["wasm-bindgen"] } # work around https://github.com/tomaka/wasm-timer/issues/14
 wasm-timer = "0.2.5"
 getrandom = { version = "0.2.0", features = ["js"] }
+
+[dev-dependencies]
+paste = "1.0.0"
+tokio = { version = "1.0.0", features = ["full"] }
+wiremock = "0.5.0"
+futures = "0.3.0"
