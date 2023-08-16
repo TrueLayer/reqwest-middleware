@@ -117,10 +117,32 @@ mod test {
     async fn make_echo_request_in_otel_context(client: ClientWithMiddleware) -> Response {
         static TELEMETRY: OnceLock<()> = OnceLock::new();
 
+        #[cfg(not(feature = "opentelemetry_0_20"))]
         TELEMETRY.get_or_init(|| {
             let tracer = opentelemetry::sdk::export::trace::stdout::new_pipeline()
                 .with_writer(std::io::sink())
                 .install_simple();
+            let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
+            let subscriber = Registry::default()
+                .with(
+                    filter::Targets::new().with_target("reqwest_tracing::otel::test", Level::DEBUG),
+                )
+                .with(telemetry);
+            tracing::subscriber::set_global_default(subscriber).unwrap();
+            global::set_text_map_propagator(TraceContextPropagator::new());
+        });
+        #[cfg(feature = "opentelemetry_0_20")]
+        TELEMETRY.get_or_init(|| {
+            use opentelemetry::{global, sdk::trace::TracerProvider, trace::TracerProvider as _};
+            let provider = TracerProvider::builder()
+                .with_simple_exporter(
+                    opentelemetry_stdout::SpanExporter::builder()
+                        .with_writer(std::io::sink())
+                        .build(),
+                )
+                .build();
+            let tracer = provider.tracer("reqwest_tracing::otel::test");
+
             let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
             let subscriber = Registry::default()
                 .with(
