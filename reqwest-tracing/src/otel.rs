@@ -145,27 +145,6 @@ mod test {
             tracing::subscriber::set_global_default(subscriber).unwrap();
             global::set_text_map_propagator(TraceContextPropagator::new());
         });
-        #[cfg(feature = "opentelemetry_0_20")]
-        TELEMETRY.get_or_init(|| {
-            use opentelemetry::{global, sdk::trace::TracerProvider, trace::TracerProvider as _};
-            let provider = TracerProvider::builder()
-                .with_simple_exporter(
-                    opentelemetry_stdout::SpanExporter::builder()
-                        .with_writer(std::io::sink())
-                        .build(),
-                )
-                .build();
-            let tracer = provider.tracer("reqwest_tracing::otel::test");
-
-            let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
-            let subscriber = Registry::default()
-                .with(
-                    filter::Targets::new().with_target("reqwest_tracing::otel::test", Level::DEBUG),
-                )
-                .with(telemetry);
-            tracing::subscriber::set_global_default(subscriber).unwrap();
-            global::set_text_map_propagator(TraceContextPropagator::new());
-        });
 
         // Mock server - sends all request headers back in the response
         let server = MockServer::start().await;
