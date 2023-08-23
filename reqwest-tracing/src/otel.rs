@@ -117,7 +117,6 @@ mod test {
     async fn make_echo_request_in_otel_context(client: ClientWithMiddleware) -> Response {
         static TELEMETRY: OnceLock<()> = OnceLock::new();
 
-        #[cfg(not(feature = "opentelemetry_0_20"))]
         TELEMETRY.get_or_init(|| {
             #[cfg(not(feature = "opentelemetry_0_20"))]
             let tracer = opentelemetry::sdk::export::trace::stdout::new_pipeline()
