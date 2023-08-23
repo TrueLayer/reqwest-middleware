@@ -24,6 +24,9 @@ use opentelemetry_0_18_pkg as opentelemetry;
 #[cfg(feature = "opentelemetry_0_19")]
 use opentelemetry_0_19_pkg as opentelemetry;
 
+#[cfg(feature = "opentelemetry_0_20")]
+use opentelemetry_0_20_pkg as opentelemetry;
+
 #[cfg(feature = "opentelemetry_0_13")]
 pub use tracing_opentelemetry_0_12_pkg as tracing_opentelemetry;
 
@@ -44,6 +47,9 @@ pub use tracing_opentelemetry_0_18_pkg as tracing_opentelemetry;
 
 #[cfg(feature = "opentelemetry_0_19")]
 pub use tracing_opentelemetry_0_19_pkg as tracing_opentelemetry;
+
+#[cfg(feature = "opentelemetry_0_20")]
+pub use tracing_opentelemetry_0_20_pkg as tracing_opentelemetry;
 
 use opentelemetry::global;
 use opentelemetry::propagation::Injector;
@@ -112,9 +118,23 @@ mod test {
         static TELEMETRY: OnceLock<()> = OnceLock::new();
 
         TELEMETRY.get_or_init(|| {
+            #[cfg(not(feature = "opentelemetry_0_20"))]
             let tracer = opentelemetry::sdk::export::trace::stdout::new_pipeline()
                 .with_writer(std::io::sink())
                 .install_simple();
+            #[cfg(feature = "opentelemetry_0_20")]
+            let tracer = {
+                use opentelemetry::trace::TracerProvider;
+                let exporter = opentelemetry_stdout::SpanExporterBuilder::default()
+                    .with_writer(std::io::sink())
+                    .build();
+                let provider = opentelemetry::sdk::trace::TracerProvider::builder()
+                    .with_simple_exporter(exporter)
+                    .build();
+                let tracer = provider.versioned_tracer("reqwest", None::<&str>, None::<&str>, None);
+                let _ = global::set_tracer_provider(provider);
+                tracer
+            };
             let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
             let subscriber = Registry::default()
                 .with(
