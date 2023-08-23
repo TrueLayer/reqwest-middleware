@@ -56,3 +56,5 @@ tracing_subscriber_0_2 = { package = "tracing-subscriber", version = "0.2.0" }
 tracing_subscriber_0_3 = { package = "tracing-subscriber", version = "0.3.0" }
 opentelemetry-stdout = { version = "0.1.0", features = ["trace"] }
 wiremock = "0.5.0"
+
+opentelemetry-stdout = { version = "0.1.0", features = ["trace"] }
