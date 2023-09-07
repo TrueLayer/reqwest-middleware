@@ -17,7 +17,8 @@ implementations. This repository also contains a couple of useful concrete middl
 
 Note about browser support: automated tests targetting wasm are disabled. The crate may work with
 wasm but wasm support is unmaintained. PRs improving wasm are still welcome but you'd need to
-reintroduce the tests and get them passing before we'd merge it.
+reintroduce the tests and get them passing before we'd merge it (see
+https://github.com/TrueLayer/reqwest-middleware/pull/105).
 
 ## Overview
 
