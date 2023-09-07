@@ -53,12 +53,12 @@ macro_rules! assert_retry_succeeds_inner {
             let reqwest_client = Client::builder().build().unwrap();
             let client = ClientBuilder::new(reqwest_client)
                 .with(RetryTransientMiddleware::new_with_policy(
-                    ExponentialBackoff {
-                        max_n_retries: retry_amount,
-                        max_retry_interval: std::time::Duration::from_millis(30),
-                        min_retry_interval: std::time::Duration::from_millis(100),
-                        backoff_exponent: 2,
-                    },
+                    ExponentialBackoff::builder()
+                        .retry_bounds(
+                            std::time::Duration::from_millis(30),
+                            std::time::Duration::from_millis(100),
+                        )
+                        .build_with_max_retries(retry_amount),
                 ))
                 .build();
 
@@ -189,12 +189,12 @@ async fn assert_retry_on_request_timeout() {
     let reqwest_client = Client::builder().build().unwrap();
     let client = ClientBuilder::new(reqwest_client)
         .with(RetryTransientMiddleware::new_with_policy(
-            ExponentialBackoff {
-                max_n_retries: 3,
-                max_retry_interval: std::time::Duration::from_millis(100),
-                min_retry_interval: std::time::Duration::from_millis(30),
-                backoff_exponent: 2,
-            },
+            ExponentialBackoff::builder()
+                .retry_bounds(
+                    std::time::Duration::from_millis(30),
+                    std::time::Duration::from_millis(100),
+                )
+                .build_with_max_retries(3),
         ))
         .build();
 
@@ -244,12 +244,12 @@ async fn assert_retry_on_incomplete_message() {
     let reqwest_client = Client::builder().build().unwrap();
     let client = ClientBuilder::new(reqwest_client)
         .with(RetryTransientMiddleware::new_with_policy(
-            ExponentialBackoff {
-                max_n_retries: 3,
-                max_retry_interval: std::time::Duration::from_millis(100),
-                min_retry_interval: std::time::Duration::from_millis(30),
-                backoff_exponent: 2,
-            },
+            ExponentialBackoff::builder()
+                .retry_bounds(
+                    std::time::Duration::from_millis(30),
+                    std::time::Duration::from_millis(100),
+                )
+                .build_with_max_retries(3),
         ))
         .build();
 
@@ -295,12 +295,12 @@ async fn assert_retry_on_hyper_canceled() {
     let reqwest_client = Client::builder().build().unwrap();
     let client = ClientBuilder::new(reqwest_client)
         .with(RetryTransientMiddleware::new_with_policy(
-            ExponentialBackoff {
-                max_n_retries: 3,
-                max_retry_interval: std::time::Duration::from_millis(100),
-                min_retry_interval: std::time::Duration::from_millis(30),
-                backoff_exponent: 2,
-            },
+            ExponentialBackoff::builder()
+                .retry_bounds(
+                    std::time::Duration::from_millis(30),
+                    std::time::Duration::from_millis(100),
+                )
+                .build_with_max_retries(3),
         ))
         .build();
 
@@ -343,12 +343,12 @@ async fn assert_retry_on_connection_reset_by_peer() {
     let reqwest_client = Client::builder().build().unwrap();
     let client = ClientBuilder::new(reqwest_client)
         .with(RetryTransientMiddleware::new_with_policy(
-            ExponentialBackoff {
-                max_n_retries: 3,
-                max_retry_interval: std::time::Duration::from_millis(100),
-                min_retry_interval: std::time::Duration::from_millis(30),
-                backoff_exponent: 2,
-            },
+            ExponentialBackoff::builder()
+                .retry_bounds(
+                    std::time::Duration::from_millis(30),
+                    std::time::Duration::from_millis(100),
+                )
+                .build_with_max_retries(3),
         ))
         .build();
 
