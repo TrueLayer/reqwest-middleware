@@ -11,7 +11,7 @@ use task_local_extensions::Extensions;
 /// `RetryTransientMiddleware` offers retry logic for requests that fail in a transient manner
 /// and can be safely executed again.
 ///
-/// Currently, it allows setting a [RetryPolicy][retry_policies::RetryPolicy] algorithm for calculating the __wait_time__
+/// Currently, it allows setting a [RetryPolicy] algorithm for calculating the __wait_time__
 /// between each request retry.
 ///
 ///```rust
