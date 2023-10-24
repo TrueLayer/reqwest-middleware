@@ -282,6 +282,13 @@ impl RequestBuilder {
         }
     }
 
+    pub fn fetch_mode_no_cors(self) -> Self {
+        RequestBuilder {
+            inner: self.inner.fetch_mode_no_cors(),
+            ..self
+        }
+    }
+
     pub fn build(self) -> reqwest::Result<Request> {
         self.inner.build()
     }
