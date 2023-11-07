@@ -12,7 +12,7 @@ use task_local_extensions::Extensions;
 /// and can be safely executed again.
 ///
 /// Currently, it allows setting a [RetryPolicy] algorithm for calculating the __wait_time__
-/// between each request retry. Sleeping on non-`wasm32` archs is performed using 
+/// between each request retry. Sleeping on non-`wasm32` archs is performed using
 /// [`tokio::time::sleep`], therefore it will respect pauses/auto-advance if run under a
 /// runtime that supports them.
 ///
