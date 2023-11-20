@@ -104,7 +104,6 @@ mod test {
     use crate::{DisableOtelPropagation, TracingMiddleware};
     #[cfg(not(feature = "opentelemetry_0_21"))]
     use opentelemetry::sdk::propagation::TraceContextPropagator;
-    use opentelemetry::trace::TracerProvider;
     #[cfg(feature = "opentelemetry_0_21")]
     use opentelemetry_sdk_0_21::propagation::TraceContextPropagator;
     use reqwest::Response;
@@ -137,6 +136,7 @@ mod test {
                 .install_simple();
             #[cfg(any(feature = "opentelemetry_0_20", feature = "opentelemetry_0_21"))]
             let tracer = {
+                use opentelemetry::trace::TracerProvider;
                 #[cfg(feature = "opentelemetry_0_20")]
                 use opentelemetry_stdout_0_1::SpanExporterBuilder;
                 #[cfg(feature = "opentelemetry_0_21")]
