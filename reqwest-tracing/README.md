@@ -92,8 +92,9 @@ an opentelemetry version feature:
 reqwest-tracing = { version = "0.3.1", features = ["opentelemetry_0_18"] }
 ```
 
-Available opentelemetry features are `opentelemetry_0_20`, `opentelemetry_0_19`, `opentelemetry_0_18`, `opentelemetry_0_17`, `opentelemetry_0_16`, `opentelemetry_0_15`, `opentelemetry_0_14` and
-`opentelemetry_0_13`.
+Available opentelemetry features are `opentelemetry_0_21`, `opentelemetry_0_20`,
+`opentelemetry_0_19`, `opentelemetry_0_18`, `opentelemetry_0_17`, `opentelemetry_0_16`,
+`opentelemetry_0_15`, `opentelemetry_0_14` and `opentelemetry_0_13`.
 
 #### License
 
