@@ -17,18 +17,19 @@ use task_local_extensions::Extensions;
 /// runtime that supports them.
 ///
 ///```rust
+///     use std::time::Duration;
 ///     use reqwest_middleware::ClientBuilder;
-///     use reqwest_retry::{RetryTransientMiddleware, policies::ExponentialBackoff};
+///     use retry_policies::{RetryDecision, RetryPolicy, Jitter};
+///     use retry_policies::policies::ExponentialBackoff;
+///     use reqwest_retry::RetryTransientMiddleware;
 ///     use reqwest::Client;
 ///
 ///     // We create a ExponentialBackoff retry policy which implements `RetryPolicy`.
-///     let retry_policy = ExponentialBackoff {
-///         /// How many times the policy will tell the middleware to retry the request.
-///         max_n_retries: 3,
-///         max_retry_interval: std::time::Duration::from_millis(30),
-///         min_retry_interval: std::time::Duration::from_millis(100),
-///         backoff_exponent: 2,
-///     };
+///     let retry_policy = ExponentialBackoff::builder()
+///         .retry_bounds(Duration::from_secs(1), Duration::from_secs(60))
+///         .jitter(Jitter::Bounded)
+///         .base(2)
+///         .build_with_total_retry_duration(Duration::from_secs(24 * 60 * 60));
 ///
 ///     let retry_transient_middleware = RetryTransientMiddleware::new_with_policy(retry_policy);
 ///     let client = ClientBuilder::new(Client::new()).with(retry_transient_middleware).build();
@@ -111,6 +112,7 @@ where
         ext: &'a mut Extensions,
     ) -> Result<Response> {
         let mut n_past_retries = 0;
+        let start_time = Utc::now();
         loop {
             // Cloning the request object before-the-fact is not ideal..
             // However, if the body of the request is not static, e.g of type `Bytes`,
@@ -130,7 +132,7 @@ where
                 Some(Retryable::Transient) => {
                     // If the response failed and the error type was transient
                     // we can safely try to retry the request.
-                    let retry_decision = self.retry_policy.should_retry(n_past_retries);
+                    let retry_decision = self.retry_policy.should_retry(start_time, n_past_retries);
                     if let retry_policies::RetryDecision::Retry { execute_after } = retry_decision {
                         let duration = (execute_after - Utc::now())
                             .to_std()
