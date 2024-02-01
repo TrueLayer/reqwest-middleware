@@ -9,10 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking changes
 - Upgraded `reqwest-middleware` to `0.3.0`.
 - Removed support for `opentelemetry` 0.13 to 0.19
+- The keys emitted by the crate now match the stable Semantic Conventions for HTTP Spans.
 
 ### Changed
 - The keys emitted by the crate now match the stable Semantic Conventions for HTTP Spans.
 - Opentelemetry features are now additive.
+
+### Deprecated
+- The old keys are now deprecated.
 
 ## [0.4.8] - 2024-03-11
 

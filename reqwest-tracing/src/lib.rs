@@ -91,12 +91,14 @@ mod middleware;
 mod otel;
 mod reqwest_otel_span_builder;
 pub use middleware::TracingMiddleware;
+#[allow(deprecated)]
 pub use reqwest_otel_span_builder::{
     default_on_request_end, default_on_request_failure, default_on_request_success,
     default_span_name, DefaultSpanBackend, DisableOtelPropagation, OtelName, OtelPathNames,
     ReqwestOtelSpanBackend, SpanBackendWithUrl, ERROR_CAUSE_CHAIN, ERROR_MESSAGE, HTTP_HOST,
-    HTTP_METHOD, HTTP_SCHEME, HTTP_STATUS_CODE, HTTP_URL, HTTP_USER_AGENT, NET_HOST_PORT,
-    OTEL_KIND, OTEL_NAME, OTEL_STATUS_CODE,
+    HTTP_METHOD, HTTP_REQUEST_METHOD, HTTP_RESPONSE_STATUS_CODE, HTTP_SCHEME, HTTP_STATUS_CODE,
+    HTTP_URL, HTTP_USER_AGENT, NET_HOST_PORT, OTEL_KIND, OTEL_NAME, OTEL_STATUS_CODE,
+    SERVER_ADDRESS, SERVER_PORT, URL_FULL, URL_SCHEME, USER_AGENT_ORIGINAL,
 };
 
 #[doc(hidden)]
