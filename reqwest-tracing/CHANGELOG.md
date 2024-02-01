@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- The keys emitted by the crate now match the stable Semantic Conventions for HTTP Spans.
+
+### Deprecated
+- The old keys are now deprecated.
+
 ## [0.4.6] - 2023-08-23
 
 ### Added
