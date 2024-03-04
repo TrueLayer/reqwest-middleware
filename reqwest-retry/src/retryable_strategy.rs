@@ -59,7 +59,7 @@ use reqwest_middleware::Error;
 ///     let retry_policy = ExponentialBackoff::builder()
 ///         .build_with_max_retries(2);
 ///     
-///     // Create the actual middleware, with the exponential backoff and custom retry stategy.
+///     // Create the actual middleware, with the exponential backoff and custom retry strategy.
 ///     let ret_s = RetryTransientMiddleware::new_with_policy_and_strategy(
 ///         retry_policy,
 ///         Retry201,
@@ -154,7 +154,7 @@ pub fn default_on_request_failure(error: &Error) -> Option<Retryable> {
                 #[cfg(not(target_arch = "wasm32"))]
                 if let Some(hyper_error) = get_source_error_type::<hyper::Error>(&error) {
                     // The hyper::Error(IncompleteMessage) is raised if the HTTP response is well formatted but does not contain all the bytes.
-                    // This can happen when the server has started sending back the response but the connection is cut halfway thorugh.
+                    // This can happen when the server has started sending back the response but the connection is cut halfway through.
                     // We can safely retry the call, hence marking this error as [`Retryable::Transient`].
                     // Instead hyper::Error(Canceled) is raised when the connection is
                     // gracefully closed on the server side.

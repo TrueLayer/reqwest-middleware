@@ -41,7 +41,7 @@ pub const HTTP_USER_AGENT: &str = "http.user_agent";
 ///
 /// [`TracingMiddleware`]: crate::middleware::TracingMiddleware.
 pub trait ReqwestOtelSpanBackend {
-    /// Initalized a new span before the request is executed.
+    /// Initialized a new span before the request is executed.
     fn on_request_start(req: &Request, extension: &mut Extensions) -> Span;
 
     /// Runs after the request call has executed.

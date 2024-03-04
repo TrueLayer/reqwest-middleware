@@ -22,13 +22,9 @@ use task_local_extensions::Extensions;
 ///     use reqwest::Client;
 ///
 ///     // We create a ExponentialBackoff retry policy which implements `RetryPolicy`.
-///     let retry_policy = ExponentialBackoff {
-///         /// How many times the policy will tell the middleware to retry the request.
-///         max_n_retries: 3,
-///         max_retry_interval: std::time::Duration::from_millis(30),
-///         min_retry_interval: std::time::Duration::from_millis(100),
-///         backoff_exponent: 2,
-///     };
+///     let retry_policy = ExponentialBackoff::builder()
+///         // How many times the policy will tell the middleware to retry the request.
+///         .build_with_max_retries(3);
 ///
 ///     let retry_transient_middleware = RetryTransientMiddleware::new_with_policy(retry_policy);
 ///     let client = ClientBuilder::new(Client::new()).with(retry_transient_middleware).build();
@@ -89,7 +85,7 @@ where
         next: Next<'_>,
     ) -> Result<Response> {
         // TODO: Ideally we should create a new instance of the `Extensions` map to pass
-        // downstream. This will guard against previous retries poluting `Extensions`.
+        // downstream. This will guard against previous retries polluting `Extensions`.
         // That is, we only return what's populated in the typemap for the last retry attempt
         // and copy those into the the `global` Extensions map.
         self.execute_with_retry(req, next, extensions).await

@@ -76,7 +76,7 @@ macro_rules! assert_retry_succeeds_inner {
 macro_rules! assert_retry_succeeds {
     ($x:tt, $status:expr) => {
         paste! {
-            assert_retry_succeeds_inner!($x, [<assert_retry_succeds_on_ $x>], $status, 3, 2, RetryResponder::new(3 as u32, $x));
+            assert_retry_succeeds_inner!($x, [<assert_retry_succeeds_on_ $x>], $status, 3, 2, RetryResponder::new(3 as u32, $x));
         }
     };
 }
@@ -275,7 +275,7 @@ async fn assert_retry_on_hyper_canceled() {
             let mut buffer = Vec::new();
             stream.read_buf(&mut buffer).await.unwrap();
             if counter.fetch_add(1, Ordering::SeqCst) > 1 {
-                // This triggeres hyper:Error(Canceled).
+                // This triggers hyper:Error(Canceled).
                 let _res = stream
                     .into_std()
                     .unwrap()
@@ -326,7 +326,7 @@ async fn assert_retry_on_connection_reset_by_peer() {
             let mut buffer = Vec::new();
             stream.read_buf(&mut buffer).await.unwrap();
             if counter.fetch_add(1, Ordering::SeqCst) > 1 {
-                // This triggeres hyper:Error(Io, io::Error(ConnectionReset)).
+                // This triggers hyper:Error(Io, io::Error(ConnectionReset)).
                 drop(stream);
             } else {
                 let _res = stream.write("HTTP/1.1 200 OK\r\n\r\n".as_bytes()).await;
