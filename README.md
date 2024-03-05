@@ -81,7 +81,7 @@ dual licensed as above, without any additional terms or conditions.
 
 ## Third-party middleware
 
-The following third-party middleware use `request-middleware`:
+The following third-party middleware use `reqwest-middleware`:
 
 - [`reqwest-conditional-middleware`](https://github.com/oxidecomputer/reqwest-conditional-middleware) - Per-request basis middleware
 - [`http-cache`](https://github.com/06chaynes/http-cache) - HTTP caching rules
