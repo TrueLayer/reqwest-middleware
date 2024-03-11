@@ -63,5 +63,7 @@ tracing_subscriber_0_3 = { package = "tracing-subscriber", version = "0.3.0" }
 wiremock = "0.5.0"
 
 opentelemetry_sdk_0_21 = { package = "opentelemetry_sdk", version = "0.21.0", features = ["trace"] }
+opentelemetry_sdk_0_22 = { package = "opentelemetry_sdk", version = "0.22.0", features = ["trace"] }
 opentelemetry_stdout_0_1 = { package = "opentelemetry-stdout", version = "0.1.0", features = ["trace"] }
 opentelemetry_stdout_0_2 = { package = "opentelemetry-stdout", version = "0.2.0", features = ["trace"] }
+opentelemetry_stdout_0_3 = { package = "opentelemetry-stdout", version = "0.3.0", features = ["trace"] }
