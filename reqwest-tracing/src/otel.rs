@@ -152,8 +152,10 @@ mod test {
                 use opentelemetry::trace::TracerProvider;
                 #[cfg(feature = "opentelemetry_0_20")]
                 use opentelemetry_stdout_0_1::SpanExporterBuilder;
-                #[cfg(any(feature = "opentelemetry_0_21", feature = "opentelemetry_0_22"))]
+                #[cfg(feature = "opentelemetry_0_21")]
                 use opentelemetry_stdout_0_2::SpanExporterBuilder;
+                #[cfg(feature = "opentelemetry_0_22")]
+                use opentelemetry_stdout_0_3::SpanExporterBuilder;
 
                 let exporter = SpanExporterBuilder::default()
                     .with_writer(std::io::sink())
