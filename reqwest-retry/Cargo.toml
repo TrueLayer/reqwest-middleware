@@ -34,5 +34,5 @@ getrandom = { version = "0.2.0", features = ["js"] }
 [dev-dependencies]
 paste = "1.0.0"
 tokio = { version = "1.0.0", features = ["full"] }
-wiremock = "0.5.0"
+wiremock = "0.6.0"
 futures = "0.3.0"

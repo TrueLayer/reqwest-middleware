@@ -60,7 +60,7 @@ getrandom = { version = "0.2.0", features = ["js"] }
 tokio = { version = "1.0.0", features = ["macros"] }
 tracing_subscriber_0_2 = { package = "tracing-subscriber", version = "0.2.0" }
 tracing_subscriber_0_3 = { package = "tracing-subscriber", version = "0.3.0" }
-wiremock = "0.5.0"
+wiremock = "0.6.0"
 
 opentelemetry_sdk_0_21 = { package = "opentelemetry_sdk", version = "0.21.0", features = ["trace"] }
 opentelemetry_sdk_0_22 = { package = "opentelemetry_sdk", version = "0.22.0", features = ["trace"] }
