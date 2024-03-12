@@ -4,7 +4,7 @@ use reqwest_middleware::Error;
 /// Classification of an error/status returned by request.
 #[derive(PartialEq, Eq)]
 pub enum Retryable {
-    /// The failure was due to something tha might resolve in the future.
+    /// The failure was due to something that might resolve in the future.
     Transient,
     /// Unresolvable error.
     Fatal,

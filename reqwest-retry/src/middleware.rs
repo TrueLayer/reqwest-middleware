@@ -90,7 +90,7 @@ where
         next: Next<'_>,
     ) -> Result<Response> {
         // TODO: Ideally we should create a new instance of the `Extensions` map to pass
-        // downstream. This will guard against previous retries poluting `Extensions`.
+        // downstream. This will guard against previous retries polluting `Extensions`.
         // That is, we only return what's populated in the typemap for the last retry attempt
         // and copy those into the the `global` Extensions map.
         self.execute_with_retry(req, next, extensions).await

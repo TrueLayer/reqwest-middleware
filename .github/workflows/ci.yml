@@ -87,6 +87,15 @@ jobs:
           command: clippy
           args: --all-targets --features ${{ matrix.otel_version }} --workspace -- -D warnings
 
+  typos:
+    name: Spell Check with Typos
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Actions Repository
+      uses: actions/checkout@v4
+    - name: Check spelling
+      uses: crate-ci/typos@master
+
   docs:
     name: Docs
     runs-on: ubuntu-latest
