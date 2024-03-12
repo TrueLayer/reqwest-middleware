@@ -23,7 +23,7 @@ task-local-extensions = "0.1.4"
 tracing = "0.1.26"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-hyper = "0.14.0"
+hyper = "1.2.0"
 tokio = { version = "1.6.0", features = ["time"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
