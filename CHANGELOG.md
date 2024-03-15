@@ -6,8 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### [0.2.5] - 2024-03-15
+
 ### Changed
-- Changed minimum version of `reqwest` to `0.11.10`. url_mut, with_url, without_url functions are added after `0.11.10`.
+- Updated minimum version of `reqwest` to `0.11.10`. url_mut, with_url, without_url functions are added after `0.11.10`.
 
 ### [0.2.4] - 2023-09-21
 
