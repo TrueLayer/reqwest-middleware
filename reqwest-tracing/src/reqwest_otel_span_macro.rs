@@ -3,15 +3,16 @@
 /// It empowers you to add custom properties to the span on top of the default properties provided by the macro
 ///
 /// Default Fields:
-/// - http.method
-/// - http.scheme
-/// - http.host
-/// - net.host
+/// - http.request.method
+/// - url.scheme
+/// - server.address
+/// - server.port
+/// - url.full
 /// - otel.kind
 /// - otel.name
 /// - otel.status_code
-/// - http.user_agent
-/// - http.status_code
+/// - user_agent.original
+/// - http.response.status_code
 /// - error.message
 /// - error.cause_chain
 ///
@@ -122,23 +123,26 @@ macro_rules! reqwest_otel_span {
             let url = $request.url();
             let scheme = url.scheme();
             let host = url.host_str().unwrap_or("");
-            let host_port = url.port().unwrap_or(0) as i64;
+            let host_port = url.port_or_known_default().unwrap_or(0) as i64;
             let otel_name = $name.to_string();
+            let header_default = &HeaderValue::from_static("");
+            let user_agent = format!("{:?}", $request.headers().get("user_agent").unwrap_or(header_default)).replace('"', "");
 
             macro_rules! request_span {
                 ($lvl:expr) => {
                     $crate::reqwest_otel_span_macro::private::span!(
                         $lvl,
                         "HTTP request",
-                        http.method = %method,
-                        http.scheme = %scheme,
-                        http.host = %host,
-                        net.host.port = %host_port,
+                        http.request.method = %method,
+                        url.scheme = %scheme,
+                        server.address = %host,
+                        server.port = %host_port,
+                        url.full = %url,
+                        user_agent.original = %user_agent,
                         otel.kind = "client",
                         otel.name = %otel_name,
                         otel.status_code = tracing::field::Empty,
-                        http.user_agent = tracing::field::Empty,
-                        http.status_code = tracing::field::Empty,
+                        http.response.status_code = tracing::field::Empty,
                         error.message = tracing::field::Empty,
                         error.cause_chain = tracing::field::Empty,
                         $($field)*
