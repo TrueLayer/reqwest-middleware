@@ -13,8 +13,8 @@ readme = "../README.md"
 [dependencies]
 anyhow = "1.0.0"
 async-trait = "0.1.51"
-http = "0.2.0"
-reqwest = { version = "0.11.10", default-features = false, features = ["json", "multipart"] }
+http = "1.1.0"
+reqwest = { version = "0.12.0", default-features = false, features = ["json", "multipart"] }
 serde = "1.0.106"
 task-local-extensions = "0.1.4"
 thiserror = "1.0.21"
@@ -23,4 +23,4 @@ thiserror = "1.0.21"
 reqwest-retry = { path = "../reqwest-retry" }
 reqwest-tracing = { path = "../reqwest-tracing" }
 tokio = { version = "1.0.0", features = ["macros", "rt-multi-thread"] }
-wiremock = "0.5.0"
+wiremock = "0.6.0"

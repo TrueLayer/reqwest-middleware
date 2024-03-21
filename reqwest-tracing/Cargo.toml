@@ -28,7 +28,7 @@ reqwest-middleware = { version = "0.2.0", path = "../reqwest-middleware" }
 anyhow = "1.0.70"
 async-trait = "0.1.51"
 matchit = "0.7.0"
-reqwest = { version = "0.11.0", default-features = false }
+reqwest = { version = "0.12.0", default-features = false }
 task-local-extensions = "0.1.4"
 tracing = "0.1.26"
 
@@ -60,7 +60,7 @@ getrandom = { version = "0.2.0", features = ["js"] }
 tokio = { version = "1.0.0", features = ["macros"] }
 tracing_subscriber_0_2 = { package = "tracing-subscriber", version = "0.2.0" }
 tracing_subscriber_0_3 = { package = "tracing-subscriber", version = "0.3.0" }
-wiremock = "0.5.0"
+wiremock = "0.6.0"
 
 opentelemetry_sdk_0_21 = { package = "opentelemetry_sdk", version = "0.21.0", features = ["trace"] }
 opentelemetry_sdk_0_22 = { package = "opentelemetry_sdk", version = "0.22.0", features = ["trace"] }

@@ -16,14 +16,14 @@ anyhow = "1.0.0"
 async-trait = "0.1.51"
 chrono = { version = "0.4.19", features = ["clock"], default-features = false }
 futures = "0.3.0"
-http = "0.2.0"
-reqwest = { version = "0.11.0", default-features = false }
+http = "1.1.0"
+reqwest = { version = "0.12.0", default-features = false }
 retry-policies = "0.3.0"
 task-local-extensions = "0.1.4"
 tracing = "0.1.26"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-hyper = "0.14.0"
+hyper = "1.2.0"
 tokio = { version = "1.6.0", features = ["time"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -34,5 +34,5 @@ getrandom = { version = "0.2.0", features = ["js"] }
 [dev-dependencies]
 paste = "1.0.0"
 tokio = { version = "1.0.0", features = ["full"] }
-wiremock = "0.5.0"
+wiremock = "0.6.0"
 futures = "0.3.0"
