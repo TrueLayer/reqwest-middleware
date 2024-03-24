@@ -12,27 +12,27 @@ categories = ["web-programming::http-client"]
 [dependencies]
 reqwest-middleware = { version = "0.2.0", path = "../reqwest-middleware" }
 
-anyhow = "1.0.0"
-async-trait = "0.1.51"
-chrono = { version = "0.4.19", features = ["clock"], default-features = false }
-futures = "0.3.0"
-http = "0.2.0"
-reqwest = { version = "0.11.0", default-features = false }
+anyhow = "1.0.81"
+async-trait = "0.1.79"
+chrono = { version = "0.4.35", features = ["clock"], default-features = false }
+futures = "0.3.30"
+http = "0.2.12"
+reqwest = { version = "0.11.27", default-features = false }
 retry-policies = "0.3.0"
 task-local-extensions = "0.1.4"
-tracing = "0.1.26"
+tracing = "0.1.40"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-hyper = "0.14.0"
-tokio = { version = "1.6.0", features = ["time"] }
+hyper = "0.14.28"
+tokio = { version = "1.36.0", features = ["time"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 parking_lot = { version = "0.11.2", features = ["wasm-bindgen"] } # work around https://github.com/tomaka/wasm-timer/issues/14
 wasm-timer = "0.2.5"
-getrandom = { version = "0.2.0", features = ["js"] }
+getrandom = { version = "0.2.12", features = ["js"] }
 
 [dev-dependencies]
-paste = "1.0.0"
-tokio = { version = "1.0.0", features = ["full"] }
-wiremock = "0.5.0"
-futures = "0.3.0"
+paste = "1.0.14"
+tokio = { version = "1.36.0", features = ["full"] }
+wiremock = "0.5.22"
+futures = "0.3.30"

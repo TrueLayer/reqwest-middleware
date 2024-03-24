@@ -11,17 +11,17 @@ categories = ["web-programming::http-client"]
 readme = "../README.md"
 
 [dependencies]
-anyhow = "1.0.0"
-async-trait = "0.1.51"
-http = "0.2.0"
-reqwest = { version = "0.11.10", default-features = false, features = ["json", "multipart"] }
-serde = "1.0.106"
+anyhow = "1.0.81"
+async-trait = "0.1.79"
+http = "0.2.12"
+reqwest = { version = "0.11.27", default-features = false, features = ["json", "multipart"] }
+serde = "1.0.197"
 task-local-extensions = "0.1.4"
-thiserror = "1.0.21"
+thiserror = "1.0.58"
 
 [dev-dependencies]
-reqwest = { version = "0.11.10", features = ["rustls"] }
+reqwest = { version = "0.11.27", features = ["rustls"] }
 reqwest-retry = { path = "../reqwest-retry" }
 reqwest-tracing = { path = "../reqwest-tracing" }
-tokio = { version = "1.0.0", features = ["macros", "rt-multi-thread"] }
-wiremock = "0.5.0"
+tokio = { version = "1.36.0", features = ["macros", "rt-multi-thread"] }
+wiremock = "0.5.22"
