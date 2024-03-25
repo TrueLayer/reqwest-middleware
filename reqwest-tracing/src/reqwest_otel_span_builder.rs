@@ -267,9 +267,9 @@ impl OtelPathNames {
     ///
     /// ```
     /// # use reqwest_tracing::OtelPathNames;
-    /// let path_names = OtelPathNames::known_paths(["/payment/:paymentId"]).unwrap();
+    /// let path_names = OtelPathNames::known_paths(["/payment/{paymentId}"]).unwrap();
     /// let path = path_names.find("/payment/payment-id-123");
-    /// assert_eq!(path, Some("/payment/:paymentId"));
+    /// assert_eq!(path, Some("/payment/{paymentId}"));
     /// ```
     pub fn find(&self, path: &str) -> Option<&str> {
         self.0.at(path).map(|mtch| mtch.value.as_str()).ok()
