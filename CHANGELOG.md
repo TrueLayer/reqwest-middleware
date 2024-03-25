@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### [0.2.5] - 2024-03-25
+- Support for `reqwest` `0.12.1`
+- Support for `matchit` `0.8.0` - This means router matches like `/a/:some_var`  need to be changed to `/a/{some_var}`
+- General cargo upgrade
+
 ### [0.2.5] - 2024-03-15
 
 ### Changed
