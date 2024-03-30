@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking changes
+- Updated `reqwest` to `0.12.0`.
+- Removed `task_local_extensions` in favour of `http::Extensions`.
+    - All extensions must be `Clone` now.
+- Replaced `with_arc` and `with_arc_init` methods with `with_box` and `with_box_init`.
+
+### Changed
+- `RequestBuilder::try_clone` now clones the extensions.
+
+### Added
+- implemented `Service` for `ClientWithMiddleware` to have more feature parity with `reqwest`.
+- Added more methods like `build_split` to have more feature parity with `reqwest.`
+- Added a lot more documentation
+
 ### [0.2.5] - 2024-03-15
 
 ### Changed
