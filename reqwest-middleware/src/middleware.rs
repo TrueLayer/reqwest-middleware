@@ -1,6 +1,5 @@
 use http::Extensions;
 use reqwest::{Client, Request, Response};
-use std::sync::Arc;
 
 use crate::error::{Error, Result};
 
@@ -74,7 +73,7 @@ where
 #[derive(Clone)]
 pub struct Next<'a> {
     client: &'a Client,
-    middlewares: &'a [Arc<dyn Middleware>],
+    middlewares: &'a [Box<dyn Middleware>],
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -83,7 +82,7 @@ pub type BoxFuture<'a, T> = std::pin::Pin<Box<dyn std::future::Future<Output = T
 pub type BoxFuture<'a, T> = std::pin::Pin<Box<dyn std::future::Future<Output = T> + 'a>>;
 
 impl<'a> Next<'a> {
-    pub(crate) fn new(client: &'a Client, middlewares: &'a [Arc<dyn Middleware>]) -> Self {
+    pub(crate) fn new(client: &'a Client, middlewares: &'a [Box<dyn Middleware>]) -> Self {
         Next {
             client,
             middlewares,
