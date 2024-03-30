@@ -194,6 +194,18 @@ pub struct RequestBuilder {
 }
 
 impl RequestBuilder {
+    /// Assemble a builder starting from an existing `Client` and a `Request`.
+    pub fn from_parts(client: ClientWithMiddleware, request: Request) -> RequestBuilder {
+        let inner = reqwest::RequestBuilder::from_parts(client.inner, request);
+        RequestBuilder {
+            inner,
+            middleware_stack: client.middleware_stack,
+            initialiser_stack: client.initialiser_stack,
+            extensions: Extensions::new(),
+        }
+    }
+
+    /// Add a `Header` to this Request.
     pub fn header<K, V>(self, key: K, value: V) -> Self
     where
         HeaderName: TryFrom<K>,
@@ -207,6 +219,9 @@ impl RequestBuilder {
         }
     }
 
+    /// Add a set of Headers to the existing ones on this Request.
+    ///
+    /// The headers will be merged in to any already set.
     pub fn headers(self, headers: HeaderMap) -> Self {
         RequestBuilder {
             inner: self.inner.headers(headers),
@@ -222,6 +237,20 @@ impl RequestBuilder {
         }
     }
 
+    /// Enable HTTP basic authentication.
+    ///
+    /// ```rust
+    /// # use anyhow::Error;
+    ///
+    /// # async fn run() -> Result<(), Error> {
+    /// let client = reqwest_middleware::ClientWithMiddleware::from(reqwest::Client::new());
+    /// let resp = client.delete("http://httpbin.org/delete")
+    ///     .basic_auth("admin", Some("good password"))
+    ///     .send()
+    ///     .await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn basic_auth<U, P>(self, username: U, password: Option<P>) -> Self
     where
         U: Display,
@@ -233,6 +262,7 @@ impl RequestBuilder {
         }
     }
 
+    /// Enable HTTP bearer authentication.
     pub fn bearer_auth<T>(self, token: T) -> Self
     where
         T: Display,
@@ -243,6 +273,7 @@ impl RequestBuilder {
         }
     }
 
+    /// Set the request body.
     pub fn body<T: Into<Body>>(self, body: T) -> Self {
         RequestBuilder {
             inner: self.inner.body(body),
@@ -250,7 +281,11 @@ impl RequestBuilder {
         }
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
+    /// Enables a request timeout.
+    ///
+    /// The timeout is applied from when the request starts connecting until the
+    /// response body has finished. It affects only this request and overrides
+    /// the timeout configured using `ClientBuilder::timeout()`.
     pub fn timeout(self, timeout: std::time::Duration) -> Self {
         RequestBuilder {
             inner: self.inner.timeout(timeout),
@@ -267,6 +302,24 @@ impl RequestBuilder {
         }
     }
 
+    /// Modify the query string of the URL.
+    ///
+    /// Modifies the URL of this request, adding the parameters provided.
+    /// This method appends and does not overwrite. This means that it can
+    /// be called multiple times and that existing query parameters are not
+    /// overwritten if the same key is used. The key will simply show up
+    /// twice in the query string.
+    /// Calling `.query(&[("foo", "a"), ("foo", "b")])` gives `"foo=a&foo=b"`.
+    ///
+    /// # Note
+    /// This method does not support serializing a single key-value
+    /// pair. Instead of using `.query(("key", "val"))`, use a sequence, such
+    /// as `.query(&[("key", "val")])`. It's also possible to serialize structs
+    /// and maps into a key-value pair.
+    ///
+    /// # Errors
+    /// This method will fail if the object you provide cannot be serialized
+    /// into a query string.
     pub fn query<T: Serialize + ?Sized>(self, query: &T) -> Self {
         RequestBuilder {
             inner: self.inner.query(query),
@@ -274,6 +327,33 @@ impl RequestBuilder {
         }
     }
 
+    /// Send a form body.
+    ///
+    /// Sets the body to the url encoded serialization of the passed value,
+    /// and also sets the `Content-Type: application/x-www-form-urlencoded`
+    /// header.
+    ///
+    /// ```rust
+    /// # use anyhow::Error;
+    /// # use std::collections::HashMap;
+    /// #
+    /// # async fn run() -> Result<(), Error> {
+    /// let mut params = HashMap::new();
+    /// params.insert("lang", "rust");
+    ///
+    /// let client = reqwest_middleware::ClientWithMiddleware::from(reqwest::Client::new());
+    /// let res = client.post("http://httpbin.org")
+    ///     .form(&params)
+    ///     .send()
+    ///     .await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// This method fails if the passed value cannot be serialized into
+    /// url encoded format
     pub fn form<T: Serialize + ?Sized>(self, form: &T) -> Self {
         RequestBuilder {
             inner: self.inner.form(form),
@@ -281,6 +361,16 @@ impl RequestBuilder {
         }
     }
 
+    /// Send a JSON body.
+    ///
+    /// # Optional
+    ///
+    /// This requires the optional `json` feature enabled.
+    ///
+    /// # Errors
+    ///
+    /// Serialization can fail if `T`'s implementation of `Serialize` decides to
+    /// fail, or if `T` contains a map with non-string keys.
     #[cfg(feature = "json")]
     #[cfg_attr(docsrs, doc(cfg(feature = "json")))]
     pub fn json<T: Serialize + ?Sized>(self, json: &T) -> Self {
@@ -290,6 +380,15 @@ impl RequestBuilder {
         }
     }
 
+    /// Disable CORS on fetching the request.
+    ///
+    /// # WASM
+    ///
+    /// This option is only effective with WebAssembly target.
+    ///
+    /// The [request mode][mdn] will be set to 'no-cors'.
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Request/mode
     pub fn fetch_mode_no_cors(self) -> Self {
         RequestBuilder {
             inner: self.inner.fetch_mode_no_cors(),
@@ -297,10 +396,17 @@ impl RequestBuilder {
         }
     }
 
+    /// Build a `Request`, which can be inspected, modified and executed with
+    /// `ClientWithMiddleware::execute()`.
     pub fn build(self) -> reqwest::Result<Request> {
         self.inner.build()
     }
 
+    /// Build a `Request`, which can be inspected, modified and executed with
+    /// `ClientWithMiddleware::execute()`.
+    ///
+    /// This is similar to [`RequestBuilder::build()`], but also returns the
+    /// embedded `Client`.
     pub fn build_split(self) -> (ClientWithMiddleware, reqwest::Result<Request>) {
         let Self {
             inner,
@@ -328,6 +434,27 @@ impl RequestBuilder {
         &mut self.extensions
     }
 
+    /// Constructs the Request and sends it to the target URL, returning a
+    /// future Response.
+    ///
+    /// # Errors
+    ///
+    /// This method fails if there was an error while sending request,
+    /// redirect loop was detected or redirect limit was exhausted.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use anyhow::Error;
+    /// #
+    /// # async fn run() -> Result<(), Error> {
+    /// let response = reqwest_middleware::ClientWithMiddleware::from(reqwest::Client::new())
+    ///     .get("https://hyper.rs")
+    ///     .send()
+    ///     .await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn send(mut self) -> Result<Response> {
         let mut extensions = std::mem::take(self.extensions());
         let (client, req) = self.build_split();
@@ -338,6 +465,21 @@ impl RequestBuilder {
     ///
     /// `None` is returned if the RequestBuilder can not be cloned,
     /// i.e. if the request body is a stream.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use reqwest::Error;
+    /// #
+    /// # fn run() -> Result<(), Error> {
+    /// let client = reqwest_middleware::ClientWithMiddleware::from(reqwest::Client::new());
+    /// let builder = client.post("http://httpbin.org/post")
+    ///     .body("from a &str!");
+    /// let clone = builder.try_clone();
+    /// assert!(clone.is_some());
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn try_clone(&self) -> Option<Self> {
         self.inner.try_clone().map(|inner| RequestBuilder {
             inner,
