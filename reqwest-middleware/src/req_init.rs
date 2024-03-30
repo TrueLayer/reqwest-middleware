@@ -32,14 +32,14 @@ where
     }
 }
 
-/// A middleware that inserts the value into the [`Extensions`](task_local_extensions::Extensions) during the call.
+/// A middleware that inserts the value into the [`Extensions`](http::Extensions) during the call.
 ///
 /// This is a good way to inject extensions to middleware deeper in the stack
 ///
 /// ```
 /// use reqwest::{Client, Request, Response};
 /// use reqwest_middleware::{ClientBuilder, Middleware, Next, Result, Extension};
-/// use task_local_extensions::Extensions;
+/// use http::Extensions;
 ///
 /// #[derive(Clone)]
 /// struct LogName(&'static str);

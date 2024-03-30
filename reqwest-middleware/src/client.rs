@@ -1,11 +1,13 @@
+use http::Extensions;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
-use reqwest::multipart::Form;
 use reqwest::{Body, Client, IntoUrl, Method, Request, Response};
 use serde::Serialize;
 use std::convert::TryFrom;
 use std::fmt::{self, Display};
 use std::sync::Arc;
-use task_local_extensions::Extensions;
+
+#[cfg(feature = "multipart")]
+use reqwest::multipart;
 
 use crate::error::Result;
 use crate::middleware::{Middleware, Next};
@@ -254,7 +256,9 @@ impl RequestBuilder {
         }
     }
 
-    pub fn multipart(self, multipart: Form) -> Self {
+    #[cfg(feature = "multipart")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "multipart")))]
+    pub fn multipart(self, multipart: multipart::Form) -> Self {
         RequestBuilder {
             inner: self.inner.multipart(multipart),
             ..self
@@ -275,6 +279,8 @@ impl RequestBuilder {
         }
     }
 
+    #[cfg(feature = "json")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "json")))]
     pub fn json<T: Serialize + ?Sized>(self, json: &T) -> Self {
         RequestBuilder {
             inner: self.inner.json(json),
@@ -294,7 +300,7 @@ impl RequestBuilder {
     }
 
     /// Inserts the extension into this request builder
-    pub fn with_extension<T: Send + Sync + 'static>(mut self, extension: T) -> Self {
+    pub fn with_extension<T: Send + Sync + Clone + 'static>(mut self, extension: T) -> Self {
         self.extensions.insert(extension);
         self
     }
@@ -318,14 +324,11 @@ impl RequestBuilder {
     ///
     /// `None` is returned if the RequestBuilder can not be cloned,
     /// i.e. if the request body is a stream.
-    ///
-    /// # Extensions
-    /// Note that extensions are not preserved through cloning.
     pub fn try_clone(&self) -> Option<Self> {
         self.inner.try_clone().map(|inner| RequestBuilder {
             inner,
             client: self.client.clone(),
-            extensions: Extensions::new(),
+            extensions: self.extensions.clone(),
         })
     }
 }
