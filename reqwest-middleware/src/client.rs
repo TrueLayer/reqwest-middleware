@@ -104,37 +104,68 @@ impl ClientWithMiddleware {
         }
     }
 
-    /// See [`Client::get`]
+    /// Convenience method to make a `GET` request to a URL.
+    ///
+    /// # Errors
+    ///
+    /// This method fails whenever the supplied `Url` cannot be parsed.
     pub fn get<U: IntoUrl>(&self, url: U) -> RequestBuilder {
         self.request(Method::GET, url)
     }
 
-    /// See [`Client::post`]
+    /// Convenience method to make a `POST` request to a URL.
+    ///
+    /// # Errors
+    ///
+    /// This method fails whenever the supplied `Url` cannot be parsed.
     pub fn post<U: IntoUrl>(&self, url: U) -> RequestBuilder {
         self.request(Method::POST, url)
     }
 
-    /// See [`Client::put`]
+    /// Convenience method to make a `PUT` request to a URL.
+    ///
+    /// # Errors
+    ///
+    /// This method fails whenever the supplied `Url` cannot be parsed.
     pub fn put<U: IntoUrl>(&self, url: U) -> RequestBuilder {
         self.request(Method::PUT, url)
     }
 
-    /// See [`Client::patch`]
+    /// Convenience method to make a `PATCH` request to a URL.
+    ///
+    /// # Errors
+    ///
+    /// This method fails whenever the supplied `Url` cannot be parsed.
     pub fn patch<U: IntoUrl>(&self, url: U) -> RequestBuilder {
         self.request(Method::PATCH, url)
     }
 
-    /// See [`Client::delete`]
+    /// Convenience method to make a `DELETE` request to a URL.
+    ///
+    /// # Errors
+    ///
+    /// This method fails whenever the supplied `Url` cannot be parsed.
     pub fn delete<U: IntoUrl>(&self, url: U) -> RequestBuilder {
         self.request(Method::DELETE, url)
     }
 
-    /// See [`Client::head`]
+    /// Convenience method to make a `HEAD` request to a URL.
+    ///
+    /// # Errors
+    ///
+    /// This method fails whenever the supplied `Url` cannot be parsed.
     pub fn head<U: IntoUrl>(&self, url: U) -> RequestBuilder {
         self.request(Method::HEAD, url)
     }
 
-    /// See [`Client::request`]
+    /// Start building a `Request` with the `Method` and `Url`.
+    ///
+    /// Returns a `RequestBuilder`, which will allow setting headers and
+    /// the request body before sending.
+    ///
+    /// # Errors
+    ///
+    /// This method fails whenever the supplied `Url` cannot be parsed.
     pub fn request<U: IntoUrl>(&self, method: Method, url: U) -> RequestBuilder {
         let req = RequestBuilder {
             inner: self.inner.request(method, url),
@@ -147,13 +178,35 @@ impl ClientWithMiddleware {
             .fold(req, |req, i| i.init(req))
     }
 
-    /// See [`Client::execute`]
+    /// Executes a `Request`.
+    ///
+    /// A `Request` can be built manually with `Request::new()` or obtained
+    /// from a RequestBuilder with `RequestBuilder::build()`.
+    ///
+    /// You should prefer to use the `RequestBuilder` and
+    /// `RequestBuilder::send()`.
+    ///
+    /// # Errors
+    ///
+    /// This method fails if there was an error while sending request,
+    /// redirect loop was detected or redirect limit was exhausted.
     pub async fn execute(&self, req: Request) -> Result<Response> {
         let mut ext = Extensions::new();
         self.execute_with_extensions(req, &mut ext).await
     }
 
-    /// Executes a request with initial [`Extensions`].
+    /// Executes a `Request` with initial [`Extensions`].
+    ///
+    /// A `Request` can be built manually with `Request::new()` or obtained
+    /// from a RequestBuilder with `RequestBuilder::build()`.
+    ///
+    /// You should prefer to use the `RequestBuilder` and
+    /// `RequestBuilder::send()`.
+    ///
+    /// # Errors
+    ///
+    /// This method fails if there was an error while sending request,
+    /// redirect loop was detected or redirect limit was exhausted.
     pub async fn execute_with_extensions(
         &self,
         req: Request,
@@ -181,6 +234,79 @@ impl fmt::Debug for ClientWithMiddleware {
         f.debug_struct("ClientWithMiddleware")
             .field("inner", &self.inner)
             .finish_non_exhaustive()
+    }
+}
+
+mod service {
+    use std::{
+        future::Future,
+        pin::Pin,
+        task::{Context, Poll},
+    };
+
+    use crate::Result;
+    use http::Extensions;
+    use reqwest::{Request, Response};
+
+    use crate::{middleware::BoxFuture, ClientWithMiddleware, Next};
+
+    // this is meant to be semi-private, same as reqwest's pending
+    pub struct Pending {
+        inner: BoxFuture<'static, Result<Response>>,
+    }
+
+    impl Unpin for Pending {}
+
+    impl Future for Pending {
+        type Output = Result<Response>;
+
+        fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+            self.inner.as_mut().poll(cx)
+        }
+    }
+
+    impl tower_service::Service<Request> for ClientWithMiddleware {
+        type Response = Response;
+        type Error = crate::Error;
+        type Future = Pending;
+
+        fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<()>> {
+            Poll::Ready(Ok(()))
+        }
+
+        fn call(&mut self, req: Request) -> Self::Future {
+            let inner = self.inner.clone();
+            let middlewares = self.middleware_stack.clone();
+            let mut extensions = Extensions::new();
+            Pending {
+                inner: Box::pin(async move {
+                    let next = Next::new(&inner, &middlewares);
+                    next.run(req, &mut extensions).await
+                }),
+            }
+        }
+    }
+
+    impl tower_service::Service<Request> for &'_ ClientWithMiddleware {
+        type Response = Response;
+        type Error = crate::Error;
+        type Future = Pending;
+
+        fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<()>> {
+            Poll::Ready(Ok(()))
+        }
+
+        fn call(&mut self, req: Request) -> Self::Future {
+            let inner = self.inner.clone();
+            let middlewares = self.middleware_stack.clone();
+            let mut extensions = Extensions::new();
+            Pending {
+                inner: Box::pin(async move {
+                    let next = Next::new(&inner, &middlewares);
+                    next.run(req, &mut extensions).await
+                }),
+            }
+        }
     }
 }
 
