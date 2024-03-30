@@ -46,15 +46,11 @@ where
 
         let outcome_future = async {
             #[cfg(any(
-                feature = "opentelemetry_0_16",
-                feature = "opentelemetry_0_17",
-                feature = "opentelemetry_0_18",
-                feature = "opentelemetry_0_19",
                 feature = "opentelemetry_0_20",
                 feature = "opentelemetry_0_21",
                 feature = "opentelemetry_0_22",
             ))]
-            let req = if !extensions.contains::<crate::DisableOtelPropagation>() {
+            let req = if extensions.get::<crate::DisableOtelPropagation>().is_none() {
                 // Adds tracing headers to the given request to propagate the OpenTelemetry context to downstream revivers of the request.
                 // Spans added by downstream consumers will be part of the same trace.
                 crate::otel::inject_opentelemetry_context_into_request(req)

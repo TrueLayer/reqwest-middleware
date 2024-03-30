@@ -84,10 +84,6 @@
 
 mod middleware;
 #[cfg(any(
-    feature = "opentelemetry_0_16",
-    feature = "opentelemetry_0_17",
-    feature = "opentelemetry_0_18",
-    feature = "opentelemetry_0_19",
     feature = "opentelemetry_0_20",
     feature = "opentelemetry_0_21",
     feature = "opentelemetry_0_22",
