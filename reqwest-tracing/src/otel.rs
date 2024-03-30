@@ -3,28 +3,6 @@ use reqwest::Request;
 use std::str::FromStr;
 use tracing::Span;
 
-// #[cfg(feature = "opentelemetry_0_20")]
-// use opentelemetry_0_20_pkg as opentelemetry;
-
-// #[cfg(feature = "opentelemetry_0_21")]
-// use opentelemetry_0_21_pkg as opentelemetry;
-
-// #[cfg(feature = "opentelemetry_0_22")]
-// use opentelemetry_0_22_pkg as opentelemetry;
-
-// #[cfg(feature = "opentelemetry_0_20")]
-// pub use tracing_opentelemetry_0_21_pkg as tracing_opentelemetry;
-
-// #[cfg(feature = "opentelemetry_0_21")]
-// pub use tracing_opentelemetry_0_22_pkg as tracing_opentelemetry;
-
-// #[cfg(feature = "opentelemetry_0_22")]
-// pub use tracing_opentelemetry_0_23_pkg as tracing_opentelemetry;
-
-// use opentelemetry::global;
-// use opentelemetry::propagation::Injector;
-// use tracing_opentelemetry::OpenTelemetrySpanExt;
-
 /// Injects the given OpenTelemetry Context into a reqwest::Request headers to allow propagation downstream.
 pub fn inject_opentelemetry_context_into_request(mut request: Request) -> Request {
     #[cfg(feature = "opentelemetry_0_20")]
@@ -100,33 +78,7 @@ impl<'a> opentelemetry_0_22_pkg::propagation::Injector for RequestCarrier<'a> {
 mod test {
     use std::sync::OnceLock;
 
-    // #[cfg(feature = "opentelemetry_0_20")]
-    // use opentelemetry_0_20_pkg as opentelemetry;
-
-    // #[cfg(feature = "opentelemetry_0_21")]
-    // use opentelemetry_0_21_pkg as opentelemetry;
-
-    // #[cfg(feature = "opentelemetry_0_22")]
-    // use opentelemetry_0_22_pkg as opentelemetry;
-
-    // #[cfg(feature = "opentelemetry_0_20")]
-    // use tracing_opentelemetry_0_21_pkg as tracing_opentelemetry;
-
-    // #[cfg(feature = "opentelemetry_0_21")]
-    // use tracing_opentelemetry_0_22_pkg as tracing_opentelemetry;
-
-    // #[cfg(feature = "opentelemetry_0_22")]
-    // use tracing_opentelemetry_0_23_pkg as tracing_opentelemetry;
-
-    // use opentelemetry::global;
-
     use crate::{DisableOtelPropagation, TracingMiddleware};
-    // #[cfg(feature = "opentelemetry_0_20")]
-    // use opentelemetry::sdk::propagation::TraceContextPropagator;
-    // #[cfg(feature = "opentelemetry_0_21")]
-    // use opentelemetry_sdk_0_21::propagation::TraceContextPropagator;
-    // #[cfg(feature = "opentelemetry_0_22")]
-    // use opentelemetry_sdk_0_22::propagation::TraceContextPropagator;
     use reqwest::Response;
     use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, Extension};
     use tracing::{info_span, Instrument, Level};
