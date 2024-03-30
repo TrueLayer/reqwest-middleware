@@ -12,10 +12,6 @@ jobs:
     strategy:
       matrix:
         otel_version:
-          - opentelemetry_0_16
-          - opentelemetry_0_17
-          - opentelemetry_0_18
-          - opentelemetry_0_19
           - opentelemetry_0_20
           - opentelemetry_0_21
           - opentelemetry_0_22
@@ -58,10 +54,6 @@ jobs:
     strategy:
       matrix:
         otel_version:
-          - opentelemetry_0_16
-          - opentelemetry_0_17
-          - opentelemetry_0_18
-          - opentelemetry_0_19
           - opentelemetry_0_20
           - opentelemetry_0_21
           - opentelemetry_0_22
@@ -96,10 +88,6 @@ jobs:
     strategy:
       matrix:
         otel_version:
-          - opentelemetry_0_16
-          - opentelemetry_0_17
-          - opentelemetry_0_18
-          - opentelemetry_0_19
           - opentelemetry_0_20
           - opentelemetry_0_21
           - opentelemetry_0_22
