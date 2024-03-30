@@ -96,7 +96,7 @@ impl<'a> Next<'a> {
     ) -> BoxFuture<'a, Result<Response>> {
         if let Some((current, rest)) = self.middlewares.split_first() {
             self.middlewares = rest;
-            Box::pin(current.handle(req, extensions, self))
+            current.handle(req, extensions, self)
         } else {
             Box::pin(async move { self.client.execute(req).await.map_err(Error::from) })
         }

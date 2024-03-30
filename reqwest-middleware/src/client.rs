@@ -270,8 +270,8 @@ mod service {
         type Error = crate::Error;
         type Future = Pending;
 
-        fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<()>> {
-            Poll::Ready(Ok(()))
+        fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<()>> {
+            self.inner.poll_ready(cx).map_err(crate::Error::Reqwest)
         }
 
         fn call(&mut self, req: Request) -> Self::Future {
@@ -292,8 +292,8 @@ mod service {
         type Error = crate::Error;
         type Future = Pending;
 
-        fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<()>> {
-            Poll::Ready(Ok(()))
+        fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<()>> {
+            (&self.inner).poll_ready(cx).map_err(crate::Error::Reqwest)
         }
 
         fn call(&mut self, req: Request) -> Self::Future {
