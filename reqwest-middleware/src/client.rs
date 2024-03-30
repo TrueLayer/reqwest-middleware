@@ -75,8 +75,8 @@ impl ClientBuilder {
     pub fn build(self) -> ClientWithMiddleware {
         ClientWithMiddleware {
             inner: self.client,
-            middleware_stack: self.middleware_stack.into_boxed_slice(),
-            initialiser_stack: self.initialiser_stack.into_boxed_slice(),
+            middleware_stack: self.middleware_stack.into(),
+            initialiser_stack: self.initialiser_stack.into(),
         }
     }
 }
@@ -86,21 +86,21 @@ impl ClientBuilder {
 #[derive(Clone)]
 pub struct ClientWithMiddleware {
     inner: reqwest::Client,
-    middleware_stack: Box<[Arc<dyn Middleware>]>,
-    initialiser_stack: Box<[Arc<dyn RequestInitialiser>]>,
+    middleware_stack: Arc<[Arc<dyn Middleware>]>,
+    initialiser_stack: Arc<[Arc<dyn RequestInitialiser>]>,
 }
 
 impl ClientWithMiddleware {
     /// See [`ClientBuilder`] for a more ergonomic way to build `ClientWithMiddleware` instances.
     pub fn new<T>(client: Client, middleware_stack: T) -> Self
     where
-        T: Into<Box<[Arc<dyn Middleware>]>>,
+        T: Into<Arc<[Arc<dyn Middleware>]>>,
     {
         ClientWithMiddleware {
             inner: client,
             middleware_stack: middleware_stack.into(),
             // TODO(conradludgate) - allow downstream code to control this manually if desired
-            initialiser_stack: Box::new([]),
+            initialiser_stack: Arc::from(vec![]),
         }
     }
 
@@ -138,8 +138,9 @@ impl ClientWithMiddleware {
     pub fn request<U: IntoUrl>(&self, method: Method, url: U) -> RequestBuilder {
         let req = RequestBuilder {
             inner: self.inner.request(method, url),
-            client: self.clone(),
             extensions: Extensions::new(),
+            middleware_stack: self.middleware_stack.clone(),
+            initialiser_stack: self.initialiser_stack.clone(),
         };
         self.initialiser_stack
             .iter()
@@ -168,8 +169,8 @@ impl From<Client> for ClientWithMiddleware {
     fn from(client: Client) -> Self {
         ClientWithMiddleware {
             inner: client,
-            middleware_stack: Box::new([]),
-            initialiser_stack: Box::new([]),
+            middleware_stack: Arc::from(vec![]),
+            initialiser_stack: Arc::from(vec![]),
         }
     }
 }
@@ -187,7 +188,8 @@ impl fmt::Debug for ClientWithMiddleware {
 #[must_use = "RequestBuilder does nothing until you 'send' it"]
 pub struct RequestBuilder {
     inner: reqwest::RequestBuilder,
-    client: ClientWithMiddleware,
+    middleware_stack: Arc<[Arc<dyn Middleware>]>,
+    initialiser_stack: Arc<[Arc<dyn RequestInitialiser>]>,
     extensions: Extensions,
 }
 
@@ -299,6 +301,22 @@ impl RequestBuilder {
         self.inner.build()
     }
 
+    pub fn build_split(self) -> (ClientWithMiddleware, reqwest::Result<Request>) {
+        let Self {
+            inner,
+            middleware_stack,
+            initialiser_stack,
+            ..
+        } = self;
+        let (inner, req) = inner.build_split();
+        let client = ClientWithMiddleware {
+            inner,
+            middleware_stack,
+            initialiser_stack,
+        };
+        (client, req)
+    }
+
     /// Inserts the extension into this request builder
     pub fn with_extension<T: Send + Sync + Clone + 'static>(mut self, extension: T) -> Self {
         self.extensions.insert(extension);
@@ -310,14 +328,10 @@ impl RequestBuilder {
         &mut self.extensions
     }
 
-    pub async fn send(self) -> Result<Response> {
-        let Self {
-            inner,
-            client,
-            mut extensions,
-        } = self;
-        let req = inner.build()?;
-        client.execute_with_extensions(req, &mut extensions).await
+    pub async fn send(mut self) -> Result<Response> {
+        let mut extensions = std::mem::take(self.extensions());
+        let (client, req) = self.build_split();
+        client.execute_with_extensions(req?, &mut extensions).await
     }
 
     /// Attempt to clone the RequestBuilder.
@@ -327,7 +341,8 @@ impl RequestBuilder {
     pub fn try_clone(&self) -> Option<Self> {
         self.inner.try_clone().map(|inner| RequestBuilder {
             inner,
-            client: self.client.clone(),
+            middleware_stack: self.middleware_stack.clone(),
+            initialiser_stack: self.initialiser_stack.clone(),
             extensions: self.extensions.clone(),
         })
     }
