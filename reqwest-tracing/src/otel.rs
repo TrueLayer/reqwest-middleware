@@ -3,33 +3,48 @@ use reqwest::Request;
 use std::str::FromStr;
 use tracing::Span;
 
-#[cfg(feature = "opentelemetry_0_20")]
-use opentelemetry_0_20_pkg as opentelemetry;
+// #[cfg(feature = "opentelemetry_0_20")]
+// use opentelemetry_0_20_pkg as opentelemetry;
 
-#[cfg(feature = "opentelemetry_0_21")]
-use opentelemetry_0_21_pkg as opentelemetry;
+// #[cfg(feature = "opentelemetry_0_21")]
+// use opentelemetry_0_21_pkg as opentelemetry;
 
-#[cfg(feature = "opentelemetry_0_22")]
-use opentelemetry_0_22_pkg as opentelemetry;
+// #[cfg(feature = "opentelemetry_0_22")]
+// use opentelemetry_0_22_pkg as opentelemetry;
 
-#[cfg(feature = "opentelemetry_0_20")]
-pub use tracing_opentelemetry_0_21_pkg as tracing_opentelemetry;
+// #[cfg(feature = "opentelemetry_0_20")]
+// pub use tracing_opentelemetry_0_21_pkg as tracing_opentelemetry;
 
-#[cfg(feature = "opentelemetry_0_21")]
-pub use tracing_opentelemetry_0_22_pkg as tracing_opentelemetry;
+// #[cfg(feature = "opentelemetry_0_21")]
+// pub use tracing_opentelemetry_0_22_pkg as tracing_opentelemetry;
 
-#[cfg(feature = "opentelemetry_0_22")]
-pub use tracing_opentelemetry_0_23_pkg as tracing_opentelemetry;
+// #[cfg(feature = "opentelemetry_0_22")]
+// pub use tracing_opentelemetry_0_23_pkg as tracing_opentelemetry;
 
-use opentelemetry::global;
-use opentelemetry::propagation::Injector;
-use tracing_opentelemetry::OpenTelemetrySpanExt;
+// use opentelemetry::global;
+// use opentelemetry::propagation::Injector;
+// use tracing_opentelemetry::OpenTelemetrySpanExt;
 
 /// Injects the given OpenTelemetry Context into a reqwest::Request headers to allow propagation downstream.
 pub fn inject_opentelemetry_context_into_request(mut request: Request) -> Request {
-    let context = Span::current().context();
+    #[cfg(feature = "opentelemetry_0_20")]
+    opentelemetry_0_20_pkg::global::get_text_map_propagator(|injector| {
+        use tracing_opentelemetry_0_21_pkg::OpenTelemetrySpanExt;
+        let context = Span::current().context();
+        injector.inject_context(&context, &mut RequestCarrier::new(&mut request))
+    });
 
-    global::get_text_map_propagator(|injector| {
+    #[cfg(feature = "opentelemetry_0_21")]
+    opentelemetry_0_21_pkg::global::get_text_map_propagator(|injector| {
+        use tracing_opentelemetry_0_22_pkg::OpenTelemetrySpanExt;
+        let context = Span::current().context();
+        injector.inject_context(&context, &mut RequestCarrier::new(&mut request))
+    });
+
+    #[cfg(feature = "opentelemetry_0_22")]
+    opentelemetry_0_22_pkg::global::get_text_map_propagator(|injector| {
+        use tracing_opentelemetry_0_23_pkg::OpenTelemetrySpanExt;
+        let context = Span::current().context();
         injector.inject_context(&context, &mut RequestCarrier::new(&mut request))
     });
 
@@ -52,11 +67,32 @@ impl<'a> RequestCarrier<'a> {
     }
 }
 
-impl<'a> Injector for RequestCarrier<'a> {
-    fn set(&mut self, key: &str, value: String) {
+impl<'a> RequestCarrier<'a> {
+    fn set_inner(&mut self, key: &str, value: String) {
         let header_name = HeaderName::from_str(key).expect("Must be header name");
         let header_value = HeaderValue::from_str(&value).expect("Must be a header value");
         self.request.headers_mut().insert(header_name, header_value);
+    }
+}
+
+#[cfg(feature = "opentelemetry_0_20")]
+impl<'a> opentelemetry_0_20_pkg::propagation::Injector for RequestCarrier<'a> {
+    fn set(&mut self, key: &str, value: String) {
+        self.set_inner(key, value)
+    }
+}
+
+#[cfg(feature = "opentelemetry_0_21")]
+impl<'a> opentelemetry_0_21_pkg::propagation::Injector for RequestCarrier<'a> {
+    fn set(&mut self, key: &str, value: String) {
+        self.set_inner(key, value)
+    }
+}
+
+#[cfg(feature = "opentelemetry_0_22")]
+impl<'a> opentelemetry_0_22_pkg::propagation::Injector for RequestCarrier<'a> {
+    fn set(&mut self, key: &str, value: String) {
+        self.set_inner(key, value)
     }
 }
 
@@ -64,7 +100,26 @@ impl<'a> Injector for RequestCarrier<'a> {
 mod test {
     use std::sync::OnceLock;
 
-    use super::*;
+    #[cfg(feature = "opentelemetry_0_20")]
+    use opentelemetry_0_20_pkg as opentelemetry;
+
+    #[cfg(feature = "opentelemetry_0_21")]
+    use opentelemetry_0_21_pkg as opentelemetry;
+
+    #[cfg(feature = "opentelemetry_0_22")]
+    use opentelemetry_0_22_pkg as opentelemetry;
+
+    #[cfg(feature = "opentelemetry_0_20")]
+    use tracing_opentelemetry_0_21_pkg as tracing_opentelemetry;
+
+    #[cfg(feature = "opentelemetry_0_21")]
+    use tracing_opentelemetry_0_22_pkg as tracing_opentelemetry;
+
+    #[cfg(feature = "opentelemetry_0_22")]
+    use tracing_opentelemetry_0_23_pkg as tracing_opentelemetry;
+
+    use opentelemetry::global;
+
     use crate::{DisableOtelPropagation, TracingMiddleware};
     #[cfg(feature = "opentelemetry_0_20")]
     use opentelemetry::sdk::propagation::TraceContextPropagator;
