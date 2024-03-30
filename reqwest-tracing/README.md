@@ -34,7 +34,7 @@ use opentelemetry::sdk::export::trace::stdout;
 use reqwest::{Request, Response};
 use reqwest_middleware::{ClientBuilder, Result};
 use std::time::Instant;
-use task_local_extensions::Extensions;
+use http::Extensions;
 use tracing::Span;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::Registry;

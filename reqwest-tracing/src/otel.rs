@@ -3,15 +3,6 @@ use reqwest::Request;
 use std::str::FromStr;
 use tracing::Span;
 
-#[cfg(feature = "opentelemetry_0_13")]
-use opentelemetry_0_13_pkg as opentelemetry;
-
-#[cfg(feature = "opentelemetry_0_14")]
-use opentelemetry_0_14_pkg as opentelemetry;
-
-#[cfg(feature = "opentelemetry_0_15")]
-use opentelemetry_0_15_pkg as opentelemetry;
-
 #[cfg(feature = "opentelemetry_0_16")]
 use opentelemetry_0_16_pkg as opentelemetry;
 
@@ -32,15 +23,6 @@ use opentelemetry_0_21_pkg as opentelemetry;
 
 #[cfg(feature = "opentelemetry_0_22")]
 use opentelemetry_0_22_pkg as opentelemetry;
-
-#[cfg(feature = "opentelemetry_0_13")]
-pub use tracing_opentelemetry_0_12_pkg as tracing_opentelemetry;
-
-#[cfg(feature = "opentelemetry_0_14")]
-pub use tracing_opentelemetry_0_13_pkg as tracing_opentelemetry;
-
-#[cfg(feature = "opentelemetry_0_15")]
-pub use tracing_opentelemetry_0_14_pkg as tracing_opentelemetry;
 
 #[cfg(feature = "opentelemetry_0_16")]
 pub use tracing_opentelemetry_0_16_pkg as tracing_opentelemetry;
@@ -117,17 +99,7 @@ mod test {
     use reqwest::Response;
     use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, Extension};
     use tracing::{info_span, Instrument, Level};
-    #[cfg(any(
-        feature = "opentelemetry_0_13",
-        feature = "opentelemetry_0_14",
-        feature = "opentelemetry_0_15"
-    ))]
-    use tracing_subscriber_0_2::{filter, layer::SubscriberExt, Registry};
-    #[cfg(not(any(
-        feature = "opentelemetry_0_13",
-        feature = "opentelemetry_0_14",
-        feature = "opentelemetry_0_15"
-    )))]
+
     use tracing_subscriber_0_3::{filter, layer::SubscriberExt, Registry};
     use wiremock::{matchers::any, Mock, MockServer, ResponseTemplate};
 
