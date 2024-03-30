@@ -83,7 +83,7 @@ mod test {
     use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, Extension};
     use tracing::{info_span, Instrument, Level};
 
-    use tracing_subscriber_0_3::{filter, layer::SubscriberExt, Registry};
+    use tracing_subscriber::{filter, layer::SubscriberExt, Registry};
     use wiremock::{matchers::any, Mock, MockServer, ResponseTemplate};
 
     async fn make_echo_request_in_otel_context(client: ClientWithMiddleware) -> Response {
