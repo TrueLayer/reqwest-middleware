@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking changes
 - Upgraded `reqwest-middleware` to `0.3.0`.
 
+### Added
+- Added `with_retry_log_level` to `RetryTransientMiddleware`
+
 ## [0.3.0] - 2023-09-07
 ### Changed
 - `retry-policies` upgraded to 0.2.0
