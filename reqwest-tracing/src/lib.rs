@@ -53,7 +53,7 @@
 //! Note that Opentelemetry tracks start and stop already, there is no need to have a custom builder like this.
 //! ```rust
 //! use reqwest_middleware::Result;
-//! use task_local_extensions::Extensions;
+//! use http::Extensions;
 //! use reqwest::{Request, Response};
 //! use reqwest_middleware::ClientBuilder;
 //! use reqwest_tracing::{
@@ -84,13 +84,6 @@
 
 mod middleware;
 #[cfg(any(
-    feature = "opentelemetry_0_13",
-    feature = "opentelemetry_0_14",
-    feature = "opentelemetry_0_15",
-    feature = "opentelemetry_0_16",
-    feature = "opentelemetry_0_17",
-    feature = "opentelemetry_0_18",
-    feature = "opentelemetry_0_19",
     feature = "opentelemetry_0_20",
     feature = "opentelemetry_0_21",
     feature = "opentelemetry_0_22",

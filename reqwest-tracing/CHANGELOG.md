@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking changes
+- Updated `reqwest-middleware` to `0.3.0`.
+- Removed support for `opentelemetry` 0.13 to 0.19
+
+### Changed
+- opentelemetry features are now additive.
+
 ## [0.4.8] - 2024-03-11
 
 ### Added

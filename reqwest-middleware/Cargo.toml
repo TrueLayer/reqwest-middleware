@@ -1,6 +1,6 @@
 [package]
 name = "reqwest-middleware"
-version = "0.2.5"
+version = "0.3.0"
 authors = ["Rodrigo Gryzinski <rodrigo.gryzinski@truelayer.com>"]
 edition = "2018"
 description = "Wrapper around reqwest to allow for client middleware chains."
@@ -10,17 +10,21 @@ keywords = ["reqwest", "http", "middleware"]
 categories = ["web-programming::http-client"]
 readme = "../README.md"
 
+[features]
+multipart = ["reqwest/multipart"]
+json = ["reqwest/json"]
+
 [dependencies]
 anyhow = "1.0.0"
 async-trait = "0.1.51"
-http = "0.2.0"
-reqwest = { version = "0.11.10", default-features = false, features = ["json", "multipart"] }
+http = "1.0.0"
+reqwest = { version = "0.12.0", default-features = false }
 serde = "1.0.106"
-task-local-extensions = "0.1.4"
 thiserror = "1.0.21"
+tower-service = "0.3.0"
 
 [dev-dependencies]
 reqwest-retry = { path = "../reqwest-retry" }
 reqwest-tracing = { path = "../reqwest-tracing" }
 tokio = { version = "1.0.0", features = ["macros", "rt-multi-thread"] }
-wiremock = "0.5.0"
+wiremock = "0.6.0"

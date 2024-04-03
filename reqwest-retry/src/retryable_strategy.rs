@@ -18,7 +18,7 @@ use reqwest_middleware::Error;
 /// use reqwest_retry::{default_on_request_failure, policies::ExponentialBackoff, Retryable, RetryableStrategy, RetryTransientMiddleware};
 /// use reqwest::{Request, Response};
 /// use reqwest_middleware::{ClientBuilder, Middleware, Next, Result};
-/// use task_local_extensions::Extensions;
+/// use http::Extensions;
 ///
 /// // Log each request to show that the requests will be retried
 /// struct LoggingMiddleware;

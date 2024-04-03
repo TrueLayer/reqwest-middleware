@@ -1,6 +1,6 @@
 [package]
 name = "reqwest-tracing"
-version = "0.4.8"
+version = "0.5.0"
 authors = ["Rodrigo Gryzinski <rodrigo.gryzinski@truelayer.com>"]
 edition = "2018"
 description = "Opentracing middleware for reqwest."
@@ -10,46 +10,25 @@ keywords = ["reqwest", "http", "middleware", "opentelemetry", "tracing"]
 categories = ["web-programming::http-client"]
 
 [features]
-opentelemetry_0_13 = ["opentelemetry_0_13_pkg", "tracing-opentelemetry_0_12_pkg"]
-opentelemetry_0_14 = ["opentelemetry_0_14_pkg", "tracing-opentelemetry_0_13_pkg"]
-opentelemetry_0_15 = ["opentelemetry_0_15_pkg", "tracing-opentelemetry_0_14_pkg"]
-opentelemetry_0_16 = ["opentelemetry_0_16_pkg", "tracing-opentelemetry_0_16_pkg"]
-opentelemetry_0_17 = ["opentelemetry_0_17_pkg", "tracing-opentelemetry_0_17_pkg"]
-opentelemetry_0_18 = ["opentelemetry_0_18_pkg", "tracing-opentelemetry_0_18_pkg"]
-opentelemetry_0_19 = ["opentelemetry_0_19_pkg", "tracing-opentelemetry_0_19_pkg"]
-opentelemetry_0_20 = ["opentelemetry_0_20_pkg", "tracing-opentelemetry_0_20_pkg"]
+opentelemetry_0_20 = ["opentelemetry_0_20_pkg", "tracing-opentelemetry_0_21_pkg"]
 opentelemetry_0_21 = ["opentelemetry_0_21_pkg", "tracing-opentelemetry_0_22_pkg"]
 opentelemetry_0_22 = ["opentelemetry_0_22_pkg", "tracing-opentelemetry_0_23_pkg"]
 
 
 [dependencies]
-reqwest-middleware = { version = "0.2.0", path = "../reqwest-middleware" }
+reqwest-middleware = { version = "0.3.0", path = "../reqwest-middleware" }
 
 anyhow = "1.0.70"
 async-trait = "0.1.51"
-matchit = "0.7.0"
-reqwest = { version = "0.11.0", default-features = false }
-task-local-extensions = "0.1.4"
+matchit = "0.7.3"
+http = "1"
+reqwest = { version = "0.12.0", default-features = false }
 tracing = "0.1.26"
 
-opentelemetry_0_13_pkg = { package = "opentelemetry", version = "0.13.0", optional = true }
-opentelemetry_0_14_pkg = { package = "opentelemetry", version = "0.14.0", optional = true }
-opentelemetry_0_15_pkg = { package = "opentelemetry", version = "0.15.0", optional = true }
-opentelemetry_0_16_pkg = { package = "opentelemetry", version = "0.16.0", optional = true }
-opentelemetry_0_17_pkg = { package = "opentelemetry", version = "0.17.0", optional = true }
-opentelemetry_0_18_pkg = { package = "opentelemetry", version = "0.18.0", optional = true }
-opentelemetry_0_19_pkg = { package = "opentelemetry", version = "0.19.0", optional = true }
 opentelemetry_0_20_pkg = { package = "opentelemetry", version = "0.20.0", optional = true }
 opentelemetry_0_21_pkg = { package = "opentelemetry", version = "0.21.0", optional = true }
 opentelemetry_0_22_pkg = { package = "opentelemetry", version = "0.22.0", optional = true }
-tracing-opentelemetry_0_12_pkg = { package = "tracing-opentelemetry", version = "0.12.0", optional = true }
-tracing-opentelemetry_0_13_pkg = { package = "tracing-opentelemetry", version = "0.13.0", optional = true }
-tracing-opentelemetry_0_14_pkg = { package = "tracing-opentelemetry", version = "0.14.0", optional = true }
-tracing-opentelemetry_0_16_pkg = { package = "tracing-opentelemetry", version = "0.16.0", optional = true }
-tracing-opentelemetry_0_17_pkg = { package = "tracing-opentelemetry", version = "0.17.0", optional = true }
-tracing-opentelemetry_0_18_pkg = { package = "tracing-opentelemetry", version = "0.18.0", optional = true }
-tracing-opentelemetry_0_19_pkg = { package = "tracing-opentelemetry", version = "0.19.0", optional = true }
-tracing-opentelemetry_0_20_pkg = { package = "tracing-opentelemetry", version = "0.20.0", optional = true }
+tracing-opentelemetry_0_21_pkg = { package = "tracing-opentelemetry", version = "0.21.0", optional = true }
 tracing-opentelemetry_0_22_pkg = { package = "tracing-opentelemetry", version = "0.22.0", optional = true }
 tracing-opentelemetry_0_23_pkg = { package = "tracing-opentelemetry", version = "0.23.0", optional = true }
 
@@ -58,9 +37,9 @@ getrandom = { version = "0.2.0", features = ["js"] }
 
 [dev-dependencies]
 tokio = { version = "1.0.0", features = ["macros"] }
-tracing_subscriber_0_2 = { package = "tracing-subscriber", version = "0.2.0" }
-tracing_subscriber_0_3 = { package = "tracing-subscriber", version = "0.3.0" }
-wiremock = "0.5.0"
+tracing_subscriber = { package = "tracing-subscriber", version = "0.3.0" }
+wiremock = "0.6.0"
+reqwest = { version = "0.12.0", features = ["rustls-tls"]}
 
 opentelemetry_sdk_0_21 = { package = "opentelemetry_sdk", version = "0.21.0", features = ["trace"] }
 opentelemetry_sdk_0_22 = { package = "opentelemetry_sdk", version = "0.22.0", features = ["trace"] }

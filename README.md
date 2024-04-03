@@ -29,11 +29,11 @@ The `reqwest-middleware` client exposes the same interface as a plain `reqwest` 
 # Cargo.toml
 # ...
 [dependencies]
-reqwest = "0.11"
-reqwest-middleware = "0.1.6"
-reqwest-retry = "0.1.5"
-reqwest-tracing = "0.2.3"
-tokio = { version = "1.12.0", features = ["macros", "rt-multi-thread"] }
+reqwest = { version = "0.12", features = ["rustls-tls"] }
+reqwest-middleware = "0.3"
+reqwest-retry = "0.5"
+reqwest-tracing = "0.5"
+tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
 ```
 
 ```rust
