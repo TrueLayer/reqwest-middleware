@@ -11,14 +11,12 @@ use retry_policies::RetryPolicy;
 #[doc(hidden)]
 macro_rules! log_retry {
     ($level:expr, $($args:tt)*) => {{
-        use ::tracing::Level;
-
         match $level {
-            Level::TRACE => ::tracing::event!(Level::TRACE, $($args)*),
-            Level::DEBUG => ::tracing::event!(Level::DEBUG, $($args)*),
-            Level::INFO => ::tracing::event!(Level::INFO, $($args)*),
-            Level::WARN => ::tracing::event!(Level::WARN, $($args)*),
-            Level::ERROR => ::tracing::event!(Level::ERROR, $($args)*),
+            ::tracing::Level::TRACE => ::tracing::trace!($($args)*),
+            ::tracing::Level::DEBUG => ::tracing::debug!($($args)*),
+            ::tracing::Level::INFO => ::tracing::info!($($args)*),
+            ::tracing::Level::WARN => ::tracing::warn!($($args)*),
+            ::tracing::Level::ERROR => ::tracing::error!($($args)*),
         }
     }};
 }
