@@ -18,8 +18,8 @@ use crate::RequestInitialiser;
 /// [`ClientWithMiddleware`]: crate::ClientWithMiddleware
 pub struct ClientBuilder {
     client: Client,
-    middleware_stack: Vec<Box<dyn Middleware>>,
-    initialiser_stack: Vec<Box<dyn RequestInitialiser>>,
+    middleware_stack: Vec<Arc<dyn Middleware>>,
+    initialiser_stack: Vec<Arc<dyn RequestInitialiser>>,
 }
 
 impl ClientBuilder {
@@ -33,40 +33,40 @@ impl ClientBuilder {
 
     /// Convenience method to attach middleware.
     ///
-    /// If you need to keep a reference to the middleware after attaching, use [`with_box`].
+    /// If you need to keep a reference to the middleware after attaching, use [`with_arc`].
     ///
-    /// [`with_box`]: Self::with_box
+    /// [`with_arc`]: Self::with_arc
     pub fn with<M>(self, middleware: M) -> Self
     where
         M: Middleware,
     {
-        self.with_box(Box::new(middleware))
+        self.with_arc(Arc::new(middleware))
     }
 
-    /// Add middleware to the chain. [`with`] is more ergonomic if you don't need the `Box`.
+    /// Add middleware to the chain. [`with`] is more ergonomic if you don't need the `Arc`.
     ///
     /// [`with`]: Self::with
-    pub fn with_box(mut self, middleware: Box<dyn Middleware>) -> Self {
+    pub fn with_arc(mut self, middleware: Arc<dyn Middleware>) -> Self {
         self.middleware_stack.push(middleware);
         self
     }
 
     /// Convenience method to attach a request initialiser.
     ///
-    /// If you need to keep a reference to the initialiser after attaching, use [`with_box_init`].
+    /// If you need to keep a reference to the initialiser after attaching, use [`with_arc_init`].
     ///
-    /// [`with_box_init`]: Self::with_box_init
+    /// [`with_arc_init`]: Self::with_arc_init
     pub fn with_init<I>(self, initialiser: I) -> Self
     where
         I: RequestInitialiser,
     {
-        self.with_box_init(Box::new(initialiser))
+        self.with_arc_init(Arc::new(initialiser))
     }
 
-    /// Add a request initialiser to the chain. [`with_init`] is more ergonomic if you don't need the `Box`.
+    /// Add a request initialiser to the chain. [`with_init`] is more ergonomic if you don't need the `Arc`.
     ///
     /// [`with_init`]: Self::with_init
-    pub fn with_box_init(mut self, initialiser: Box<dyn RequestInitialiser>) -> Self {
+    pub fn with_arc_init(mut self, initialiser: Arc<dyn RequestInitialiser>) -> Self {
         self.initialiser_stack.push(initialiser);
         self
     }
@@ -75,8 +75,8 @@ impl ClientBuilder {
     pub fn build(self) -> ClientWithMiddleware {
         ClientWithMiddleware {
             inner: self.client,
-            middleware_stack: self.middleware_stack.into(),
-            initialiser_stack: self.initialiser_stack.into(),
+            middleware_stack: self.middleware_stack.into_boxed_slice(),
+            initialiser_stack: self.initialiser_stack.into_boxed_slice(),
         }
     }
 }
@@ -86,21 +86,21 @@ impl ClientBuilder {
 #[derive(Clone)]
 pub struct ClientWithMiddleware {
     inner: reqwest::Client,
-    middleware_stack: Arc<[Box<dyn Middleware>]>,
-    initialiser_stack: Arc<[Box<dyn RequestInitialiser>]>,
+    middleware_stack: Box<[Arc<dyn Middleware>]>,
+    initialiser_stack: Box<[Arc<dyn RequestInitialiser>]>,
 }
 
 impl ClientWithMiddleware {
     /// See [`ClientBuilder`] for a more ergonomic way to build `ClientWithMiddleware` instances.
     pub fn new<T>(client: Client, middleware_stack: T) -> Self
     where
-        T: Into<Arc<[Box<dyn Middleware>]>>,
+        T: Into<Box<[Arc<dyn Middleware>]>>,
     {
         ClientWithMiddleware {
             inner: client,
             middleware_stack: middleware_stack.into(),
             // TODO(conradludgate) - allow downstream code to control this manually if desired
-            initialiser_stack: Arc::from(vec![]),
+            initialiser_stack: Box::new([]),
         }
     }
 
@@ -222,8 +222,8 @@ impl From<Client> for ClientWithMiddleware {
     fn from(client: Client) -> Self {
         ClientWithMiddleware {
             inner: client,
-            middleware_stack: Arc::from(vec![]),
-            initialiser_stack: Arc::from(vec![]),
+            middleware_stack: Box::new([]),
+            initialiser_stack: Box::new([]),
         }
     }
 }
@@ -314,8 +314,8 @@ mod service {
 #[must_use = "RequestBuilder does nothing until you 'send' it"]
 pub struct RequestBuilder {
     inner: reqwest::RequestBuilder,
-    middleware_stack: Arc<[Box<dyn Middleware>]>,
-    initialiser_stack: Arc<[Box<dyn RequestInitialiser>]>,
+    middleware_stack: Box<[Arc<dyn Middleware>]>,
+    initialiser_stack: Box<[Arc<dyn RequestInitialiser>]>,
     extensions: Extensions,
 }
 

@@ -3,6 +3,8 @@ use reqwest::{Client, Request, Response};
 
 use crate::error::{Error, Result};
 
+use std::sync::Arc;
+
 /// When attached to a [`ClientWithMiddleware`] (generally using [`with`]), middleware is run
 /// whenever the client issues a request, in the order it was attached.
 ///
@@ -73,7 +75,7 @@ where
 #[derive(Clone)]
 pub struct Next<'a> {
     client: &'a Client,
-    middlewares: &'a [Box<dyn Middleware>],
+    middlewares: &'a [Arc<dyn Middleware>],
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -82,7 +84,7 @@ pub type BoxFuture<'a, T> = std::pin::Pin<Box<dyn std::future::Future<Output = T
 pub type BoxFuture<'a, T> = std::pin::Pin<Box<dyn std::future::Future<Output = T> + 'a>>;
 
 impl<'a> Next<'a> {
-    pub(crate) fn new(client: &'a Client, middlewares: &'a [Box<dyn Middleware>]) -> Self {
+    pub(crate) fn new(client: &'a Client, middlewares: &'a [Arc<dyn Middleware>]) -> Self {
         Next {
             client,
             middlewares,
