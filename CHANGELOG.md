@@ -4,21 +4,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0] - 2024-04-10
 
 ### Breaking changes
-- Updated `reqwest` to `0.12.0`.
-- Removed `task_local_extensions` in favour of `http::Extensions`.
-    - All extensions must be `Clone` now.
-- Support for `matchit` `0.8.0` - This means router matches like `/a/:some_var`  need to be changed to `/a/{some_var}`
+- Upgraded `reqwest` to `0.12.0`
+- Upgraded `matchit` to `0.8.0`
+
+  You may need to update some matches that look like `/a/:some_var` to `/a/{some_var}`
+- Removed `task_local_extensions` in favour of `http::Extensions`
+
+  All extensions must be `Clone` now.
 
 ### Changed
 - `RequestBuilder::try_clone` now clones the extensions.
 
 ### Added
-- implemented `Service` for `ClientWithMiddleware` to have more feature parity with `reqwest`.
+- Implemented `Service` for `ClientWithMiddleware` to have more feature parity with `reqwest`.
 - Added more methods like `build_split` to have more feature parity with `reqwest.`
-- Added a lot more documentation
+- Added more documentation
 
 ### [0.2.5] - 2024-03-15
 
