@@ -103,7 +103,7 @@ pub fn default_span_name<'a>(req: &'a Request, ext: &'a Extensions) -> Cow<'a, s
 }
 
 /// The default [`ReqwestOtelSpanBackend`] for [`TracingMiddleware`]. Note that it doesn't include
-/// the `http.url` field in spans, you can use [`SpanBackendWithUrl`] to add it.
+/// the `url.full` field in spans, you can use [`SpanBackendWithUrl`] to add it.
 ///
 /// [`TracingMiddleware`]: crate::middleware::TracingMiddleware
 pub struct DefaultSpanBackend;
@@ -119,7 +119,7 @@ impl ReqwestOtelSpanBackend for DefaultSpanBackend {
     }
 }
 
-/// Similar to [`DefaultSpanBackend`] but also adds the `http.url` attribute to request spans.
+/// Similar to [`DefaultSpanBackend`] but also adds the `url.full` attribute to request spans.
 ///
 /// [`TracingMiddleware`]: crate::middleware::TracingMiddleware
 pub struct SpanBackendWithUrl;
@@ -127,7 +127,7 @@ pub struct SpanBackendWithUrl;
 impl ReqwestOtelSpanBackend for SpanBackendWithUrl {
     fn on_request_start(req: &Request, ext: &mut Extensions) -> Span {
         let name = default_span_name(req, ext);
-        reqwest_otel_span!(name = name, req, http.url = %remove_credentials(req.url()))
+        reqwest_otel_span!(name = name, req, url.full = %remove_credentials(req.url()))
     }
 
     fn on_request_end(span: &Span, outcome: &Result<Response>, _: &mut Extensions) {
