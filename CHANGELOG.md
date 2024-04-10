@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `reqwest` to `0.12.0`.
 - Removed `task_local_extensions` in favour of `http::Extensions`.
     - All extensions must be `Clone` now.
-- Replaced `with_arc` and `with_arc_init` methods with `with_box` and `with_box_init`.
 - Support for `matchit` `0.8.0` - This means router matches like `/a/:some_var`  need to be changed to `/a/{some_var}`
 
 ### Changed
