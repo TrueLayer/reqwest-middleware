@@ -8,12 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking changes
 - Upgraded `reqwest` to `0.12.0`
+  * Removed default-features `json` and `multipart` from `reqwest` dependency
+  * Added `json` and `multipart` features to `reqwest-middleware`
 - Upgraded `matchit` to `0.8.0`
-
-  You may need to update some matches that look like `/a/:some_var` to `/a/{some_var}`
+  * You may need to update some matches that look like `/a/:some_var` to `/a/{some_var}`
 - Removed `task_local_extensions` in favour of `http::Extensions`
-
-  All extensions must be `Clone` now.
+  * All extensions must be `Clone` now.
 
 ### Changed
 - `RequestBuilder::try_clone` now clones the extensions.
