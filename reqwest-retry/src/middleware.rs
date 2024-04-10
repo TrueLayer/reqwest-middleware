@@ -9,6 +9,8 @@ use reqwest_middleware::{Error, Middleware, Next, Result};
 use retry_policies::RetryPolicy;
 
 #[doc(hidden)]
+// We need this macro because tracing expects the level to be const:
+// https://github.com/tokio-rs/tracing/issues/2730
 macro_rules! log_retry {
     ($level:expr, $($args:tt)*) => {{
         match $level {
