@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use http::Extensions;
 use matchit::Router;
-use reqwest::{header::HeaderValue, Request, Response, StatusCode as RequestStatusCode, Url};
+use reqwest::{Request, Response, StatusCode as RequestStatusCode, Url};
 use reqwest_middleware::{Error, Result};
 use tracing::{warn, Span};
 
@@ -343,6 +343,13 @@ fn remove_credentials(url: &Url) -> Cow<'_, str> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use reqwest::header::{HeaderMap, HeaderValue};
+
+    fn get_header_value(key: &str, headers: &HeaderMap) -> String {
+        let header_default = &HeaderValue::from_static("");
+        format!("{:?}", headers.get(key).unwrap_or(header_default)).replace('"', "")
+    }
 
     #[test]
     fn get_header_value_for_span_attribute() {

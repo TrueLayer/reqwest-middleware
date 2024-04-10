@@ -125,7 +125,7 @@ macro_rules! reqwest_otel_span {
             let host = url.host_str().unwrap_or("");
             let host_port = url.port_or_known_default().unwrap_or(0) as i64;
             let otel_name = $name.to_string();
-            let header_default = &HeaderValue::from_static("");
+            let header_default = &::http::HeaderValue::from_static("");
             let user_agent = format!("{:?}", $request.headers().get("user_agent").unwrap_or(header_default)).replace('"', "");
 
             macro_rules! request_span {
