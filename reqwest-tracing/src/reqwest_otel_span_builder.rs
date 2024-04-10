@@ -33,28 +33,6 @@ pub const ERROR_MESSAGE: &str = "error.message";
 /// The `error.cause_chain` field added to the span by [`reqwest_otel_span`]
 pub const ERROR_CAUSE_CHAIN: &str = "error.cause_chain";
 
-/// The deprecated `http.method` field added to the span by [`reqwest_otel_span`]
-#[deprecated]
-pub const HTTP_METHOD: &str = "http.method";
-/// The deprecated `http.scheme` field added to the span by [`reqwest_otel_span`]
-#[deprecated]
-pub const HTTP_SCHEME: &str = "http.scheme";
-/// The deprecated `http.host` field added to the span by [`reqwest_otel_span`]
-#[deprecated]
-pub const HTTP_HOST: &str = "http.host";
-/// The deprecated `http.url` field added to the span by [`reqwest_otel_span`]
-#[deprecated]
-pub const HTTP_URL: &str = "http.url";
-/// The deprecated `host.port` field added to the span by [`reqwest_otel_span`]
-#[deprecated]
-pub const NET_HOST_PORT: &str = "net.host.port";
-/// The deprecated `http.status_code` field added to the span by [`reqwest_otel_span`]
-#[deprecated]
-pub const HTTP_STATUS_CODE: &str = "http.status_code";
-/// The deprecated `http.user_agent` added to the span by [`reqwest_otel_span`]
-#[deprecated]
-pub const HTTP_USER_AGENT: &str = "http.user_agent";
-
 /// [`ReqwestOtelSpanBackend`] allows you to customise the span attached by
 /// [`TracingMiddleware`] to incoming requests.
 ///
