@@ -8,6 +8,21 @@ use reqwest::{Request, Response};
 use reqwest_middleware::{Error, Middleware, Next, Result};
 use retry_policies::RetryPolicy;
 
+#[doc(hidden)]
+// We need this macro because tracing expects the level to be const:
+// https://github.com/tokio-rs/tracing/issues/2730
+macro_rules! log_retry {
+    ($level:expr, $($args:tt)*) => {{
+        match $level {
+            ::tracing::Level::TRACE => ::tracing::trace!($($args)*),
+            ::tracing::Level::DEBUG => ::tracing::debug!($($args)*),
+            ::tracing::Level::INFO => ::tracing::info!($($args)*),
+            ::tracing::Level::WARN => ::tracing::warn!($($args)*),
+            ::tracing::Level::ERROR => ::tracing::error!($($args)*),
+        }
+    }};
+}
+
 /// `RetryTransientMiddleware` offers retry logic for requests that fail in a transient manner
 /// and can be safely executed again.
 ///
@@ -53,12 +68,20 @@ pub struct RetryTransientMiddleware<
 > {
     retry_policy: T,
     retryable_strategy: R,
+    retry_log_level: tracing::Level,
 }
 
 impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T, DefaultRetryableStrategy> {
     /// Construct `RetryTransientMiddleware` with  a [retry_policy][RetryPolicy].
     pub fn new_with_policy(retry_policy: T) -> Self {
         Self::new_with_policy_and_strategy(retry_policy, DefaultRetryableStrategy)
+    }
+
+    /// Set the log [level][tracing::Level] for retry events.
+    /// The default is [`WARN`][tracing::Level::WARN].
+    pub fn with_retry_log_level(mut self, level: tracing::Level) -> Self {
+        self.retry_log_level = level;
+        self
     }
 }
 
@@ -72,6 +95,7 @@ where
         Self {
             retry_policy,
             retryable_strategy,
+            retry_log_level: tracing::Level::WARN,
         }
     }
 }
@@ -138,7 +162,8 @@ where
                             .to_std()
                             .map_err(Error::middleware)?;
                         // Sleep the requested amount before we try again.
-                        tracing::warn!(
+                        log_retry!(
+                            self.retry_log_level,
                             "Retry attempt #{}. Sleeping {:?} before the next attempt",
                             n_past_retries,
                             duration
