@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Included license files in crates
+- Fix logging of User-Agent header in reqwest-tracing
+
+### Added
+- Added `with_retry_log_level` to `RetryTransientMiddleware` in reqwest-retry
 
 ## [0.3.0] - 2024-04-10
 
