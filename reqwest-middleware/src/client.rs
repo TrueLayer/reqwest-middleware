@@ -34,8 +34,10 @@ impl ClientBuilder {
     /// Convenience method to extend a ClientBuilder instance by appending
     /// the middleware and initialiser stacks from a ClientwithMiddleware
     pub fn extend(mut self, client_with_middleware: ClientWithMiddleware) -> Self {
-        self.middleware_stack.append(&mut client_with_middleware.middleware_stack.into_vec());
-        self.initialiser_stack.append(&mut client_with_middleware.initialiser_stack.into_vec());
+        self.middleware_stack
+            .append(&mut client_with_middleware.middleware_stack.into_vec());
+        self.initialiser_stack
+            .append(&mut client_with_middleware.initialiser_stack.into_vec());
         self
     }
 
