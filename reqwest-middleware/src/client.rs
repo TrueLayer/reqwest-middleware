@@ -31,14 +31,14 @@ impl ClientBuilder {
         }
     }
 
-    /// Convenience method to extend a ClientBuilder instance by appending
-    /// the middleware and initialiser stacks from a ClientwithMiddleware
-    pub fn extend(mut self, client_with_middleware: ClientWithMiddleware) -> Self {
-        self.middleware_stack
-            .append(&mut client_with_middleware.middleware_stack.into_vec());
-        self.initialiser_stack
-            .append(&mut client_with_middleware.initialiser_stack.into_vec());
-        self
+    /// Convenience method to create a ClientBuilder
+    /// from an existing ClientWithMiddleware instance
+    pub fn from_client(client_with_middleware: ClientWithMiddleware) -> Self {
+        Self {
+            client: client_with_middleware.inner,
+            middleware_stack: client_with_middleware.middleware_stack.into_vec(),
+            initialiser_stack: client_with_middleware.initialiser_stack.into_vec(),
+        }
     }
 
     /// Convenience method to attach middleware.
