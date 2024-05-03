@@ -31,7 +31,7 @@ impl ClientBuilder {
         }
     }
 
-    /// Convenience method to create a ClientBuilder
+    /// This method allows creating a ClientBuilder
     /// from an existing ClientWithMiddleware instance
     pub fn from_client(client_with_middleware: ClientWithMiddleware) -> Self {
         Self {
