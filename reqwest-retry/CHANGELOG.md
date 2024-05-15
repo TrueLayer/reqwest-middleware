@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added `regex` feature to
 - Added `with_retry_log_level` to `RetryTransientMiddleware`
 
 ## [0.5.0] - 2024-04-10

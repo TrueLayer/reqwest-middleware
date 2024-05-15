@@ -69,6 +69,8 @@ pub struct RetryTransientMiddleware<
     retry_policy: T,
     retryable_strategy: R,
     retry_log_level: tracing::Level,
+    #[cfg(feature = "regex")]
+    whitelist: Option<regex::RegexSet>,
 }
 
 impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T, DefaultRetryableStrategy> {
@@ -81,6 +83,15 @@ impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T, DefaultRetryableS
     /// The default is [`WARN`][tracing::Level::WARN].
     pub fn with_retry_log_level(mut self, level: tracing::Level) -> Self {
         self.retry_log_level = level;
+        self
+    }
+
+    #[cfg(feature = "regex")]
+    /// Set a whitelist of [regex::Regex] patterns to match against the request URL.
+    ///
+    /// If the URL does not match any of the patterns, the request will not be retried.
+    pub fn with_whitelist(mut self, whitelist: regex::RegexSet) -> Self {
+        self.whitelist = Some(whitelist);
         self
     }
 }
@@ -96,6 +107,23 @@ where
             retry_policy,
             retryable_strategy,
             retry_log_level: tracing::Level::WARN,
+            #[cfg(feature = "regex")]
+            whitelist: None,
+        }
+    }
+
+    #[cfg(feature = "regex")]
+    /// Construct `RetryTransientMiddleware` with  a [retry_policy][RetryPolicy], [retryable_strategy](RetryableStrategy) and a whitelist of [regex::Regex] patterns.
+    pub fn new_with_policy_strategy_and_whitelist(
+        retry_policy: T,
+        retryable_strategy: R,
+        whitelist: regex::RegexSet,
+    ) -> Self {
+        Self {
+            retry_policy,
+            retryable_strategy,
+            retry_log_level: tracing::Level::WARN,
+            whitelist: Some(whitelist),
         }
     }
 }
@@ -117,6 +145,18 @@ where
         // downstream. This will guard against previous retries polluting `Extensions`.
         // That is, we only return what's populated in the typemap for the last retry attempt
         // and copy those into the the `global` Extensions map.
+
+        #[cfg(feature = "regex")]
+        {
+            let url = req.url().as_str();
+            if let Some(whitelist) = &self.whitelist {
+                if whitelist.is_match(url) {
+                    return self.execute_with_retry(req, next, extensions).await;
+                }
+                return next.run(req, extensions).await;
+            }
+        }
+
         self.execute_with_retry(req, next, extensions).await
     }
 }

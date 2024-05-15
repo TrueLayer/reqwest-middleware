@@ -361,3 +361,76 @@ async fn assert_retry_on_connection_reset_by_peer() {
 
     assert_eq!(resp.status(), 200);
 }
+
+#[tokio::test]
+#[cfg(feature = "regex")]
+async fn assert_regex_whitelist() {
+    // Following the HTTP/1.1 specification (https://en.wikipedia.org/wiki/HTTP_message_body) a valid response contains:
+    // - status line
+    // - headers
+    // - empty line
+    // - optional message body
+    //
+    // After a few tries we have noticed that:
+    // - "message_that_makes_no_sense" triggers a hyper::ParseError because the format is completely wrong
+    // - "HTTP/1.1" triggers a hyper::IncompleteMessage because the format is correct until that point but misses mandatory parts
+    let incomplete_message = "HTTP/1.1";
+    let complete_message = "HTTP/1.1 200 OK\r\n\r\n";
+
+    // create a SimpleServer that returns the correct response after 3 attempts.
+    // the first 3 attempts are incomplete http response and internally they result in a [`hyper::Error(IncompleteMessage)`] error.
+    let simple_server = SimpleServer::new(
+        "127.0.0.1",
+        None,
+        vec![
+            incomplete_message.to_string(),
+            incomplete_message.to_string(),
+            incomplete_message.to_string(),
+            complete_message.to_string(),
+            incomplete_message.to_string(),
+        ],
+    )
+    .await
+    .expect("Error when creating a simple server");
+
+    let uri = simple_server.uri();
+
+    tokio::spawn(simple_server.start());
+
+    fn get_client(regex: &str) -> reqwest_middleware::ClientWithMiddleware {
+        let reqwest_client = Client::builder().build().unwrap();
+        ClientBuilder::new(reqwest_client)
+            .with(
+                RetryTransientMiddleware::new_with_policy(
+                    ExponentialBackoff::builder()
+                        .retry_bounds(
+                            std::time::Duration::from_millis(30),
+                            std::time::Duration::from_millis(100),
+                        )
+                        .build_with_max_retries(3),
+                )
+                .with_whitelist(regex::RegexSet::new(vec![regex]).unwrap()),
+            )
+            .build()
+    }
+
+    let client0 = get_client("127.0.0.1");
+    let resp0 = client0
+        .get(&format!("{}/foo", uri))
+        .timeout(std::time::Duration::from_millis(100))
+        .send()
+        .await
+        .expect("call failed");
+    assert_eq!(resp0.status(), 200);
+
+    let client1 = get_client("1.2.3.4");
+    match client1
+        .get(&format!("{}/foo", uri))
+        .timeout(std::time::Duration::from_millis(100))
+        .send()
+        .await
+    {
+        Ok(resp) => panic!("Expected an error, got {:?}", resp),
+        Err(_) => (),
+    }
+}
