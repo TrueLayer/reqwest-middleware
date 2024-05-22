@@ -159,8 +159,8 @@ where
                     let retry_decision = self.retry_policy.should_retry(start_time, n_past_retries);
                     if let retry_policies::RetryDecision::Retry { execute_after } = retry_decision {
                         let duration = (execute_after - Utc::now())
-                            .to_std()
-                            .map_err(Error::middleware)?;
+                            .to_std() // This fails if duration is negative
+                            .unwrap_or_else(|_| Default::default());
                         // Sleep the requested amount before we try again.
                         log_retry!(
                             self.retry_log_level,
