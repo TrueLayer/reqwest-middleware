@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added `with_retry_log_level` to `RetryTransientMiddleware`
 
+### Changed
+- Upgraded `retry-policies` to `0.4.0`.
+
 ## [0.5.0] - 2024-04-10
 
 ### Breaking changes
