@@ -1,5 +1,5 @@
 //! `RetryTransientMiddleware` implements retrying requests on transient errors.
-use std::time::SystemTime;
+use std::time::{Duration, SystemTime};
 
 use crate::retryable_strategy::RetryableStrategy;
 use crate::{retryable::Retryable, retryable_strategy::DefaultRetryableStrategy};
@@ -161,7 +161,7 @@ where
                     if let retry_policies::RetryDecision::Retry { execute_after } = retry_decision {
                         let duration = execute_after
                             .duration_since(SystemTime::now())
-                            .unwrap_or_else(|_| Default::default);
+                            .unwrap_or_else(|_| Duration::default());
                         // Sleep the requested amount before we try again.
                         log_retry!(
                             self.retry_log_level,
