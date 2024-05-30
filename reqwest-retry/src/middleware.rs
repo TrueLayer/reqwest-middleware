@@ -161,7 +161,7 @@ where
                     if let retry_policies::RetryDecision::Retry { execute_after } = retry_decision {
                         let duration = execute_after
                             .duration_since(SystemTime::now())
-                            .map_err(Error::middleware)?;
+                            .unwrap_or_else(|_| Default::default);
                         // Sleep the requested amount before we try again.
                         log_retry!(
                             self.retry_log_level,
