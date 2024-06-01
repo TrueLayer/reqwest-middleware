@@ -1,8 +1,9 @@
 //! `RetryTransientMiddleware` implements retrying requests on transient errors.
+use std::time::{Duration, SystemTime};
+
 use crate::retryable_strategy::RetryableStrategy;
 use crate::{retryable::Retryable, retryable_strategy::DefaultRetryableStrategy};
 use anyhow::anyhow;
-use chrono::Utc;
 use http::Extensions;
 use reqwest::{Request, Response};
 use reqwest_middleware::{Error, Middleware, Next, Result};
@@ -136,7 +137,7 @@ where
         ext: &'a mut Extensions,
     ) -> Result<Response> {
         let mut n_past_retries = 0;
-        let start_time = Utc::now();
+        let start_time = SystemTime::now();
         loop {
             // Cloning the request object before-the-fact is not ideal..
             // However, if the body of the request is not static, e.g of type `Bytes`,
@@ -158,9 +159,9 @@ where
                     // we can safely try to retry the request.
                     let retry_decision = self.retry_policy.should_retry(start_time, n_past_retries);
                     if let retry_policies::RetryDecision::Retry { execute_after } = retry_decision {
-                        let duration = (execute_after - Utc::now())
-                            .to_std()
-                            .map_err(Error::middleware)?;
+                        let duration = execute_after
+                            .duration_since(SystemTime::now())
+                            .unwrap_or_else(|_| Duration::default());
                         // Sleep the requested amount before we try again.
                         log_retry!(
                             self.retry_log_level,
