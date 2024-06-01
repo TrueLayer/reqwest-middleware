@@ -29,7 +29,7 @@ mod middleware;
 mod retryable;
 mod retryable_strategy;
 
-pub use retry_policies::{policies, RetryPolicy};
+pub use retry_policies::{policies, Jitter, RetryDecision, RetryPolicy};
 
 pub use middleware::RetryTransientMiddleware;
 pub use retryable::Retryable;
