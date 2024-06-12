@@ -65,7 +65,7 @@ macro_rules! log_retry {
 /// source directly, avoiding the issue of streaming requests not being clonable.
 pub struct RetryTransientMiddleware<
     T: RetryPolicy + Send + Sync + 'static,
-    R: RetryableStrategy + Send + Sync + 'static = DefaultRetryableStrategy,
+    R: RetryableStrategy + Send + Sync + 'static,
 > {
     retry_policy: T,
     retryable_strategy: R,
