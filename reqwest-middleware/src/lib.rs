@@ -58,3 +58,4 @@ pub use client::{ClientBuilder, ClientWithMiddleware, RequestBuilder};
 pub use error::{Error, Result};
 pub use middleware::{Middleware, Next};
 pub use req_init::{Extension, RequestInitialiser};
+pub use reqwest;
