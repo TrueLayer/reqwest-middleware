@@ -19,7 +19,7 @@ Try to do one pull request per change.
 ### Updating the changelog
 
 Update the changes you have made in
-[CHANGELOG](https://github.com/TrueLayer/reqwest-middleware/blob/master/CHANGELOG.md)
+[CHANGELOG](https://github.com/TrueLayer/reqwest-middleware/blob/master/reqwest-middlware/CHANGELOG.md)
 file under the **Unreleased** section.
 
 Add the changes of your pull request to one of the following subsections,
