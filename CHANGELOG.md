@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.2] - 2024-06-28
 
 ### Added
-- Added support for `opentelemetry` version `0.23`.
 - Added re-export of `reqwest`.
 - `http2`, `rustls-tls`, and `charset` features, which simply enable those features in `reqwest`.
 
