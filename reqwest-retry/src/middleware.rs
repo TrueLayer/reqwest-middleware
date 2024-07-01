@@ -2,7 +2,7 @@
 use std::time::{Duration, SystemTime};
 
 use crate::retryable_strategy::RetryableStrategy;
-use crate::{retryable::Retryable, retryable_strategy::DefaultRetryableStrategy};
+use crate::{retryable::Retryable, retryable_strategy::DefaultRetryableStrategy, RetryError};
 use anyhow::anyhow;
 use http::Extensions;
 use reqwest::{Request, Response};
@@ -153,7 +153,7 @@ where
 
             // We classify the response which will return None if not
             // errors were returned.
-            break match self.retryable_strategy.handle(&result) {
+            match self.retryable_strategy.handle(&result) {
                 Some(Retryable::Transient) => {
                     // If the response failed and the error type was transient
                     // we can safely try to retry the request.
@@ -178,11 +178,24 @@ where
 
                         n_past_retries += 1;
                         continue;
-                    } else {
-                        result
                     }
                 }
-                Some(_) | None => result,
+                Some(_) | None => {}
+            };
+
+            // Report whether we failed with or without retries.
+            break if n_past_retries > 0 {
+                result.map_err(|err| {
+                    Error::Middleware(
+                        RetryError::WithRetries {
+                            retries: n_past_retries,
+                            err,
+                        }
+                        .into(),
+                    )
+                })
+            } else {
+                result.map_err(|err| Error::Middleware(RetryError::Error(err).into()))
             };
         }
     }
