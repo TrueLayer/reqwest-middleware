@@ -10,11 +10,23 @@ keywords = ["reqwest", "http", "middleware", "opentelemetry", "tracing"]
 categories = ["web-programming::http-client"]
 
 [features]
-opentelemetry_0_20 = ["opentelemetry_0_20_pkg", "tracing-opentelemetry_0_21_pkg"]
-opentelemetry_0_21 = ["opentelemetry_0_21_pkg", "tracing-opentelemetry_0_22_pkg"]
-opentelemetry_0_22 = ["opentelemetry_0_22_pkg", "tracing-opentelemetry_0_23_pkg"]
-opentelemetry_0_23 = ["opentelemetry_0_23_pkg", "tracing-opentelemetry_0_24_pkg"]
-
+opentelemetry_0_20 = [
+    "opentelemetry_0_20_pkg",
+    "tracing-opentelemetry_0_21_pkg",
+]
+opentelemetry_0_21 = [
+    "opentelemetry_0_21_pkg",
+    "tracing-opentelemetry_0_22_pkg",
+]
+opentelemetry_0_22 = [
+    "opentelemetry_0_22_pkg",
+    "tracing-opentelemetry_0_23_pkg",
+]
+opentelemetry_0_23 = [
+    "opentelemetry_0_23_pkg",
+    "tracing-opentelemetry_0_24_pkg",
+]
+deprecated-fields = []
 
 [dependencies]
 reqwest-middleware = { version = "0.3.0", path = "../reqwest-middleware" }
@@ -42,12 +54,26 @@ getrandom = { version = "0.2.0", features = ["js"] }
 tokio = { version = "1.0.0", features = ["macros"] }
 tracing_subscriber = { package = "tracing-subscriber", version = "0.3.0" }
 wiremock = "0.6.0"
-reqwest = { version = "0.12.0", features = ["rustls-tls"]}
+reqwest = { version = "0.12.0", features = ["rustls-tls"] }
 
-opentelemetry_sdk_0_21 = { package = "opentelemetry_sdk", version = "0.21.0", features = ["trace"] }
-opentelemetry_sdk_0_22 = { package = "opentelemetry_sdk", version = "0.22.0", features = ["trace"] }
-opentelemetry_sdk_0_23 = { package = "opentelemetry_sdk", version = "0.23.0", features = ["trace"] }
-opentelemetry_stdout_0_1 = { package = "opentelemetry-stdout", version = "0.1.0", features = ["trace"] }
-opentelemetry_stdout_0_2 = { package = "opentelemetry-stdout", version = "0.2.0", features = ["trace"] }
-opentelemetry_stdout_0_3 = { package = "opentelemetry-stdout", version = "0.3.0", features = ["trace"] }
-opentelemetry_stdout_0_4 = { package = "opentelemetry-stdout", version = "0.4.0", features = ["trace"] }
+opentelemetry_sdk_0_21 = { package = "opentelemetry_sdk", version = "0.21.0", features = [
+    "trace",
+] }
+opentelemetry_sdk_0_22 = { package = "opentelemetry_sdk", version = "0.22.0", features = [
+    "trace",
+] }
+opentelemetry_sdk_0_23 = { package = "opentelemetry_sdk", version = "0.23.0", features = [
+    "trace",
+] }
+opentelemetry_stdout_0_1 = { package = "opentelemetry-stdout", version = "0.1.0", features = [
+    "trace",
+] }
+opentelemetry_stdout_0_2 = { package = "opentelemetry-stdout", version = "0.2.0", features = [
+    "trace",
+] }
+opentelemetry_stdout_0_3 = { package = "opentelemetry-stdout", version = "0.3.0", features = [
+    "trace",
+] }
+opentelemetry_stdout_0_4 = { package = "opentelemetry-stdout", version = "0.4.0", features = [
+    "trace",
+] }

@@ -33,6 +33,28 @@ pub const ERROR_MESSAGE: &str = "error.message";
 /// The `error.cause_chain` field added to the span by [`reqwest_otel_span`]
 pub const ERROR_CAUSE_CHAIN: &str = "error.cause_chain";
 
+/// The `http.method` field added to the span by [`reqwest_otel_span`]
+#[cfg(feature = "deprecated_fields")]
+pub const HTTP_METHOD: &str = "http.method";
+/// The `http.scheme` field added to the span by [`reqwest_otel_span`]
+#[cfg(feature = "deprecated_fields")]
+pub const HTTP_SCHEME: &str = "http.scheme";
+/// The `http.host` field added to the span by [`reqwest_otel_span`]
+#[cfg(feature = "deprecated_fields")]
+pub const HTTP_HOST: &str = "http.host";
+/// The `http.url` field added to the span by [`reqwest_otel_span`]
+#[cfg(feature = "deprecated_fields")]
+pub const HTTP_URL: &str = "http.url";
+/// The `host.port` field added to the span by [`reqwest_otel_span`]
+#[cfg(feature = "deprecated_fields")]
+pub const NET_HOST_PORT: &str = "net.host.port";
+/// The `http.status_code` field added to the span by [`reqwest_otel_span`]
+#[cfg(feature = "deprecated_fields")]
+pub const HTTP_STATUS_CODE: &str = "http.status_code";
+/// The `http.user_agent` added to the span by [`reqwest_otel_span`]
+#[cfg(feature = "deprecated_fields")]
+pub const HTTP_USER_AGENT: &str = "http.user_agent";
+
 /// [`ReqwestOtelSpanBackend`] allows you to customise the span attached by
 /// [`TracingMiddleware`] to incoming requests.
 ///
@@ -63,7 +85,15 @@ pub fn default_on_request_success(span: &Span, response: &Response) {
     if let Some(span_status) = span_status {
         span.record(OTEL_STATUS_CODE, span_status);
     }
-    span.record(HTTP_RESPONSE_STATUS_CODE, response.status().as_u16());
+    #[cfg(not(feature = "deprecated_fields"))]
+    {
+        span.record(HTTP_RESPONSE_STATUS_CODE, response.status().as_u16());
+    }
+    #[cfg(feature = "deprecated_fields")]
+    {
+        span.record(HTTP_STATUS_CODE, response.status().as_u16());
+        span.record(HTTP_USER_AGENT, user_agent.as_str());
+    }
 }
 
 /// Populates default failure fields for a given [`reqwest_otel_span!`] span.
@@ -76,7 +106,14 @@ pub fn default_on_request_failure(span: &Span, e: &Error) {
     span.record(ERROR_CAUSE_CHAIN, error_cause_chain.as_str());
     if let Error::Reqwest(e) = e {
         if let Some(status) = e.status() {
-            span.record(HTTP_RESPONSE_STATUS_CODE, status.as_u16());
+            #[cfg(not(feature = "deprecated_fields"))]
+            {
+                span.record(HTTP_RESPONSE_STATUS_CODE, status.as_u16());
+            }
+            #[cfg(feature = "deprecated_fields")]
+            {
+                span.record(HTTP_STATUS_CODE, status.as_u16());
+            }
         }
     }
 }
@@ -127,7 +164,14 @@ pub struct SpanBackendWithUrl;
 impl ReqwestOtelSpanBackend for SpanBackendWithUrl {
     fn on_request_start(req: &Request, ext: &mut Extensions) -> Span {
         let name = default_span_name(req, ext);
-        reqwest_otel_span!(name = name, req, url.full = %remove_credentials(req.url()))
+        #[cfg(not(feature = "deprecated_fields"))]
+        {
+            reqwest_otel_span!(name = name, req, url.full = %remove_credentials(req.url()))
+        }
+        #[cfg(feature = "deprecated_fields")]
+        {
+            reqwest_otel_span!(name = name, req, http.full = %remove_credentials(req.url()))
+        }
     }
 
     fn on_request_end(span: &Span, outcome: &Result<Response>, _: &mut Extensions) {
