@@ -127,7 +127,7 @@ macro_rules! reqwest_otel_span {
             let header_default = &::http::HeaderValue::from_static("");
             let user_agent = format!("{:?}", $request.headers().get("user-agent").unwrap_or(header_default)).replace('"', "");
 
-            #[cfg(not(feature = "deprecated_fields"))]
+            #[cfg(not(feature = "deprecated_attributes"))]
             macro_rules! request_span {
                 ($lvl:expr) => {
                     $crate::reqwest_otel_span_macro::private::span!(
@@ -149,7 +149,7 @@ macro_rules! reqwest_otel_span {
                 }
             }
 
-            #[cfg(feature = "deprecated_fields")]
+            #[cfg(feature = "deprecated_attributes")]
             macro_rules! request_span {
                 ($lvl:expr) => {
                     $crate::reqwest_otel_span_macro::private::span!(
