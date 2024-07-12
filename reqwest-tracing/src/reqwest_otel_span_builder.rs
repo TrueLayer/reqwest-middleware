@@ -85,10 +85,7 @@ pub fn default_on_request_success(span: &Span, response: &Response) {
     if let Some(span_status) = span_status {
         span.record(OTEL_STATUS_CODE, span_status);
     }
-    #[cfg(not(feature = "deprecated_attributes"))]
-    {
-        span.record(HTTP_RESPONSE_STATUS_CODE, response.status().as_u16());
-    }
+    span.record(HTTP_RESPONSE_STATUS_CODE, response.status().as_u16());
     #[cfg(feature = "deprecated_attributes")]
     {
         span.record(HTTP_STATUS_CODE, response.status().as_u16());
@@ -106,10 +103,7 @@ pub fn default_on_request_failure(span: &Span, e: &Error) {
     span.record(ERROR_CAUSE_CHAIN, error_cause_chain.as_str());
     if let Error::Reqwest(e) = e {
         if let Some(status) = e.status() {
-            #[cfg(not(feature = "deprecated_attributes"))]
-            {
-                span.record(HTTP_RESPONSE_STATUS_CODE, status.as_u16());
-            }
+            span.record(HTTP_RESPONSE_STATUS_CODE, status.as_u16());
             #[cfg(feature = "deprecated_attributes")]
             {
                 span.record(HTTP_STATUS_CODE, status.as_u16());
@@ -164,14 +158,7 @@ pub struct SpanBackendWithUrl;
 impl ReqwestOtelSpanBackend for SpanBackendWithUrl {
     fn on_request_start(req: &Request, ext: &mut Extensions) -> Span {
         let name = default_span_name(req, ext);
-        #[cfg(not(feature = "deprecated_attributes"))]
-        {
-            reqwest_otel_span!(name = name, req, url.full = %remove_credentials(req.url()))
-        }
-        #[cfg(feature = "deprecated_attributes")]
-        {
-            reqwest_otel_span!(name = name, req, http.full = %remove_credentials(req.url()))
-        }
+        reqwest_otel_span!(name = name, req, url.full = %remove_credentials(req.url()))
     }
 
     fn on_request_end(span: &Span, outcome: &Result<Response>, _: &mut Extensions) {
