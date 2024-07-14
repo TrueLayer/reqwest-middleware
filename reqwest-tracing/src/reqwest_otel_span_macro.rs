@@ -149,6 +149,7 @@ macro_rules! reqwest_otel_span {
                 }
             }
 
+            // With the deprecated attributes flag enabled, we publish both the old and new attributes.
             #[cfg(feature = "deprecated_attributes")]
             macro_rules! request_span {
                 ($lvl:expr) => {
@@ -166,7 +167,7 @@ macro_rules! reqwest_otel_span {
                         http.response.status_code = tracing::field::Empty,
                         error.message = tracing::field::Empty,
                         error.cause_chain = tracing::field::Empty,
-                        // deprecrated attributes
+                        // old attributes
                         http.method = %method,
                         http.scheme = %scheme,
                         http.host = %host,
