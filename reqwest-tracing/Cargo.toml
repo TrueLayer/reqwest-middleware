@@ -14,6 +14,9 @@ opentelemetry_0_20 = ["opentelemetry_0_20_pkg", "tracing-opentelemetry_0_21_pkg"
 opentelemetry_0_21 = ["opentelemetry_0_21_pkg", "tracing-opentelemetry_0_22_pkg"]
 opentelemetry_0_22 = ["opentelemetry_0_22_pkg", "tracing-opentelemetry_0_23_pkg"]
 opentelemetry_0_23 = ["opentelemetry_0_23_pkg", "tracing-opentelemetry_0_24_pkg"]
+# This feature ensures that both the old (deprecated) and new attributes are published simultaneously.
+# By doing so, we maintain backward compatibility, allowing existing code that relies on the old attributes
+# to continue functioning while encouraging the transition to the new attributes.
 deprecated_attributes = []
 
 [dependencies]
