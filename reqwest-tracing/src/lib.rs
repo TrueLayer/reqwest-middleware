@@ -100,5 +100,10 @@ pub use reqwest_otel_span_builder::{
     SERVER_ADDRESS, SERVER_PORT, URL_FULL, URL_SCHEME, USER_AGENT_ORIGINAL,
 };
 
+#[cfg(feature = "deprecated_attributes")]
+pub use reqwest_otel_span_builder::{
+    HTTP_HOST, HTTP_METHOD, HTTP_SCHEME, HTTP_STATUS_CODE, HTTP_URL, HTTP_USER_AGENT, NET_HOST_PORT,
+};
+
 #[doc(hidden)]
 pub mod reqwest_otel_span_macro;

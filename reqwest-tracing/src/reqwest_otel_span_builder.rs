@@ -33,6 +33,28 @@ pub const ERROR_MESSAGE: &str = "error.message";
 /// The `error.cause_chain` field added to the span by [`reqwest_otel_span`]
 pub const ERROR_CAUSE_CHAIN: &str = "error.cause_chain";
 
+/// The `http.method` field added to the span by [`reqwest_otel_span`]
+#[cfg(feature = "deprecated_attributes")]
+pub const HTTP_METHOD: &str = "http.method";
+/// The `http.scheme` field added to the span by [`reqwest_otel_span`]
+#[cfg(feature = "deprecated_attributes")]
+pub const HTTP_SCHEME: &str = "http.scheme";
+/// The `http.host` field added to the span by [`reqwest_otel_span`]
+#[cfg(feature = "deprecated_attributes")]
+pub const HTTP_HOST: &str = "http.host";
+/// The `http.url` field added to the span by [`reqwest_otel_span`]
+#[cfg(feature = "deprecated_attributes")]
+pub const HTTP_URL: &str = "http.url";
+/// The `host.port` field added to the span by [`reqwest_otel_span`]
+#[cfg(feature = "deprecated_attributes")]
+pub const NET_HOST_PORT: &str = "net.host.port";
+/// The `http.status_code` field added to the span by [`reqwest_otel_span`]
+#[cfg(feature = "deprecated_attributes")]
+pub const HTTP_STATUS_CODE: &str = "http.status_code";
+/// The `http.user_agent` added to the span by [`reqwest_otel_span`]
+#[cfg(feature = "deprecated_attributes")]
+pub const HTTP_USER_AGENT: &str = "http.user_agent";
+
 /// [`ReqwestOtelSpanBackend`] allows you to customise the span attached by
 /// [`TracingMiddleware`] to incoming requests.
 ///
@@ -64,6 +86,11 @@ pub fn default_on_request_success(span: &Span, response: &Response) {
         span.record(OTEL_STATUS_CODE, span_status);
     }
     span.record(HTTP_RESPONSE_STATUS_CODE, response.status().as_u16());
+    #[cfg(feature = "deprecated_attributes")]
+    {
+        span.record(HTTP_STATUS_CODE, response.status().as_u16());
+        span.record(HTTP_USER_AGENT, user_agent.as_str());
+    }
 }
 
 /// Populates default failure fields for a given [`reqwest_otel_span!`] span.
@@ -77,6 +104,10 @@ pub fn default_on_request_failure(span: &Span, e: &Error) {
     if let Error::Reqwest(e) = e {
         if let Some(status) = e.status() {
             span.record(HTTP_RESPONSE_STATUS_CODE, status.as_u16());
+            #[cfg(feature = "deprecated_attributes")]
+            {
+                span.record(HTTP_STATUS_CODE, status.as_u16());
+            }
         }
     }
 }
