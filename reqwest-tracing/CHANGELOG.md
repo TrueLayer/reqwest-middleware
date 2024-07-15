@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.5.2] - 2024-07-15
 
 ### Added
-- Added support for `opentelemetry` 0.13 to 0.19 through the `deprecated_attributes` flag.
+- Added feature flag, `deprecated_attributes`, for emitting [deprecated opentelemetry HTTP attributes](https://opentelemetry.io/docs/specs/semconv/http/migration-guide/) alongside the stable ones used by default
 
 ## [0.5.1] - 2024-06-28
 
