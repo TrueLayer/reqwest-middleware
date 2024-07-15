@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.2] - 2024-07-15
+
+### Added
+- Added support for `opentelemetry` 0.13 to 0.19 through the `deprecated_attributes` flag.
+
 ## [0.5.1] - 2024-06-28
 
 ### Added
