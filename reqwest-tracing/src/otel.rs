@@ -33,6 +33,13 @@ pub fn inject_opentelemetry_context_into_request(mut request: Request) -> Reques
         injector.inject_context(&context, &mut RequestCarrier::new(&mut request))
     });
 
+    #[cfg(feature = "opentelemetry_0_24")]
+    opentelemetry_0_24_pkg::global::get_text_map_propagator(|injector| {
+        use tracing_opentelemetry_0_24_pkg::OpenTelemetrySpanExt;
+        let context = Span::current().context();
+        injector.inject_context(&context, &mut RequestCarrier::new(&mut request))
+    });
+
     request
 }
 
@@ -83,6 +90,13 @@ impl<'a> opentelemetry_0_22_pkg::propagation::Injector for RequestCarrier<'a> {
 
 #[cfg(feature = "opentelemetry_0_23")]
 impl<'a> opentelemetry_0_23_pkg::propagation::Injector for RequestCarrier<'a> {
+    fn set(&mut self, key: &str, value: String) {
+        self.set_inner(key, value)
+    }
+}
+
+#[cfg(feature = "opentelemetry_0_24")]
+impl<'a> opentelemetry_0_24_pkg::propagation::Injector for RequestCarrier<'a> {
     fn set(&mut self, key: &str, value: String) {
         self.set_inner(key, value)
     }
@@ -194,6 +208,29 @@ mod test {
                 let _ = opentelemetry_0_23_pkg::global::set_tracer_provider(provider);
                 opentelemetry_0_23_pkg::global::set_text_map_propagator(
                     opentelemetry_sdk_0_23::propagation::TraceContextPropagator::new(),
+                );
+
+                let telemetry = tracing_opentelemetry_0_24_pkg::layer().with_tracer(tracer);
+                subscriber.with(telemetry)
+            };
+
+            #[cfg(feature = "opentelemetry_0_24")]
+            let subscriber = {
+                use opentelemetry_0_24_pkg::trace::TracerProvider;
+                use opentelemetry_stdout_0_4::SpanExporterBuilder;
+
+                let exporter = SpanExporterBuilder::default()
+                    .with_writer(std::io::sink())
+                    .build();
+
+                let provider = opentelemetry_sdk_0_23::trace::TracerProvider::builder()
+                    .with_simple_exporter(exporter)
+                    .build();
+
+                let tracer = provider.tracer_builder("reqwest").build();
+                let _ = opentelemetry_0_24_pkg::global::set_tracer_provider(provider);
+                opentelemetry_0_24_pkg::global::set_text_map_propagator(
+                    opentelemetry_sdk_0_24::propagation::TraceContextPropagator::new(),
                 );
 
                 let telemetry = tracing_opentelemetry_0_24_pkg::layer().with_tracer(tracer);
