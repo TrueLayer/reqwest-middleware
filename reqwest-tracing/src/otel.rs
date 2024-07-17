@@ -223,7 +223,7 @@ mod test {
                     .with_writer(std::io::sink())
                     .build();
 
-                let provider = opentelemetry_sdk_0_23::trace::TracerProvider::builder()
+                let provider = opentelemetry_sdk_0_24::trace::TracerProvider::builder()
                     .with_simple_exporter(exporter)
                     .build();
 
