@@ -14,7 +14,6 @@ reqwest-middleware = { version = "0.3.0", path = "../reqwest-middleware" }
 
 anyhow = "1.0.0"
 async-trait = "0.1.51"
-chrono = { version = "0.4.19", features = ["clock"], default-features = false }
 futures = "0.3.0"
 http = "1.0"
 reqwest = { version = "0.12.0", default-features = false }
