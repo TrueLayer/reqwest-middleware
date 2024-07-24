@@ -35,7 +35,7 @@ pub fn inject_opentelemetry_context_into_request(mut request: Request) -> Reques
 
     #[cfg(feature = "opentelemetry_0_24")]
     opentelemetry_0_24_pkg::global::get_text_map_propagator(|injector| {
-        use tracing_opentelemetry_0_24_pkg::OpenTelemetrySpanExt;
+        use tracing_opentelemetry_0_25_pkg::OpenTelemetrySpanExt;
         let context = Span::current().context();
         injector.inject_context(&context, &mut RequestCarrier::new(&mut request))
     });
@@ -217,7 +217,7 @@ mod test {
             #[cfg(feature = "opentelemetry_0_24")]
             let subscriber = {
                 use opentelemetry_0_24_pkg::trace::TracerProvider;
-                use opentelemetry_stdout_0_4::SpanExporterBuilder;
+                use opentelemetry_stdout_0_5::SpanExporterBuilder;
 
                 let exporter = SpanExporterBuilder::default()
                     .with_writer(std::io::sink())
@@ -233,7 +233,7 @@ mod test {
                     opentelemetry_sdk_0_24::propagation::TraceContextPropagator::new(),
                 );
 
-                let telemetry = tracing_opentelemetry_0_24_pkg::layer().with_tracer(tracer);
+                let telemetry = tracing_opentelemetry_0_25_pkg::layer().with_tracer(tracer);
                 subscriber.with(telemetry)
             };
 
