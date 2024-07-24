@@ -78,6 +78,12 @@ pub fn default_on_request_end(span: &Span, outcome: &Result<Response>) {
     }
 }
 
+#[cfg(feature = "deprecated_attributes")]
+fn get_header_value(key: &str, headers: &reqwest::header::HeaderMap) -> String {
+    let header_default = &reqwest::header::HeaderValue::from_static("");
+    format!("{:?}", headers.get(key).unwrap_or(header_default)).replace('"', "")
+}
+
 /// Populates default success fields for a given [`reqwest_otel_span!`] span.
 #[inline]
 pub fn default_on_request_success(span: &Span, response: &Response) {
@@ -88,6 +94,7 @@ pub fn default_on_request_success(span: &Span, response: &Response) {
     span.record(HTTP_RESPONSE_STATUS_CODE, response.status().as_u16());
     #[cfg(feature = "deprecated_attributes")]
     {
+        let user_agent = get_header_value("user_agent", response.headers());
         span.record(HTTP_STATUS_CODE, response.status().as_u16());
         span.record(HTTP_USER_AGENT, user_agent.as_str());
     }
