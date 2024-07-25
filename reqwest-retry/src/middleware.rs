@@ -11,8 +11,13 @@ use retry_policies::RetryPolicy;
 
 #[cfg(feature = "tracing")]
 type LogLevel = ::tracing::Level;
+#[cfg(feature = "tracing")]
+use ::tracing as LogTracing;
+
 #[cfg(all(feature = "log", not(feature = "tracing")))]
 type LogLevel = ::log::Level;
+#[cfg(all(feature = "log", not(feature = "tracing")))]
+use ::log as LogTracing;
 
 #[doc(hidden)]
 // We need this macro because tracing expects the level to be const:
@@ -20,11 +25,11 @@ type LogLevel = ::log::Level;
 macro_rules! log_retry {
     ($level:expr, $($args:tt)*) => {{
         match $level {
-            LogLevel::TRACE => ::tracing::trace!($($args)*),
-            LogLevel::DEBUG => ::tracing::debug!($($args)*),
-            LogLevel::INFO => ::tracing::info!($($args)*),
-            LogLevel::WARN => ::tracing::warn!($($args)*),
-            LogLevel::ERROR => ::tracing::error!($($args)*),
+            LogLevel::TRACE => LogTracing::trace!($($args)*),
+            LogLevel::DEBUG => LogTracing::debug!($($args)*),
+            LogLevel::INFO => LogTracing::info!($($args)*),
+            LogLevel::WARN => LogTracing::warn!($($args)*),
+            LogLevel::ERROR => LogTracing::error!($($args)*),
         }
     }};
 }
