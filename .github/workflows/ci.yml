@@ -28,7 +28,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --workspace --all-targets --features ${{ matrix.otel_version }}
+          args: --workspace --all-targets --features "reqwest-tracing/deprecated_attributes, ${{ matrix.otel_version }}"
 
   rustfmt:
     name: Rustfmt
@@ -73,7 +73,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets --features ${{ matrix.otel_version }} --workspace -- -D warnings
+          args: --all-targets --features "reqwest-tracing/deprecated_attributes, ${{ matrix.otel_version }}" --workspace -- -D warnings
 
   typos:
     name: Spell Check with Typos
@@ -109,7 +109,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: doc
-          args: --no-deps --document-private-items --features ${{ matrix.otel_version }} --workspace
+          args: --no-deps --document-private-items --features "reqwest-tracing/deprecated_attributes, ${{ matrix.otel_version }}" --workspace
 
   publish-check:
     name: Publish dry run
