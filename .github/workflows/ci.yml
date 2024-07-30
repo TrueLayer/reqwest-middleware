@@ -7,16 +7,8 @@ name: CI # Continuous Integration
 jobs:
 
   test:
-    name: Test Suite
+    name: Run test suite
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        otel_version:
-          - opentelemetry_0_20
-          - opentelemetry_0_21
-          - opentelemetry_0_22
-          - opentelemetry_0_23
-          - opentelemetry_0_24
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -29,8 +21,25 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --workspace --all-targets --features ${{ matrix.otel_version }}
+          args: --workspace --all-targets --all-features
 
+  test-features:
+    name: Run test suite with every feature combination
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
+      - name: test
+        run: cargo hack test --feature-powerset
+  
   rustfmt:
     name: Rustfmt
     runs-on: ubuntu-latest
@@ -51,16 +60,8 @@ jobs:
           args: --all -- --check
 
   clippy:
-    name: Clippy
+    name: Run clippy
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        otel_version:
-          - opentelemetry_0_20
-          - opentelemetry_0_21
-          - opentelemetry_0_22
-          - opentelemetry_0_23
-          - opentelemetry_0_24
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -75,7 +76,26 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets --features ${{ matrix.otel_version }} --workspace -- -D warnings
+          args: --all-targets --all-features --workspace -- -D warnings
+
+
+  clippy-features:
+    name: Run clippy for every feature combination
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+          components: clippy
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
+      - name: test
+        run: cargo hack clippy --feature-powerset
 
   typos:
     name: Spell Check with Typos
@@ -89,14 +109,6 @@ jobs:
   docs:
     name: Docs
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        otel_version:
-          - opentelemetry_0_20
-          - opentelemetry_0_21
-          - opentelemetry_0_22
-          - opentelemetry_0_23
-          - opentelemetry_0_24
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -112,7 +124,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: doc
-          args: --no-deps --document-private-items --features ${{ matrix.otel_version }} --workspace
+          args: --no-deps --document-private-items --all-features --workspace
 
   publish-check:
     name: Publish dry run
