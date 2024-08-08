@@ -1,6 +1,6 @@
 [package]
 name = "reqwest-middleware"
-version = "0.3.2"
+version = "0.3.3"
 authors = ["Rodrigo Gryzinski <rodrigo.gryzinski@truelayer.com>"]
 edition = "2018"
 description = "Wrapper around reqwest to allow for client middleware chains."
