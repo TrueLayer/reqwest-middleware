@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.5.2] - 2024-07-15
 
 ### Added
+- Added support for OpenTelemetry `0.24` ([#171](https://github.com/TrueLayer/reqwest-middleware/pull/171))
+
+### Fixed
+- Fixed, `deprecated_attributes` feature, failing to compile ([#172](https://github.com/TrueLayer/reqwest-middleware/pull/172))
+
+## [0.5.2] - 2024-07-15
+
+### Added
 - Added feature flag, `deprecated_attributes`, for emitting [deprecated opentelemetry HTTP attributes](https://opentelemetry.io/docs/specs/semconv/http/migration-guide/) alongside the stable ones used by default
 
 ## [0.5.1] - 2024-06-28
