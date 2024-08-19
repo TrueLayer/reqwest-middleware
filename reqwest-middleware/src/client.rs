@@ -256,7 +256,8 @@ mod service {
 
     use crate::Result;
     use http::Extensions;
-    use reqwest::{Request, Response};
+    use reqwest::{Client, Request, Response};
+    use tower_service::Service;
 
     use crate::{middleware::BoxFuture, ClientWithMiddleware, Next};
 
@@ -281,7 +282,7 @@ mod service {
         type Future = Pending;
 
         fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<()>> {
-            self.inner.poll_ready(cx).map_err(crate::Error::Reqwest)
+            <Client as Service<Request>>::poll_ready(&mut self.inner, cx).map_err(crate::Error::Reqwest)
         }
 
         fn call(&mut self, req: Request) -> Self::Future {
@@ -303,7 +304,7 @@ mod service {
         type Future = Pending;
 
         fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<()>> {
-            (&self.inner).poll_ready(cx).map_err(crate::Error::Reqwest)
+            <&Client as Service<Request>>::poll_ready(&mut (&self.inner), cx).map_err(crate::Error::Reqwest)
         }
 
         fn call(&mut self, req: Request) -> Self::Future {
