@@ -242,7 +242,7 @@ pub struct OtelName(pub Cow<'static, str>);
 /// let reqwest_client = reqwest::Client::builder().build()?;
 /// let client = ClientBuilder::new(reqwest_client)
 ///    // Inserts the extension before the request is started
-///    .with_init(Extension(OtelPathNames::known_paths(["/payment/:paymentId"])?))
+///    .with_init(Extension(OtelPathNames::known_paths(["/payment/{paymentId}"])?))
 ///    // Makes use of that extension to specify the otel name
 ///    .with(TracingMiddleware::default())
 ///    .build();
@@ -251,7 +251,7 @@ pub struct OtelName(pub Cow<'static, str>);
 ///
 /// // Or specify it on the individual request (will take priority)
 /// let resp = client.post("https://api.truelayer.com/payment/id-123/authorization-flow")
-///     .with_extension(OtelPathNames::known_paths(["/payment/:paymentId/authorization-flow"])?)
+///     .with_extension(OtelPathNames::known_paths(["/payment/{paymentId}/authorization-flow"])?)
 ///    .send()
 ///    .await?;
 /// # Ok(())
@@ -273,8 +273,8 @@ impl OtelPathNames {
     /// OtelPathNames::known_paths([
     ///     "/",
     ///     "/payment",
-    ///     "/payment/:paymentId",
-    ///     "/payment/:paymentId/*action",
+    ///     "/payment/{paymentId}",
+    ///     "/payment/{paymentId}/*action",
     /// ]).unwrap();
     /// ```
     pub fn known_paths<Paths, Path>(paths: Paths) -> anyhow::Result<Self>
