@@ -281,7 +281,8 @@ mod service {
         type Future = Pending;
 
         fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<()>> {
-            self.inner.poll_ready(cx).map_err(crate::Error::Reqwest)
+            <reqwest::Client as tower_service::Service<Request>>::poll_ready(&mut self.inner, cx)
+                .map_err(crate::Error::Reqwest)
         }
 
         fn call(&mut self, req: Request) -> Self::Future {
@@ -303,7 +304,11 @@ mod service {
         type Future = Pending;
 
         fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<()>> {
-            (&self.inner).poll_ready(cx).map_err(crate::Error::Reqwest)
+            <&reqwest::Client as tower_service::Service<Request>>::poll_ready(
+                &mut (&self.inner),
+                cx,
+            )
+            .map_err(crate::Error::Reqwest)
         }
 
         fn call(&mut self, req: Request) -> Self::Future {
