@@ -165,7 +165,13 @@ pub struct SpanBackendWithUrl;
 impl ReqwestOtelSpanBackend for SpanBackendWithUrl {
     fn on_request_start(req: &Request, ext: &mut Extensions) -> Span {
         let name = default_span_name(req, ext);
-        reqwest_otel_span!(name = name, req, url.full = %remove_credentials(req.url()))
+        let url = remove_credentials(req.url());
+        let span = reqwest_otel_span!(name = name, req, url.full = %url);
+        #[cfg(feature = "deprecated_attributes")]
+        {
+            span.record(HTTP_URL, url.to_string());
+        }
+        span
     }
 
     fn on_request_end(span: &Span, outcome: &Result<Response>, _: &mut Extensions) {
