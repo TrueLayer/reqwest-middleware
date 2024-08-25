@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1] - 2024-08-08
+
+### Added
+- Removed dependency on `chrono` ([#170](https://github.com/TrueLayer/reqwest-middleware/pull/170))
+
 ## [0.6.0] - 2024-06-28
 
 ### Added
