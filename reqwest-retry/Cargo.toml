@@ -11,6 +11,7 @@ categories = ["web-programming::http-client"]
 
 [features]
 default = ["tracing"]
+log = ["dep:log"]
 tracing = ["dep:tracing"]
 
 [dependencies]
@@ -19,6 +20,7 @@ reqwest-middleware = { version = "0.3.0", path = "../reqwest-middleware" }
 anyhow = "1.0.0"
 async-trait = "0.1.51"
 futures = "0.3.0"
+log = { version = "0.4.22", optional = true }
 http = "1.0"
 reqwest = { version = "0.12.0", default-features = false }
 retry-policies = "0.4"

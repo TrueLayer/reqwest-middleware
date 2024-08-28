@@ -9,6 +9,16 @@ use reqwest::{Request, Response};
 use reqwest_middleware::{Error, Middleware, Next, Result};
 use retry_policies::RetryPolicy;
 
+#[cfg(feature = "tracing")]
+type LogLevel = ::tracing::Level;
+#[cfg(feature = "tracing")]
+use ::tracing as LogTracing;
+
+#[cfg(all(feature = "log", not(feature = "tracing")))]
+type LogLevel = ::log::Level;
+#[cfg(all(feature = "log", not(feature = "tracing")))]
+use ::log as LogTracing;
+
 #[doc(hidden)]
 // We need this macro because tracing expects the level to be const:
 // https://github.com/tokio-rs/tracing/issues/2730
@@ -16,12 +26,19 @@ use retry_policies::RetryPolicy;
 macro_rules! log_retry {
     ($level:expr, $($args:tt)*) => {{
         match $level {
-            ::tracing::Level::TRACE => ::tracing::trace!($($args)*),
-            ::tracing::Level::DEBUG => ::tracing::debug!($($args)*),
-            ::tracing::Level::INFO => ::tracing::info!($($args)*),
-            ::tracing::Level::WARN => ::tracing::warn!($($args)*),
-            ::tracing::Level::ERROR => ::tracing::error!($($args)*),
+            LogLevel::TRACE => LogTracing::trace!($($args)*),
+            LogLevel::DEBUG => LogTracing::debug!($($args)*),
+            LogLevel::INFO => LogTracing::info!($($args)*),
+            LogLevel::WARN => LogTracing::warn!($($args)*),
+            LogLevel::ERROR => LogTracing::error!($($args)*),
         }
+    }};
+}
+
+#[cfg(all(feature = "log", not(feature = "tracing")))]
+macro_rules! log_retry {
+    ($level:expr, $($args:tt)*) => {{
+        LogTracing::log!($level, $($args)*)
     }};
 }
 
@@ -70,8 +87,8 @@ pub struct RetryTransientMiddleware<
 > {
     retry_policy: T,
     retryable_strategy: R,
-    #[cfg(feature = "tracing")]
-    retry_log_level: ::tracing::Level,
+    #[cfg(any(feature = "log", feature = "tracing"))]
+    retry_log_level: LogLevel,
 }
 
 impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T, DefaultRetryableStrategy> {
@@ -82,8 +99,8 @@ impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T, DefaultRetryableS
 
     /// Set the log [level][tracing::Level] for retry events.
     /// The default is [`WARN`][tracing::Level::WARN].
-    #[cfg(feature = "tracing")]
-    pub fn with_retry_log_level(mut self, level: ::tracing::Level) -> Self {
+    #[cfg(any(feature = "log", feature = "tracing"))]
+    pub fn with_retry_log_level(mut self, level: LogLevel) -> Self {
         self.retry_log_level = level;
         self
     }
@@ -100,7 +117,9 @@ where
             retry_policy,
             retryable_strategy,
             #[cfg(feature = "tracing")]
-            retry_log_level: ::tracing::Level::WARN,
+            retry_log_level: LogLevel::WARN,
+            #[cfg(all(feature = "log", not(feature = "tracing")))]
+            retry_log_level: LogLevel::Warn,
         }
     }
 }
@@ -167,7 +186,7 @@ where
                             .duration_since(SystemTime::now())
                             .unwrap_or_else(|_| Duration::default());
                         // Sleep the requested amount before we try again.
-                        #[cfg(feature = "tracing")]
+                        #[cfg(any(feature = "log", feature = "tracing"))]
                         log_retry!(
                             self.retry_log_level,
                             "Retry attempt #{}. Sleeping {:?} before the next attempt",
