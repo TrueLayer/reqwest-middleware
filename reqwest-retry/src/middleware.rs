@@ -71,7 +71,7 @@ pub struct RetryTransientMiddleware<
     retry_policy: T,
     retryable_strategy: R,
     #[cfg(feature = "tracing")]
-    retry_log_level: tracing::Level,
+    retry_log_level: ::tracing::Level,
 }
 
 impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T, DefaultRetryableStrategy> {
@@ -83,7 +83,7 @@ impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T, DefaultRetryableS
     /// Set the log [level][tracing::Level] for retry events.
     /// The default is [`WARN`][tracing::Level::WARN].
     #[cfg(feature = "tracing")]
-    pub fn with_retry_log_level(mut self, level: tracing::Level) -> Self {
+    pub fn with_retry_log_level(mut self, level: ::tracing::Level) -> Self {
         self.retry_log_level = level;
         self
     }
@@ -100,7 +100,7 @@ where
             retry_policy,
             retryable_strategy,
             #[cfg(feature = "tracing")]
-            retry_log_level: tracing::Level::WARN,
+            retry_log_level: ::tracing::Level::WARN,
         }
     }
 }
