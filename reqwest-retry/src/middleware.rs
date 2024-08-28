@@ -22,7 +22,6 @@ use ::log as LogTracing;
 #[doc(hidden)]
 // We need this macro because tracing expects the level to be const:
 // https://github.com/tokio-rs/tracing/issues/2730
-#[cfg(feature = "tracing")]
 macro_rules! log_retry {
     ($level:expr, $($args:tt)*) => {{
         match $level {
@@ -32,13 +31,6 @@ macro_rules! log_retry {
             LogLevel::WARN => LogTracing::warn!($($args)*),
             LogLevel::ERROR => LogTracing::error!($($args)*),
         }
-    }};
-}
-
-#[cfg(all(feature = "log", not(feature = "tracing")))]
-macro_rules! log_retry {
-    ($level:expr, $($args:tt)*) => {{
-        LogTracing::log!($level, $($args)*)
     }};
 }
 
@@ -116,10 +108,7 @@ where
         Self {
             retry_policy,
             retryable_strategy,
-            #[cfg(feature = "tracing")]
             retry_log_level: LogLevel::WARN,
-            #[cfg(all(feature = "log", not(feature = "tracing")))]
-            retry_log_level: LogLevel::Warn,
         }
     }
 }
@@ -186,7 +175,6 @@ where
                             .duration_since(SystemTime::now())
                             .unwrap_or_else(|_| Duration::default());
                         // Sleep the requested amount before we try again.
-                        #[cfg(any(feature = "log", feature = "tracing"))]
                         log_retry!(
                             self.retry_log_level,
                             "Retry attempt #{}. Sleeping {:?} before the next attempt",
