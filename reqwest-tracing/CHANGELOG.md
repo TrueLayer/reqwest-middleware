@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Added support for OpenTelemetry `0.25` ([#188](https://github.com/TrueLayer/reqwest-middleware/pull/188))
+
 ### Changed
 - Restore adding `http.url` attribute when using `SpanBackendWithUrl` middleware with the `deprecated_attributes` feature enabled
 
