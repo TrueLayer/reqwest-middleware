@@ -52,6 +52,7 @@ where
                 feature = "opentelemetry_0_23",
                 feature = "opentelemetry_0_24",
                 feature = "opentelemetry_0_25",
+                feature = "opentelemetry_0_26",
             ))]
             let req = if extensions.get::<crate::DisableOtelPropagation>().is_none() {
                 // Adds tracing headers to the given request to propagate the OpenTelemetry context to downstream revivers of the request.
