@@ -89,6 +89,8 @@ mod middleware;
     feature = "opentelemetry_0_22",
     feature = "opentelemetry_0_23",
     feature = "opentelemetry_0_24",
+    feature = "opentelemetry_0_25",
+    feature = "opentelemetry_0_26",
 ))]
 mod otel;
 mod reqwest_otel_span_builder;
