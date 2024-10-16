@@ -165,7 +165,13 @@ pub struct SpanBackendWithUrl;
 impl ReqwestOtelSpanBackend for SpanBackendWithUrl {
     fn on_request_start(req: &Request, ext: &mut Extensions) -> Span {
         let name = default_span_name(req, ext);
-        reqwest_otel_span!(name = name, req, url.full = %remove_credentials(req.url()))
+        let url = remove_credentials(req.url());
+        let span = reqwest_otel_span!(name = name, req, url.full = %url);
+        #[cfg(feature = "deprecated_attributes")]
+        {
+            span.record(HTTP_URL, url.to_string());
+        }
+        span
     }
 
     fn on_request_end(span: &Span, outcome: &Result<Response>, _: &mut Extensions) {
@@ -242,7 +248,7 @@ pub struct OtelName(pub Cow<'static, str>);
 /// let reqwest_client = reqwest::Client::builder().build()?;
 /// let client = ClientBuilder::new(reqwest_client)
 ///    // Inserts the extension before the request is started
-///    .with_init(Extension(OtelPathNames::known_paths(["/payment/:paymentId"])?))
+///    .with_init(Extension(OtelPathNames::known_paths(["/payment/{paymentId}"])?))
 ///    // Makes use of that extension to specify the otel name
 ///    .with(TracingMiddleware::default())
 ///    .build();
@@ -251,7 +257,7 @@ pub struct OtelName(pub Cow<'static, str>);
 ///
 /// // Or specify it on the individual request (will take priority)
 /// let resp = client.post("https://api.truelayer.com/payment/id-123/authorization-flow")
-///     .with_extension(OtelPathNames::known_paths(["/payment/:paymentId/authorization-flow"])?)
+///     .with_extension(OtelPathNames::known_paths(["/payment/{paymentId}/authorization-flow"])?)
 ///    .send()
 ///    .await?;
 /// # Ok(())
@@ -273,8 +279,8 @@ impl OtelPathNames {
     /// OtelPathNames::known_paths([
     ///     "/",
     ///     "/payment",
-    ///     "/payment/:paymentId",
-    ///     "/payment/:paymentId/*action",
+    ///     "/payment/{paymentId}",
+    ///     "/payment/{paymentId}/*action",
     /// ]).unwrap();
     /// ```
     pub fn known_paths<Paths, Path>(paths: Paths) -> anyhow::Result<Self>

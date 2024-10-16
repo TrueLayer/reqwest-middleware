@@ -12,6 +12,7 @@ use retry_policies::RetryPolicy;
 #[doc(hidden)]
 // We need this macro because tracing expects the level to be const:
 // https://github.com/tokio-rs/tracing/issues/2730
+#[cfg(feature = "tracing")]
 macro_rules! log_retry {
     ($level:expr, $($args:tt)*) => {{
         match $level {
@@ -69,6 +70,7 @@ pub struct RetryTransientMiddleware<
 > {
     retry_policy: T,
     retryable_strategy: R,
+    #[cfg(feature = "tracing")]
     retry_log_level: tracing::Level,
 }
 
@@ -80,6 +82,7 @@ impl<T: RetryPolicy + Send + Sync> RetryTransientMiddleware<T, DefaultRetryableS
 
     /// Set the log [level][tracing::Level] for retry events.
     /// The default is [`WARN`][tracing::Level::WARN].
+    #[cfg(feature = "tracing")]
     pub fn with_retry_log_level(mut self, level: tracing::Level) -> Self {
         self.retry_log_level = level;
         self
@@ -96,6 +99,7 @@ where
         Self {
             retry_policy,
             retryable_strategy,
+            #[cfg(feature = "tracing")]
             retry_log_level: tracing::Level::WARN,
         }
     }
@@ -163,6 +167,7 @@ where
                             .duration_since(SystemTime::now())
                             .unwrap_or_else(|_| Duration::default());
                         // Sleep the requested amount before we try again.
+                        #[cfg(feature = "tracing")]
                         log_retry!(
                             self.retry_log_level,
                             "Retry attempt #{}. Sleeping {:?} before the next attempt",
