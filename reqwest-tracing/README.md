@@ -25,18 +25,18 @@ tokio = { version = "1.12.0", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1"
 tracing-opentelemetry = "0.23"
 tracing-subscriber = "0.3"
+http = "1"
 ```
 
 ```rust,skip
 use reqwest_tracing::{default_on_request_end, reqwest_otel_span, ReqwestOtelSpanBackend, TracingMiddleware};
-use opentelemetry::sdk::export::trace::stdout;
 use reqwest::{Request, Response};
 use reqwest_middleware::{ClientBuilder, Result};
 use std::time::Instant;
 use http::Extensions;
 use tracing::Span;
-use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::Registry;
+use tracing_subscriber::FmtSubscriber;
+use tracing::Level;
 
 pub struct TimeTrace;
 
@@ -55,10 +55,12 @@ impl ReqwestOtelSpanBackend for TimeTrace {
 
 #[tokio::main]
 async fn main() {
-    let tracer = stdout::new_pipeline().install_simple();
-    let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
-    let subscriber = Registry::default().with(telemetry);
-    tracing::subscriber::set_global_default(subscriber).unwrap();
+    let subscriber = FmtSubscriber::builder()
+        .with_max_level(Level::TRACE)
+        .finish();
+
+    tracing::subscriber::set_global_default(subscriber)
+        .expect("setting default subscriber failed");
 
     run().await;
 }
@@ -74,7 +76,13 @@ async fn run() {
 
 ```terminal
 $ cargo run
-SpanData { span_context: SpanContext { trace_id: ...
+2024-09-10T13:19:52.520194Z TRACE HTTP request{http.request.method=GET url.scheme=https server.address=truelayer.com server.port=443 user_agent.original= otel.kind="client" otel.name=example-request}: hyper_util::client::legacy::pool: checkout waiting for idle connection: ("https", truelayer.com)
+2024-09-10T13:19:52.520303Z TRACE HTTP request{http.request.method=GET url.scheme=https server.address=truelayer.com server.port=443 user_agent.original= otel.kind="client" otel.name=example-request}: hyper_util::client::legacy::connect::http: Http::connect; scheme=Some("https"), host=Some("truelayer.com"), port=None
+2024-09-10T13:19:52.520686Z DEBUG HTTP request{http.request.method=GET url.scheme=https server.address=truelayer.com server.port=443 user_agent.original= otel.kind="client" otel.name=example-request}:resolve{host=truelayer.com}: hyper_util::client::legacy::connect::dns: resolving host="truelayer.com"
+2024-09-10T13:19:52.521847Z DEBUG HTTP request{http.request.method=GET url.scheme=https server.address=truelayer.com server.port=443 user_agent.original= otel.kind="client" otel.name=example-request}: hyper_util::client::legacy::connect::http: connecting to 104.18.24.12:443
+2024-09-10T13:19:52.532045Z DEBUG HTTP request{http.request.method=GET url.scheme=https server.address=truelayer.com server.port=443 user_agent.original= otel.kind="client" otel.name=example-request}: hyper_util::client::legacy::connect::http: connected to 104.18.24.12:443
+2024-09-10T13:19:52.548050Z TRACE HTTP request{http.request.method=GET url.scheme=https server.address=truelayer.com server.port=443 user_agent.original= otel.kind="client" otel.name=example-request}: hyper_util::client::legacy::client: http1 handshake complete, spawning background dispatcher task
+2024-09-10T13:19:52.548651Z TRACE HTTP request{http.request.method=GET url.scheme=https server.address=truelayer.com server.port=443 user_agent.original= otel.kind="client" otel.name=example-request}: hyper_util::client::legacy::pool: checkout dropped for ("https", truelayer.com)
 ```
 
 See the [`tracing`](https://crates.io/crates/tracing) crate for more information on how to set up a
