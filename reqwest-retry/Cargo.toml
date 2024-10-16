@@ -1,6 +1,6 @@
 [package]
 name = "reqwest-retry"
-version = "0.6.1"
+version = "0.7.1"
 authors = ["Rodrigo Gryzinski <rodrigo.gryzinski@truelayer.com>"]
 edition = "2018"
 description = "Retry middleware for reqwest."
@@ -22,6 +22,7 @@ futures = "0.3.0"
 http = "1.0"
 reqwest = { version = "0.12.0", default-features = false }
 retry-policies = "0.4"
+thiserror = "1.0.61"
 tracing = { version = "0.1.26", optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
