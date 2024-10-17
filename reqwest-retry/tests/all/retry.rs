@@ -199,7 +199,7 @@ async fn assert_retry_on_request_timeout() {
         .build();
 
     let resp = client
-        .get(&format!("{}/foo", server.uri()))
+        .get(format!("{}/foo", server.uri()))
         .timeout(std::time::Duration::from_millis(10))
         .send()
         .await
@@ -254,7 +254,7 @@ async fn assert_retry_on_incomplete_message() {
         .build();
 
     let resp = client
-        .get(&format!("{}/foo", uri))
+        .get(format!("{}/foo", uri))
         .timeout(std::time::Duration::from_millis(100))
         .send()
         .await
@@ -305,7 +305,7 @@ async fn assert_retry_on_hyper_canceled() {
         .build();
 
     let resp = client
-        .get(&format!("{}/foo", uri))
+        .get(format!("{}/foo", uri))
         .timeout(std::time::Duration::from_millis(100))
         .send()
         .await
@@ -353,7 +353,7 @@ async fn assert_retry_on_connection_reset_by_peer() {
         .build();
 
     let resp = client
-        .get(&format!("{}/foo", uri))
+        .get(format!("{}/foo", uri))
         .timeout(std::time::Duration::from_millis(100))
         .send()
         .await
