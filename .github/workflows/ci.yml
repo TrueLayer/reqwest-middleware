@@ -23,8 +23,8 @@ jobs:
           command: test
           args: --workspace --all-targets --all-features
 
-  test-features:
-    name: Run test suite with every feature combination
+  test-features-reqwest-middleware:
+    name: Run test suite for `reqwest-middleware` with every feature combination
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -38,7 +38,40 @@ jobs:
       - name: Install cargo-hack
         uses: taiki-e/install-action@cargo-hack
       - name: test
-        run: cargo hack test --feature-powerset
+        run: cargo hack test --feature-powerset -p reqwest-middleware
+  test-features-retry:
+    name: Run test suite for `reqwest-retry` with every feature combination
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
+      - name: test
+        run: cargo hack test --feature-powerset -p reqwest-retry
+  test-features-reqwest-tracing:
+    name: Run test suite for `reqwest-tracing` with every feature combination
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
+      # Old opentelemetry features group to improve performance
+      - name: test
+        run: cargo hack test --feature-powerset -p reqwest-tracing --group-features opentelemetry_0_20,opentelemetry_0_21,opentelemetry_0_22
   
   rustfmt:
     name: Rustfmt
