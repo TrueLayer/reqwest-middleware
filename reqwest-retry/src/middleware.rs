@@ -158,35 +158,32 @@ where
 
             // We classify the response which will return None if not
             // errors were returned.
-            match self.retryable_strategy.handle(&result) {
-                Some(Retryable::Transient) => {
-                    // If the response failed and the error type was transient
-                    // we can safely try to retry the request.
-                    let retry_decision = self.retry_policy.should_retry(start_time, n_past_retries);
-                    if let retry_policies::RetryDecision::Retry { execute_after } = retry_decision {
-                        let duration = execute_after
-                            .duration_since(SystemTime::now())
-                            .unwrap_or_else(|_| Duration::default());
-                        // Sleep the requested amount before we try again.
-                        #[cfg(feature = "tracing")]
-                        log_retry!(
-                            self.retry_log_level,
-                            "Retry attempt #{}. Sleeping {:?} before the next attempt",
-                            n_past_retries,
-                            duration
-                        );
-                        #[cfg(not(target_arch = "wasm32"))]
-                        tokio::time::sleep(duration).await;
-                        #[cfg(target_arch = "wasm32")]
-                        wasm_timer::Delay::new(duration)
-                            .await
-                            .expect("failed sleeping");
+            if let Some(Retryable::Transient) = self.retryable_strategy.handle(&result) {
+                // If the response failed and the error type was transient
+                // we can safely try to retry the request.
+                let retry_decision = self.retry_policy.should_retry(start_time, n_past_retries);
+                if let retry_policies::RetryDecision::Retry { execute_after } = retry_decision {
+                    let duration = execute_after
+                        .duration_since(SystemTime::now())
+                        .unwrap_or_else(|_| Duration::default());
+                    // Sleep the requested amount before we try again.
+                    #[cfg(feature = "tracing")]
+                    log_retry!(
+                        self.retry_log_level,
+                        "Retry attempt #{}. Sleeping {:?} before the next attempt",
+                        n_past_retries,
+                        duration
+                    );
+                    #[cfg(not(target_arch = "wasm32"))]
+                    tokio::time::sleep(duration).await;
+                    #[cfg(target_arch = "wasm32")]
+                    wasm_timer::Delay::new(duration)
+                        .await
+                        .expect("failed sleeping");
 
-                        n_past_retries += 1;
-                        continue;
-                    }
+                    n_past_retries += 1;
+                    continue;
                 }
-                Some(_) | None => {}
             };
 
             // Report whether we failed with or without retries.
