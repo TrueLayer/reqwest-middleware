@@ -56,14 +56,14 @@ macro_rules! log_retry {
 ///
 /// This middleware always errors when given requests with streaming bodies, before even executing
 /// the request. When this happens you'll get an [`Error::Middleware`] with the message
-/// 'Request object is not clonable. Are you passing a streaming body?'.
+/// 'Request object is not cloneable. Are you passing a streaming body?'.
 ///
 /// Some workaround suggestions:
 /// * If you can fit the data in memory, you can instead build static request bodies e.g. with
 ///   `Body`'s `From<String>` or `From<Bytes>` implementations.
 /// * You can wrap this middleware in a custom one which skips retries for streaming requests.
 /// * You can write a custom retry middleware that builds new streaming requests from the data
-///   source directly, avoiding the issue of streaming requests not being clonable.
+///   source directly, avoiding the issue of streaming requests not being cloneable.
 pub struct RetryTransientMiddleware<
     T: RetryPolicy + Send + Sync + 'static,
     R: RetryableStrategy + Send + Sync + 'static = DefaultRetryableStrategy,
@@ -149,7 +149,8 @@ where
             // since the byte abstraction is a shared pointer over a buffer.
             let duplicate_request = req.try_clone().ok_or_else(|| {
                 Error::Middleware(anyhow!(
-                    "Request object is not clonable. Are you passing a streaming body?".to_string()
+                    "Request object is not cloneable. Are you passing a streaming body?"
+                        .to_string()
                 ))
             })?;
 
