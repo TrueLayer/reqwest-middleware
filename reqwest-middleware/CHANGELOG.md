@@ -6,7 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
+## [0.4.0] - 2024-11-08
+
+### Breaking Changes
 - `request_middleware::Error` is now a transparent error enum and doesn't add its own context anymore.
 
 ## [0.3.3] - 2024-07-08
