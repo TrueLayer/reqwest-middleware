@@ -4,7 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.6.0]
+## [Unreleased]
+
+## [0.7.0] - 2024-11-08
+
+### Breaking changes
+- Errors are now reported as `RetryError` that adds the number of retries to the error chain if there were any. This changes the returned error types.
+
+### Added
+- Added support reqwest-middleware `0.4` next to `0.3`
 
 ## [0.6.1] - 2024-08-08
 
@@ -18,7 +26,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Upgraded `retry-policies` to `0.4.0`.
-- **Breaking Change** Errors are now reported as `RetryError` that adds the number of retries to the error chain if there were any. This changes the returned error types.
 
 ## [0.5.0] - 2024-04-10
 
