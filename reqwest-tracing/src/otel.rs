@@ -317,7 +317,7 @@ mod test {
 
                 let provider = opentelemetry_sdk_0_27::trace::TracerProvider::builder().build();
 
-                let tracer = provider.tracer_builder("reqwest").build();
+                let tracer = provider.tracer("reqwest");
                 let _ = opentelemetry_0_27_pkg::global::set_tracer_provider(provider);
                 opentelemetry_0_27_pkg::global::set_text_map_propagator(
                     opentelemetry_sdk_0_27::propagation::TraceContextPropagator::new(),
