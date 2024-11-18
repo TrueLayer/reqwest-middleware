@@ -54,6 +54,13 @@ pub fn inject_opentelemetry_context_into_request(mut request: Request) -> Reques
         injector.inject_context(&context, &mut RequestCarrier::new(&mut request))
     });
 
+    #[cfg(feature = "opentelemetry_0_27")]
+    opentelemetry_0_27_pkg::global::get_text_map_propagator(|injector| {
+        use tracing_opentelemetry_0_28_pkg::OpenTelemetrySpanExt;
+        let context = Span::current().context();
+        injector.inject_context(&context, &mut RequestCarrier::new(&mut request))
+    });
+
     request
 }
 
@@ -125,6 +132,13 @@ impl<'a> opentelemetry_0_25_pkg::propagation::Injector for RequestCarrier<'a> {
 
 #[cfg(feature = "opentelemetry_0_26")]
 impl<'a> opentelemetry_0_26_pkg::propagation::Injector for RequestCarrier<'a> {
+    fn set(&mut self, key: &str, value: String) {
+        self.set_inner(key, value)
+    }
+}
+
+#[cfg(feature = "opentelemetry_0_27")]
+impl<'a> opentelemetry_0_27_pkg::propagation::Injector for RequestCarrier<'a> {
     fn set(&mut self, key: &str, value: String) {
         self.set_inner(key, value)
     }
@@ -294,6 +308,22 @@ mod test {
                 );
 
                 let telemetry = tracing_opentelemetry_0_27_pkg::layer().with_tracer(tracer);
+                subscriber.with(telemetry)
+            };
+
+            #[cfg(feature = "opentelemetry_0_27")]
+            let subscriber = {
+                use opentelemetry_0_27_pkg::trace::TracerProvider;
+
+                let provider = opentelemetry_sdk_0_27::trace::TracerProvider::builder().build();
+
+                let tracer = provider.tracer("reqwest");
+                let _ = opentelemetry_0_27_pkg::global::set_tracer_provider(provider);
+                opentelemetry_0_27_pkg::global::set_text_map_propagator(
+                    opentelemetry_sdk_0_27::propagation::TraceContextPropagator::new(),
+                );
+
+                let telemetry = tracing_opentelemetry_0_28_pkg::layer().with_tracer(tracer);
                 subscriber.with(telemetry)
             };
 
