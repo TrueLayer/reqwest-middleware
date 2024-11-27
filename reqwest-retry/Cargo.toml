@@ -24,14 +24,14 @@ reqwest = { version = "0.12.0", default-features = false }
 retry-policies = "0.4"
 thiserror = "1.0.61"
 tracing = { version = "0.1.26", optional = true }
+wasmtimer = "0.4.1"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 hyper = "1.0"
 tokio = { version = "1.6.0", default-features = false, features = ["time"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-parking_lot = { version = "0.11.2", features = ["wasm-bindgen"] } # work around https://github.com/tomaka/wasm-timer/issues/14
-wasm-timer = "0.2.5"
+
 getrandom = { version = "0.2.0", features = ["js"] }
 
 [dev-dependencies]

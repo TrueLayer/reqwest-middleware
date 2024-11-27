@@ -177,9 +177,7 @@ where
                     #[cfg(not(target_arch = "wasm32"))]
                     tokio::time::sleep(duration).await;
                     #[cfg(target_arch = "wasm32")]
-                    wasm_timer::Delay::new(duration)
-                        .await
-                        .expect("failed sleeping");
+                    wasmtimer::tokio::sleep(duration).await;
 
                     n_past_retries += 1;
                     continue;
