@@ -247,6 +247,15 @@ impl fmt::Debug for ClientWithMiddleware {
     }
 }
 
+// Implementing AsRef<Client> for ClientWithMiddleware. 
+//
+// This allows to use ClientWithMiddleware as a reqwest::Client.
+impl AsRef<Client> for ClientWithMiddleware {
+    fn as_ref(&self) -> &Client {
+        &self.inner
+    }
+}
+
 mod service {
     use std::{
         future::Future,
