@@ -31,6 +31,18 @@ jobs:
         uses: taiki-e/install-action@cargo-hack
       - name: test
         run: cargo hack test --feature-powerset -p reqwest-middleware
+  check-wasm32-reqwest-middleware:
+    name: Run `cargo check` for `reqwest-middleware` on `wasm32-unknown-unknown`
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --target wasm32-unknown-unknown -p reqwest-middleware --all-features
   test-features-retry:
     name: Run test suite for `reqwest-retry` with every feature combination
     runs-on: ubuntu-latest
