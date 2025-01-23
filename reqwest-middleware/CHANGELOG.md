@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- Fixed wasm32 by disabling incompatible parts. On that target, `ClientWithMiddleware` is no longer
+  a Tower service and has no `ClientWithMiddleware::timeout` function.
 
 ### Changed
 - Updated `wasm-timer` to `wasmtimer`
