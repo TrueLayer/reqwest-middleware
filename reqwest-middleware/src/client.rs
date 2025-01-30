@@ -256,6 +256,7 @@ impl AsRef<Client> for ClientWithMiddleware {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 mod service {
     use std::{
         future::Future,
@@ -431,6 +432,7 @@ impl RequestBuilder {
     /// The timeout is applied from when the request starts connecting until the
     /// response body has finished. It affects only this request and overrides
     /// the timeout configured using `ClientBuilder::timeout()`.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn timeout(self, timeout: std::time::Duration) -> Self {
         RequestBuilder {
             inner: self.inner.timeout(timeout),
