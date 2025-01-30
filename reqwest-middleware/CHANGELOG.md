@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed wasm32 by disabling incompatible parts. On that target, `ClientWithMiddleware` is no longer
   a Tower service and has no `ClientWithMiddleware::timeout` function.
 
+### Changed
+- Updated `wasm-timer` to `wasmtimer`
+
 ## [0.4.0] - 2024-11-08
 
 ### Breaking Changes
