@@ -67,7 +67,7 @@ jobs:
         uses: taiki-e/install-action@cargo-hack
       # Old opentelemetry features group to improve performance
       - name: test
-        run: cargo hack test --feature-powerset -p reqwest-tracing --group-features opentelemetry_0_20,opentelemetry_0_21,opentelemetry_0_22
+        run: cargo hack test --feature-powerset -p reqwest-tracing --group-features opentelemetry_0_20,opentelemetry_0_21,opentelemetry_0_22,opentelemetry_0_23,opentelemetry_0_24,opentelemetry_0_25
   
   rustfmt:
     name: Rustfmt
