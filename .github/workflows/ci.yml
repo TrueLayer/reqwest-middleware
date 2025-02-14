@@ -39,6 +39,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
       - uses: actions-rs/cargo@v1
         with:
           command: build
