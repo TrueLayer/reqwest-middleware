@@ -25,7 +25,7 @@ struct Request<'a> {
     http_version: &'a str,
 }
 
-impl<'a> fmt::Display for Request<'a> {
+impl fmt::Display for Request<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {} {}\r\n", self.method, self.uri, self.http_version)
     }

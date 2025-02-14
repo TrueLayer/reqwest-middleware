@@ -80,7 +80,7 @@ impl<'a> RequestCarrier<'a> {
     }
 }
 
-impl<'a> RequestCarrier<'a> {
+impl RequestCarrier<'_> {
     fn set_inner(&mut self, key: &str, value: String) {
         let header_name = HeaderName::from_str(key).expect("Must be header name");
         let header_value = HeaderValue::from_str(&value).expect("Must be a header value");
@@ -89,56 +89,56 @@ impl<'a> RequestCarrier<'a> {
 }
 
 #[cfg(feature = "opentelemetry_0_20")]
-impl<'a> opentelemetry_0_20_pkg::propagation::Injector for RequestCarrier<'a> {
+impl opentelemetry_0_20_pkg::propagation::Injector for RequestCarrier<'_> {
     fn set(&mut self, key: &str, value: String) {
         self.set_inner(key, value)
     }
 }
 
 #[cfg(feature = "opentelemetry_0_21")]
-impl<'a> opentelemetry_0_21_pkg::propagation::Injector for RequestCarrier<'a> {
+impl opentelemetry_0_21_pkg::propagation::Injector for RequestCarrier<'_> {
     fn set(&mut self, key: &str, value: String) {
         self.set_inner(key, value)
     }
 }
 
 #[cfg(feature = "opentelemetry_0_22")]
-impl<'a> opentelemetry_0_22_pkg::propagation::Injector for RequestCarrier<'a> {
+impl opentelemetry_0_22_pkg::propagation::Injector for RequestCarrier<'_> {
     fn set(&mut self, key: &str, value: String) {
         self.set_inner(key, value)
     }
 }
 
 #[cfg(feature = "opentelemetry_0_23")]
-impl<'a> opentelemetry_0_23_pkg::propagation::Injector for RequestCarrier<'a> {
+impl opentelemetry_0_23_pkg::propagation::Injector for RequestCarrier<'_> {
     fn set(&mut self, key: &str, value: String) {
         self.set_inner(key, value)
     }
 }
 
 #[cfg(feature = "opentelemetry_0_24")]
-impl<'a> opentelemetry_0_24_pkg::propagation::Injector for RequestCarrier<'a> {
+impl opentelemetry_0_24_pkg::propagation::Injector for RequestCarrier<'_> {
     fn set(&mut self, key: &str, value: String) {
         self.set_inner(key, value)
     }
 }
 
 #[cfg(feature = "opentelemetry_0_25")]
-impl<'a> opentelemetry_0_25_pkg::propagation::Injector for RequestCarrier<'a> {
+impl opentelemetry_0_25_pkg::propagation::Injector for RequestCarrier<'_> {
     fn set(&mut self, key: &str, value: String) {
         self.set_inner(key, value)
     }
 }
 
 #[cfg(feature = "opentelemetry_0_26")]
-impl<'a> opentelemetry_0_26_pkg::propagation::Injector for RequestCarrier<'a> {
+impl opentelemetry_0_26_pkg::propagation::Injector for RequestCarrier<'_> {
     fn set(&mut self, key: &str, value: String) {
         self.set_inner(key, value)
     }
 }
 
 #[cfg(feature = "opentelemetry_0_27")]
-impl<'a> opentelemetry_0_27_pkg::propagation::Injector for RequestCarrier<'a> {
+impl opentelemetry_0_27_pkg::propagation::Injector for RequestCarrier<'_> {
     fn set(&mut self, key: &str, value: String) {
         self.set_inner(key, value)
     }
