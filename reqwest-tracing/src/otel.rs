@@ -152,7 +152,7 @@ impl opentelemetry_0_27_pkg::propagation::Injector for RequestCarrier<'_> {
 }
 
 #[cfg(feature = "opentelemetry_0_28")]
-impl<'a> opentelemetry_0_28_pkg::propagation::Injector for RequestCarrier<'a> {
+impl opentelemetry_0_28_pkg::propagation::Injector for RequestCarrier<'_> {
     fn set(&mut self, key: &str, value: String) {
         self.set_inner(key, value)
     }
