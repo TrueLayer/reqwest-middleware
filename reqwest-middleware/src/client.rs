@@ -527,6 +527,7 @@ impl RequestBuilder {
     /// The [request mode][mdn] will be set to 'no-cors'.
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Request/mode
+    #[cfg(target_arch = "wasm32")]
     pub fn fetch_mode_no_cors(self) -> Self {
         RequestBuilder {
             inner: self.inner.fetch_mode_no_cors(),
