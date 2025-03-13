@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.5.6] - 2025-02-24
+## [0.5.6] - 2025-03-13
 
 ### Changed
 - Update reqwest from 0.12.0 to 0.12.14
