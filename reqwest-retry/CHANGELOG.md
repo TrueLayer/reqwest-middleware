@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] - 2025-03-13
+
+### Changed
+- Update reqwest from 0.12.0 to 0.12.14
+- Upgrade cargo dependencies to latest versions
+
 ## [0.7.0] - 2024-11-08
 
 ### Breaking changes

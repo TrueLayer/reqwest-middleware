@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.5.6] - 2025-02-24
 
+### Changed
+- Update reqwest from 0.12.0 to 0.12.14
+- Upgrade cargo dependencies to latest versions
+
+## [0.5.6] - 2025-02-24
+
 ### Added
 - Added support for OpenTelemetry `0.28` ([#215](https://github.com/TrueLayer/reqwest-middleware/pull/215))
 

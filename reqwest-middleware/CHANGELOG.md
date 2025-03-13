@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2025-02-24
+
+### Breaking changes
+- Upgraded `reqwest` to `0.12.14`
+  * Removed  `fetch_mode_no_cors` function as it was deprecated in earlier versions and removed finally from reqwest 0.12.14
+
+### Changed
+- upgrade cargo dependencies to latest versions
+
 ## [0.4.1] - 2025-02-24
 
 - Fixed wasm32 by disabling incompatible parts. On that target, `ClientWithMiddleware` is no longer
