@@ -7,10 +7,10 @@ use reqwest_middleware::Error;
 /// A [`RetryableStrategy`] has a single `handler` functions.
 /// The result of calling the request could be:
 /// - [`reqwest::Response`] In case the request has been sent and received correctly
-///     This could however still mean that the server responded with a erroneous response.
-///     For example a HTTP statuscode of 500
+/// This could however still mean that the server responded with a erroneous response.
+/// For example a HTTP statuscode of 500
 /// - [`reqwest_middleware::Error`] In this case the request actually failed.
-///     This could, for example, be caused by a timeout on the connection.
+/// This could, for example, be caused by a timeout on the connection.
 ///
 /// Example:
 ///
