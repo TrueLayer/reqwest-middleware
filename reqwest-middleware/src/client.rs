@@ -91,9 +91,53 @@ impl ClientBuilder {
     ///
     /// If you need to keep a reference to the initialiser after attaching, use [`with_arc_final_init`]
     ///
+    /// Adding initializers with this function allows you to access extensions
+    /// that are added with [`with_extension`] when creating a request.
+    ///
+    /// ```rust
+    /// use reqwest_middleware::{ClientBuilder, RequestBuilder, RequestInitialiser};
+    ///
+    /// #[derive(Clone)]
+    /// struct Mark;
+    ///
+    /// struct Init;
+    ///
+    /// impl RequestInitialiser for Init {
+    ///     fn init(&self, mut req: RequestBuilder) -> RequestBuilder {
+    ///         let exists = req.extensions().get::<Mark>().is_some();
+    ///         assert!(!exists);
+    ///         req
+    ///     }
+    /// }
+    ///
+    /// struct FinalInit;
+    ///
+    /// impl RequestInitialiser for FinalInit {
+    ///     fn init(&self, mut req: RequestBuilder) -> RequestBuilder {
+    ///         let exists = req.extensions().get::<Mark>().is_some();
+    ///         assert!(exists);
+    ///         req
+    ///     }
+    /// }
+    /// async fn run() {
+    ///     let request_client = reqwest::ClientBuilder::new()
+    ///         .build()
+    ///         .unwrap();
+    ///     let client = ClientBuilder::new(request_client)
+    ///         .with_init(Init)
+    ///         .with_final_init(FinalInit)
+    ///         .build();
+    ///     let resp = client.get("https://truelayer.com")
+    ///         .with_extension(Mark)
+    ///         .send().await
+    ///         .unwrap();
+    ///     println!("TrueLayer page HTML: {}", resp.text().await.unwrap());
+    /// }
+    /// ```
     /// [`with_arc_final_init`]: Self::with_arc_final_init
     /// [`with_final_init`]: Self::with_final_init
     /// [`with_init`]: Self::with_init
+    /// [`with_extension`]: RequestBuilder::with_extension
     pub fn with_final_init<I>(self, initialiser: I) -> Self
     where
         I: RequestInitialiser,
@@ -639,7 +683,7 @@ impl RequestBuilder {
     /// # }
     /// ```
     pub async fn send(mut self) -> Result<Response> {
-        let mut extensions = std::mem::take(self.extensions());
+        let mut extensions = self.extensions().clone();
         let (client, req) = self.build_split();
         client.execute_with_extensions(req?, &mut extensions).await
     }
