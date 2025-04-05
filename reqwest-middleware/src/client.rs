@@ -84,6 +84,16 @@ impl ClientBuilder {
         self
     }
 
+    /// This is similar to the [`with_init`] method, but the initializers are added
+    /// using [`with_init`] is called when the [`RequestBuilder`] is created.
+    /// Whereas initializers added with [`with_final_init`] are called
+    /// just before the request build is completed.
+    ///
+    /// If you need to keep a reference to the initialiser after attaching, use [`with_arc_final_init`]
+    ///
+    /// [`with_arc_final_init`]: Self::with_arc_final_init
+    /// [`with_final_init`]: Self::with_final_init
+    /// [`with_init`]: Self::with_init
     pub fn with_final_init<I>(self, initialiser: I) -> Self
     where
         I: RequestInitialiser,
@@ -91,6 +101,9 @@ impl ClientBuilder {
         self.with_arc_final_init(Arc::new(initialiser))
     }
 
+    /// Add a request initialiser to the chain. [`with_final_init`] is more ergonomic if you don't need the `Arc`.
+    ///
+    /// [`with_final_init`]: Self::with_final_init
     pub fn with_arc_final_init(mut self, initialiser: Arc<dyn RequestInitialiser>) -> Self {
         self.final_initialiser_stack.push(initialiser);
         self
