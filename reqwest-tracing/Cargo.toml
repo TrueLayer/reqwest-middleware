@@ -19,6 +19,7 @@ opentelemetry_0_25 = ["opentelemetry_0_25_pkg", "tracing-opentelemetry_0_26_pkg"
 opentelemetry_0_26 = ["opentelemetry_0_26_pkg", "tracing-opentelemetry_0_27_pkg"]
 opentelemetry_0_27 = ["opentelemetry_0_27_pkg", "tracing-opentelemetry_0_28_pkg"]
 opentelemetry_0_28 = ["opentelemetry_0_28_pkg", "tracing-opentelemetry_0_29_pkg"]
+opentelemetry_0_29 = ["opentelemetry_0_29_pkg", "tracing-opentelemetry_0_30_pkg"]
 # This feature ensures that both the old (deprecated) and new attributes are published simultaneously.
 # By doing so, we maintain backward compatibility, allowing existing code that relies on the old attributes
 # to continue functioning while encouraging the transition to the new attributes.
@@ -43,6 +44,7 @@ opentelemetry_0_25_pkg = { package = "opentelemetry", version = "0.25.0", option
 opentelemetry_0_26_pkg = { package = "opentelemetry", version = "0.26.0", optional = true }
 opentelemetry_0_27_pkg = { package = "opentelemetry", version = "0.27.0", optional = true }
 opentelemetry_0_28_pkg = { package = "opentelemetry", version = "0.28.0", optional = true }
+opentelemetry_0_29_pkg = { package = "opentelemetry", version = "0.29.0", optional = true }
 tracing-opentelemetry_0_21_pkg = { package = "tracing-opentelemetry", version = "0.21.0", optional = true }
 tracing-opentelemetry_0_22_pkg = { package = "tracing-opentelemetry", version = "0.22.0", optional = true }
 tracing-opentelemetry_0_23_pkg = { package = "tracing-opentelemetry", version = "0.23.0", optional = true }
@@ -52,6 +54,7 @@ tracing-opentelemetry_0_26_pkg = { package = "tracing-opentelemetry", version = 
 tracing-opentelemetry_0_27_pkg = { package = "tracing-opentelemetry", version = "0.27.0", optional = true }
 tracing-opentelemetry_0_28_pkg = { package = "tracing-opentelemetry", version = "0.28.0", optional = true }
 tracing-opentelemetry_0_29_pkg = { package = "tracing-opentelemetry", version = "0.29.0", optional = true }
+tracing-opentelemetry_0_30_pkg = { package = "tracing-opentelemetry", version = "0.30.0", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.2.0", features = ["js"] }
@@ -70,6 +73,7 @@ opentelemetry_sdk_0_25 = { package = "opentelemetry_sdk", version = "0.25.0", fe
 opentelemetry_sdk_0_26 = { package = "opentelemetry_sdk", version = "0.26.0", features = ["trace"] }
 opentelemetry_sdk_0_27 = { package = "opentelemetry_sdk", version = "0.27.0", features = ["trace"] }
 opentelemetry_sdk_0_28 = { package = "opentelemetry_sdk", version = "0.28.0", features = ["trace"] }
+opentelemetry_sdk_0_29 = { package = "opentelemetry_sdk", version = "0.29.0", features = ["trace"] }
 opentelemetry_stdout_0_1 = { package = "opentelemetry-stdout", version = "0.1.0", features = ["trace"] }
 opentelemetry_stdout_0_2 = { package = "opentelemetry-stdout", version = "0.2.0", features = ["trace"] }
 opentelemetry_stdout_0_3 = { package = "opentelemetry-stdout", version = "0.3.0", features = ["trace"] }
