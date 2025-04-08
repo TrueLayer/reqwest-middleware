@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Added support for OpenTelemetry `0.29` ([#228](https://github.com/TrueLayer/reqwest-middleware/pull/228))
+
 ## [0.5.6] - 2025-02-24
 
 ### Added
