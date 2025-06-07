@@ -184,20 +184,51 @@ where
                 }
             };
 
-            // Report whether we failed with or without retries.
             break if n_past_retries > 0 {
-                result.map_err(|err| {
-                    Error::Middleware(
+                // Both `Ok` results (e.g. status code errors) and `Err` results (e.g. an
+                // `io::Error` for from connection reset), and we want to inform the user about the
+                // retries in both cases.
+                match result {
+                    Ok(mut response) => {
+                        response
+                            .extensions_mut()
+                            .insert(RetryCount::new(n_past_retries));
+                        Ok(response)
+                    }
+                    Err(err) => Err(Error::Middleware(
                         RetryError::WithRetries {
                             retries: n_past_retries,
                             err,
                         }
                         .into(),
-                    )
-                })
+                    )),
+                }
             } else {
                 result.map_err(|err| Error::Middleware(RetryError::Error(err).into()))
             };
         }
+    }
+}
+
+/// Extension type to store retry count in a response.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RetryCount(u32);
+
+impl RetryCount {
+    /// Create a new retry count.
+    pub fn new(count: u32) -> Self {
+        Self(count)
+    }
+
+    pub fn value(self) -> u32 {
+        self.0
+    }
+}
+
+impl std::ops::Deref for RetryCount {
+    type Target = u32;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
