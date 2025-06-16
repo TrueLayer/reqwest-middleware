@@ -83,4 +83,3 @@ opentelemetry_stdout_0_2 = { package = "opentelemetry-stdout", version = "0.2.0"
 opentelemetry_stdout_0_3 = { package = "opentelemetry-stdout", version = "0.3.0", features = ["trace"] }
 opentelemetry_stdout_0_4 = { package = "opentelemetry-stdout", version = "0.4.0", features = ["trace"] }
 opentelemetry_stdout_0_5 = { package = "opentelemetry-stdout", version = "0.5.0", features = ["trace"] }
-opentelemetry_stdout_0_30 = { package = "opentelemetry-stdout", version = "0.30.0", features = ["trace"] }
