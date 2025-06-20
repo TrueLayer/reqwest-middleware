@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- `thiserror` upgraded to 2.0.12
+
 ## [0.7.0] - 2024-11-08
 
 ### Breaking changes
