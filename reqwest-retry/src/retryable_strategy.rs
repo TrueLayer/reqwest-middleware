@@ -1,4 +1,5 @@
 use crate::retryable::Retryable;
+use futures::future::err;
 use http::StatusCode;
 use reqwest_middleware::Error;
 
@@ -58,7 +59,7 @@ use reqwest_middleware::Error;
 ///     // Exponential backoff with max 2 retries
 ///     let retry_policy = ExponentialBackoff::builder()
 ///         .build_with_max_retries(2);
-///     
+///
 ///     // Create the actual middleware, with the exponential backoff and custom retry strategy.
 ///     let ret_s = RetryTransientMiddleware::new_with_policy_and_strategy(
 ///         retry_policy,
@@ -73,14 +74,14 @@ use reqwest_middleware::Error;
 ///         .build();
 ///
 ///     // Send request which should get a 201 response. So it will be retried
-///     let r = client   
+///     let r = client
 ///         .get("https://httpbin.org/status/201")
 ///         .send()
 ///         .await;
 ///     println!("{:?}", r);
 ///
 ///     // Send request which should get a 200 response. So it will not be retried
-///     let r = client   
+///     let r = client
 ///         .get("https://httpbin.org/status/200")
 ///         .send()
 ///         .await;
@@ -128,60 +129,60 @@ pub fn default_on_request_success(success: &reqwest::Response) -> Option<Retryab
     }
 }
 
-/// Default request failure retry strategy.
+/// Default request failure retry strategy for a [`reqwest_middleware::Error`].
 ///
 /// Will only retry if the request failed due to a network error
 pub fn default_on_request_failure(error: &Error) -> Option<Retryable> {
     match error {
         // If something fails in the middleware we're screwed.
         Error::Middleware(_) => Some(Retryable::Fatal),
-        Error::Reqwest(error) => {
-            #[cfg(not(target_arch = "wasm32"))]
-            let is_connect = error.is_connect();
-            #[cfg(target_arch = "wasm32")]
-            let is_connect = false;
-            if error.is_timeout() || is_connect {
-                Some(Retryable::Transient)
-            } else if error.is_body()
-                || error.is_decode()
-                || error.is_builder()
-                || error.is_redirect()
-            {
-                Some(Retryable::Fatal)
-            } else if error.is_request() {
-                // It seems that hyper::Error(IncompleteMessage) is not correctly handled by reqwest.
-                // Here we check if the Reqwest error was originated by hyper and map it consistently.
-                #[cfg(not(target_arch = "wasm32"))]
-                if let Some(hyper_error) = get_source_error_type::<hyper::Error>(&error) {
-                    // The hyper::Error(IncompleteMessage) is raised if the HTTP response is well formatted but does not contain all the bytes.
-                    // This can happen when the server has started sending back the response but the connection is cut halfway through.
-                    // We can safely retry the call, hence marking this error as [`Retryable::Transient`].
-                    // Instead hyper::Error(Canceled) is raised when the connection is
-                    // gracefully closed on the server side.
-                    if hyper_error.is_incomplete_message() || hyper_error.is_canceled() {
-                        Some(Retryable::Transient)
+        Error::Reqwest(error) => default_on_request_error(error),
+    }
+}
 
-                    // Try and downcast the hyper error to io::Error if that is the
-                    // underlying error, and try and classify it.
-                    } else if let Some(io_error) =
-                        get_source_error_type::<std::io::Error>(hyper_error)
-                    {
-                        Some(classify_io_error(io_error))
-                    } else {
-                        Some(Retryable::Fatal)
-                    }
-                } else {
-                    Some(Retryable::Fatal)
-                }
-                #[cfg(target_arch = "wasm32")]
-                Some(Retryable::Fatal)
+/// Default request failure retry strategy for the [`reqwest::Error`] part of a
+/// [`reqwest_middleware::Error`].
+///
+/// Will only retry if the request failed due to a network error
+pub fn default_on_request_error(error: &reqwest::Error) -> Option<Retryable> {
+    #[cfg(not(target_arch = "wasm32"))]
+    let is_connect = error.is_connect();
+    #[cfg(target_arch = "wasm32")]
+    let is_connect = false;
+    if error.is_timeout() || is_connect {
+        Some(Retryable::Transient)
+    } else if error.is_body() || error.is_decode() || error.is_builder() || error.is_redirect() {
+        Some(Retryable::Fatal)
+    } else if error.is_request() {
+        // It seems that hyper::Error(IncompleteMessage) is not correctly handled by reqwest.
+        // Here we check if the Reqwest error was originated by hyper and map it consistently.
+        #[cfg(not(target_arch = "wasm32"))]
+        if let Some(hyper_error) = get_source_error_type::<hyper::Error>(&error) {
+            // The hyper::Error(IncompleteMessage) is raised if the HTTP response is well formatted but does not contain all the bytes.
+            // This can happen when the server has started sending back the response but the connection is cut halfway through.
+            // We can safely retry the call, hence marking this error as [`Retryable::Transient`].
+            // Instead hyper::Error(Canceled) is raised when the connection is
+            // gracefully closed on the server side.
+            if hyper_error.is_incomplete_message() || hyper_error.is_canceled() {
+                Some(Retryable::Transient)
+
+            // Try and downcast the hyper error to io::Error if that is the
+            // underlying error, and try and classify it.
+            } else if let Some(io_error) = get_source_error_type::<std::io::Error>(hyper_error) {
+                Some(classify_io_error(io_error))
             } else {
-                // We omit checking if error.is_status() since we check that already.
-                // However, if Response::error_for_status is used the status will still
-                // remain in the response object.
-                None
+                Some(Retryable::Fatal)
             }
+        } else {
+            Some(Retryable::Fatal)
         }
+        #[cfg(target_arch = "wasm32")]
+        Some(Retryable::Fatal)
+    } else {
+        // We omit checking if error.is_status() since we check that already.
+        // However, if Response::error_for_status is used the status will still
+        // remain in the response object.
+        None
     }
 }
 
