@@ -1,5 +1,4 @@
 use crate::retryable::Retryable;
-use futures::future::err;
 use http::StatusCode;
 use reqwest_middleware::Error;
 
