@@ -16,6 +16,7 @@ json = ["reqwest/json"]
 charset = ["reqwest/charset"]
 http2 = ["reqwest/http2"]
 rustls-tls = ["reqwest/rustls-tls"]
+stream = ["reqwest/stream"]
 
 [dependencies]
 anyhow = "1.0.0"
