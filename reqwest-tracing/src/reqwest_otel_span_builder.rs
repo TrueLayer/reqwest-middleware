@@ -67,6 +67,11 @@ pub trait ReqwestOtelSpanBackend {
 
     /// Runs after the request call has executed.
     fn on_request_end(span: &Span, outcome: &Result<Response>, extension: &mut Extensions);
+
+    /// Runs if the request was cancelled before finishing.
+    fn on_request_cancelled(span: &Span) {
+        default_on_request_cancelled(span);
+    }
 }
 
 /// Populates default success/failure fields for a given [`reqwest_otel_span!`] span.
@@ -76,6 +81,11 @@ pub fn default_on_request_end(span: &Span, outcome: &Result<Response>) {
         Ok(res) => default_on_request_success(span, res),
         Err(err) => default_on_request_failure(span, err),
     }
+}
+
+#[inline]
+pub fn default_on_request_cancelled(span: &Span) {
+    span.record(OTEL_STATUS_CODE, "ERROR");
 }
 
 /// Populates default success fields for a given [`reqwest_otel_span!`] span.
@@ -148,6 +158,10 @@ impl ReqwestOtelSpanBackend for DefaultSpanBackend {
     fn on_request_end(span: &Span, outcome: &Result<Response>, _: &mut Extensions) {
         default_on_request_end(span, outcome)
     }
+
+    fn on_request_cancelled(span: &Span) {
+        default_on_request_cancelled(span);
+    }
 }
 
 /// Similar to [`DefaultSpanBackend`] but also adds the `url.full` attribute to request spans.
@@ -163,6 +177,10 @@ impl ReqwestOtelSpanBackend for SpanBackendWithUrl {
 
     fn on_request_end(span: &Span, outcome: &Result<Response>, _: &mut Extensions) {
         default_on_request_end(span, outcome)
+    }
+
+    fn on_request_cancelled(span: &Span) {
+        default_on_request_cancelled(span);
     }
 }
 

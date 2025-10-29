@@ -1,7 +1,9 @@
+use std::marker::PhantomData;
+
 use http::Extensions;
 use reqwest::{Request, Response};
 use reqwest_middleware::{Middleware, Next, Result};
-use tracing::Instrument;
+use tracing::{Instrument, Span};
 
 use crate::{DefaultSpanBackend, ReqwestOtelSpanBackend};
 
@@ -42,6 +44,33 @@ where
         extensions: &mut Extensions,
         next: Next<'_>,
     ) -> Result<Response> {
+        struct CancelGuard<'s, ReqwestOtelSpan: ReqwestOtelSpanBackend> {
+            armed: bool,
+            span: &'s Span,
+            _phantom: PhantomData<ReqwestOtelSpan>,
+        }
+
+        impl<'s, ReqwestOtelSpan: ReqwestOtelSpanBackend> CancelGuard<'s, ReqwestOtelSpan> {
+            fn new(span: &'s Span) -> Self {
+                Self {
+                    armed: true,
+                    span,
+                    _phantom: PhantomData,
+                }
+            }
+            fn disarm(mut self) {
+                self.armed = false;
+            }
+        }
+
+        impl<'s, ReqwestOtelSpan: ReqwestOtelSpanBackend> Drop for CancelGuard<'s, ReqwestOtelSpan> {
+            fn drop(&mut self) {
+                if self.armed {
+                    ReqwestOtelSpan::on_request_cancelled(self.span);
+                }
+            }
+        }
+
         let request_span = ReqwestOtelSpan::on_request_start(&req, extensions);
 
         let outcome_future = async {
@@ -59,8 +88,13 @@ where
                 req
             };
 
+            let guard = CancelGuard::<'_, ReqwestOtelSpan>::new(&request_span);
+
             // Run the request
             let outcome = next.run(req, extensions).await;
+
+            guard.disarm();
+
             ReqwestOtelSpan::on_request_end(&request_span, &outcome, extensions);
             outcome
         };

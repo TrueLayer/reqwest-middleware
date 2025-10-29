@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- New method on `ReqwestOtelSpanBackend` for when the request does not finish and is cancelled instead. This happens when the request future is dropped instead of polling it to completion.
+
 ## [0.5.2] - 2024-07-15
 
 ### Added
