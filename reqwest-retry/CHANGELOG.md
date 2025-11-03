@@ -14,6 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+## [0.7.1] - 2025-11-03
+
+### Security
+- Eliminated the `instant` dependency on `wasm32` by upgrading the retry timer stack to `wasmtimer` 0.4.3, addressing [RUSTSEC-2024-0384](https://rustsec.org/advisories/RUSTSEC-2024-0384.html).
+
+### Changed
 - Updated `thiserror` to `2.0`
 
 ## [0.7.0] - 2024-11-08
