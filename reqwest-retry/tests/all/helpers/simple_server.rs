@@ -126,7 +126,7 @@ impl SimpleServer {
 
     /// Parses the request line and checks that it contains the method, uri and http_version parts.
     /// It does not check if the content of the checked parts is correct. It just checks the format (it contains enough parts) of the request.
-    fn parse_request_line(request: &str) -> Result<Request, Box<dyn Error>> {
+    fn parse_request_line(request: &str) -> Result<Request<'_>, Box<dyn Error>> {
         let mut parts = request.split_whitespace();
 
         let method = parts.next().ok_or("Method not specified")?;
