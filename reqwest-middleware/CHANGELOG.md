@@ -6,8 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
+### Added
+- Added `ClientBuilder::with_final_init` and `ClientBuilder::with_arc_final_init`
 
+### Changed
 - Updated `thiserror` to `2.0`
 
 ## [0.4.2] - 2025-04-08
