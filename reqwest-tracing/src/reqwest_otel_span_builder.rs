@@ -189,7 +189,7 @@ fn get_span_status(request_status: RequestStatusCode) -> Option<&'static str> {
         // in which case status MUST be set to Error.
         100..=399 => None,
         // For HTTP status codes in the 4xx range span status MUST be left unset in case of SpanKind.SERVER and SHOULD be
-        // set to Error in case of SpanKind.CLIENT. Do not set the span status for 401 and 404, the status of these spans 
+        // set to Error in case of SpanKind.CLIENT. Do not set the span status for 401 and 404, the status of these spans
         // should be interpreted by the parent application span and set on that span.
         400 => Some("ERROR"),
         401 => None,
