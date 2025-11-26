@@ -21,7 +21,7 @@ async-trait = "0.1.51"
 futures = "0.3.0"
 http = "1.0"
 reqwest = { version = "0.12.0", default-features = false }
-retry-policies = "0.4"
+retry-policies = "0.5"
 thiserror = "2.0"
 tracing = { version = "0.1.26", optional = true }
 
