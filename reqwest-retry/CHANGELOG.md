@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2025-11-26
+
 ### Breaking Changes
 
 - Updated `retry-policies` (re-exported as `reqwest_retry::policies`) to 0.5.
