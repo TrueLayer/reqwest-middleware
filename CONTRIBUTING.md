@@ -52,7 +52,7 @@ cargo test
 - Run Clippy:
 
   ```shell
-  cargo clippy
+  cargo clippy --all-targets --all-features --workspace -- -D warnings
   ```
 
 - Check to see if there are code formatting issues
