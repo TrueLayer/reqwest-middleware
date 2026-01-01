@@ -17,7 +17,7 @@ Attach `TracingMiddleware` to your client to automatically trace HTTP requests:
 # ...
 [dependencies]
 opentelemetry = "0.22"
-reqwest = { version = "0.12", features = ["rustls-tls"] }
+reqwest = { version = "0.13", features = ["rustls"] }
 reqwest-middleware = "0.3"
 reqwest-retry = "0.5"
 reqwest-tracing = { version = "0.5", features = ["opentelemetry_0_22"] }
