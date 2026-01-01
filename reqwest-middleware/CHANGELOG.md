@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Updated `thiserror` to `2.0`
 - Updated `reqwest` to `0.13`
+- Renamed `rustls-tls` feature to `rustls` to match reqwest's feature naming
 - Added `form` feature, enables `reqwest/form`
 - Added `query` feature, enables `reqwest/query`
 - Made `serde` an optional dependency, enabled by `json`, `form`, or `query`
