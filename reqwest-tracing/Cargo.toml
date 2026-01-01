@@ -27,7 +27,7 @@ opentelemetry_0_30 = ["opentelemetry_0_30_pkg", "tracing-opentelemetry_0_31_pkg"
 deprecated_attributes = []
 
 [dependencies]
-reqwest-middleware = { version = ">0.4.0, <0.6.0", path = "../reqwest-middleware" }
+reqwest-middleware = { version = "0.5", path = "../reqwest-middleware" }
 
 anyhow = "1.0.70"
 async-trait = "0.1.51"

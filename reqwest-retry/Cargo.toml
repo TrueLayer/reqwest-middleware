@@ -14,7 +14,7 @@ default = ["tracing"]
 tracing = ["dep:tracing"]
 
 [dependencies]
-reqwest-middleware = { version = ">0.4.0, <0.6.0", path = "../reqwest-middleware" }
+reqwest-middleware = { version = "0.5", path = "../reqwest-middleware" }
 
 anyhow = "1.0.0"
 async-trait = "0.1.51"
