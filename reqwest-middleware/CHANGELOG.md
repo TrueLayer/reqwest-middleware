@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Updated `thiserror` to `2.0`
+- Updated `reqwest` to `0.13`
+- Renamed `rustls-tls` feature to `rustls` to match reqwest's feature naming
+- Added `form` feature, enables `reqwest/form`
+- Added `query` feature, enables `reqwest/query`
+- Made `serde` an optional dependency, enabled by `json`, `form`, or `query`
+
+### Removed
+- Remove deprecated `fetch_mode_no_cors`
 
 ## [0.4.2] - 2025-04-08
 

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Updated `reqwest` to `0.13`
+
 ## [0.5.8] - 2025-06-16
 
 ### Added
