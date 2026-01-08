@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Updated `thiserror` to `2.0`
+
 ## [0.7.0] - 2024-11-08
 
 ### Breaking changes
