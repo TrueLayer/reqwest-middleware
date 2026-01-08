@@ -19,6 +19,7 @@ pub struct ClientBuilder {
     client: Client,
     middleware_stack: Vec<Arc<dyn Middleware>>,
     initialiser_stack: Vec<Arc<dyn RequestInitialiser>>,
+    final_initialiser_stack: Vec<Arc<dyn RequestInitialiser>>,
 }
 
 impl ClientBuilder {
@@ -27,6 +28,7 @@ impl ClientBuilder {
             client,
             middleware_stack: Vec::new(),
             initialiser_stack: Vec::new(),
+            final_initialiser_stack: Vec::new(),
         }
     }
 
@@ -37,6 +39,7 @@ impl ClientBuilder {
             client: client_with_middleware.inner,
             middleware_stack: client_with_middleware.middleware_stack.into_vec(),
             initialiser_stack: client_with_middleware.initialiser_stack.into_vec(),
+            final_initialiser_stack: client_with_middleware.final_initialiser_stack.into_vec(),
         }
     }
 
@@ -80,12 +83,82 @@ impl ClientBuilder {
         self
     }
 
+    /// This is similar to the [`with_init`] method, but the initializers are added
+    /// using [`with_init`] is called when the [`RequestBuilder`] is created.
+    /// Whereas initializers added with [`with_final_init`] are called
+    /// just before the request build is completed.
+    ///
+    /// If you need to keep a reference to the initialiser after attaching, use [`with_arc_final_init`]
+    ///
+    /// Adding initializers with this function allows you to access extensions
+    /// that are added with [`with_extension`] when creating a request.
+    ///
+    /// ```rust
+    /// use reqwest_middleware::{ClientBuilder, RequestBuilder, RequestInitialiser};
+    ///
+    /// #[derive(Clone)]
+    /// struct Mark;
+    ///
+    /// struct Init;
+    ///
+    /// impl RequestInitialiser for Init {
+    ///     fn init(&self, mut req: RequestBuilder) -> RequestBuilder {
+    ///         let exists = req.extensions().get::<Mark>().is_some();
+    ///         assert!(!exists);
+    ///         req
+    ///     }
+    /// }
+    ///
+    /// struct FinalInit;
+    ///
+    /// impl RequestInitialiser for FinalInit {
+    ///     fn init(&self, mut req: RequestBuilder) -> RequestBuilder {
+    ///         let exists = req.extensions().get::<Mark>().is_some();
+    ///         assert!(exists);
+    ///         req
+    ///     }
+    /// }
+    /// async fn run() {
+    ///     let request_client = reqwest::ClientBuilder::new()
+    ///         .build()
+    ///         .unwrap();
+    ///     let client = ClientBuilder::new(request_client)
+    ///         .with_init(Init)
+    ///         .with_final_init(FinalInit)
+    ///         .build();
+    ///     let resp = client.get("https://truelayer.com")
+    ///         .with_extension(Mark)
+    ///         .send().await
+    ///         .unwrap();
+    ///     println!("TrueLayer page HTML: {}", resp.text().await.unwrap());
+    /// }
+    /// ```
+    /// [`with_arc_final_init`]: Self::with_arc_final_init
+    /// [`with_final_init`]: Self::with_final_init
+    /// [`with_init`]: Self::with_init
+    /// [`with_extension`]: RequestBuilder::with_extension
+    pub fn with_final_init<I>(self, initialiser: I) -> Self
+    where
+        I: RequestInitialiser,
+    {
+        self.with_arc_final_init(Arc::new(initialiser))
+    }
+
+    /// Add a request initialiser to the chain. [`with_final_init`] is more ergonomic if you don't need the `Arc`.
+    ///
+    /// [`with_final_init`]: Self::with_final_init
+    pub fn with_arc_final_init(mut self, initialiser: Arc<dyn RequestInitialiser>) -> Self {
+        self.final_initialiser_stack.push(initialiser);
+        self
+    }
+
     /// Returns a `ClientWithMiddleware` using this builder configuration.
     pub fn build(self) -> ClientWithMiddleware {
         ClientWithMiddleware {
             inner: self.client,
             middleware_stack: self.middleware_stack.into_boxed_slice(),
             initialiser_stack: self.initialiser_stack.into_boxed_slice(),
+            final_initialiser_stack: self.final_initialiser_stack.into_boxed_slice(),
         }
     }
 }
@@ -97,6 +170,7 @@ pub struct ClientWithMiddleware {
     inner: reqwest::Client,
     middleware_stack: Box<[Arc<dyn Middleware>]>,
     initialiser_stack: Box<[Arc<dyn RequestInitialiser>]>,
+    final_initialiser_stack: Box<[Arc<dyn RequestInitialiser>]>,
 }
 
 impl ClientWithMiddleware {
@@ -110,6 +184,7 @@ impl ClientWithMiddleware {
             middleware_stack: middleware_stack.into(),
             // TODO(conradludgate) - allow downstream code to control this manually if desired
             initialiser_stack: Box::new([]),
+            final_initialiser_stack: Box::new([]),
         }
     }
 
@@ -181,6 +256,7 @@ impl ClientWithMiddleware {
             extensions: Extensions::new(),
             middleware_stack: self.middleware_stack.clone(),
             initialiser_stack: self.initialiser_stack.clone(),
+            final_initialiser_stack: self.final_initialiser_stack.clone(),
         };
         self.initialiser_stack
             .iter()
@@ -233,6 +309,7 @@ impl From<Client> for ClientWithMiddleware {
             inner: client,
             middleware_stack: Box::new([]),
             initialiser_stack: Box::new([]),
+            final_initialiser_stack: Box::new([]),
         }
     }
 }
@@ -326,6 +403,7 @@ pub struct RequestBuilder {
     inner: reqwest::RequestBuilder,
     middleware_stack: Box<[Arc<dyn Middleware>]>,
     initialiser_stack: Box<[Arc<dyn RequestInitialiser>]>,
+    final_initialiser_stack: Box<[Arc<dyn RequestInitialiser>]>,
     extensions: Extensions,
 }
 
@@ -337,6 +415,7 @@ impl RequestBuilder {
             inner,
             middleware_stack: client.middleware_stack,
             initialiser_stack: client.initialiser_stack,
+            final_initialiser_stack: client.final_initialiser_stack,
             extensions: Extensions::new(),
         }
     }
@@ -522,7 +601,12 @@ impl RequestBuilder {
     /// Build a `Request`, which can be inspected, modified and executed with
     /// `ClientWithMiddleware::execute()`.
     pub fn build(self) -> reqwest::Result<Request> {
-        self.inner.build()
+        let final_initialiser_stack = self.final_initialiser_stack.clone();
+        final_initialiser_stack
+            .iter()
+            .fold(self, |req, i| i.init(req))
+            .inner
+            .build()
     }
 
     /// Build a `Request`, which can be inspected, modified and executed with
@@ -531,17 +615,22 @@ impl RequestBuilder {
     /// This is similar to [`RequestBuilder::build()`], but also returns the
     /// embedded `Client`.
     pub fn build_split(self) -> (ClientWithMiddleware, reqwest::Result<Request>) {
+        let final_initialiser_stack = self.final_initialiser_stack.clone();
         let Self {
             inner,
             middleware_stack,
             initialiser_stack,
             ..
-        } = self;
+        } = final_initialiser_stack
+            .iter()
+            .fold(self, |req, i| i.init(req));
+
         let (inner, req) = inner.build_split();
         let client = ClientWithMiddleware {
             inner,
             middleware_stack,
             initialiser_stack,
+            final_initialiser_stack,
         };
         (client, req)
     }
@@ -579,7 +668,7 @@ impl RequestBuilder {
     /// # }
     /// ```
     pub async fn send(mut self) -> Result<Response> {
-        let mut extensions = std::mem::take(self.extensions());
+        let mut extensions = self.extensions().clone();
         let (client, req) = self.build_split();
         client.execute_with_extensions(req?, &mut extensions).await
     }
@@ -608,6 +697,7 @@ impl RequestBuilder {
             inner,
             middleware_stack: self.middleware_stack.clone(),
             initialiser_stack: self.initialiser_stack.clone(),
+            final_initialiser_stack: self.final_initialiser_stack.clone(),
             extensions: self.extensions.clone(),
         })
     }
