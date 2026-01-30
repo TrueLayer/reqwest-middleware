@@ -1,7 +1,6 @@
 use http::Extensions;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::{Body, Client, IntoUrl, Method, Request, Response};
-use serde::Serialize;
 use std::convert::TryFrom;
 use std::fmt::{self, Display};
 use std::sync::Arc;
@@ -519,6 +518,7 @@ impl RequestBuilder {
         }
     }
 
+    #[cfg(feature = "query")]
     /// Modify the query string of the URL.
     ///
     /// Modifies the URL of this request, adding the parameters provided.
@@ -537,13 +537,14 @@ impl RequestBuilder {
     /// # Errors
     /// This method will fail if the object you provide cannot be serialized
     /// into a query string.
-    pub fn query<T: Serialize + ?Sized>(self, query: &T) -> Self {
+    pub fn query<T: serde::Serialize + ?Sized>(self, query: &T) -> Self {
         RequestBuilder {
             inner: self.inner.query(query),
             ..self
         }
     }
 
+    #[cfg(feature = "form")]
     /// Send a form body.
     ///
     /// Sets the body to the url encoded serialization of the passed value,
@@ -571,7 +572,7 @@ impl RequestBuilder {
     ///
     /// This method fails if the passed value cannot be serialized into
     /// url encoded format
-    pub fn form<T: Serialize + ?Sized>(self, form: &T) -> Self {
+    pub fn form<T: serde::Serialize + ?Sized>(self, form: &T) -> Self {
         RequestBuilder {
             inner: self.inner.form(form),
             ..self
@@ -590,26 +591,9 @@ impl RequestBuilder {
     /// fail, or if `T` contains a map with non-string keys.
     #[cfg(feature = "json")]
     #[cfg_attr(docsrs, doc(cfg(feature = "json")))]
-    pub fn json<T: Serialize + ?Sized>(self, json: &T) -> Self {
+    pub fn json<T: serde::Serialize + ?Sized>(self, json: &T) -> Self {
         RequestBuilder {
             inner: self.inner.json(json),
-            ..self
-        }
-    }
-
-    /// Disable CORS on fetching the request.
-    ///
-    /// # WASM
-    ///
-    /// This option is only effective with WebAssembly target.
-    ///
-    /// The [request mode][mdn] will be set to 'no-cors'.
-    ///
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Request/mode
-    #[deprecated(note = "Deprecated Upstream")]
-    pub fn fetch_mode_no_cors(self) -> Self {
-        RequestBuilder {
-            inner: self.inner.fetch_mode_no_cors(),
             ..self
         }
     }
