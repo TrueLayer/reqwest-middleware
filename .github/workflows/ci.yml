@@ -17,7 +17,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --workspace --all-targets --all-features
+          args: --workspace --all-targets
 
   test-features-reqwest-middleware:
     name: Run test suite for `reqwest-middleware` with every feature combination
@@ -39,6 +39,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
       - uses: actions-rs/cargo@v1
         with:
           command: build
@@ -67,7 +69,9 @@ jobs:
         uses: taiki-e/install-action@cargo-hack
       # Old opentelemetry features group to improve performance
       - name: test
-        run: cargo hack test --feature-powerset -p reqwest-tracing --group-features opentelemetry_0_20,opentelemetry_0_21,opentelemetry_0_22
+        run: cargo hack test --feature-powerset -p reqwest-tracing --exclude-features opentelemetry_0_20 --group-features opentelemetry_0_21,opentelemetry_0_22,opentelemetry_0_23,opentelemetry_0_24,opentelemetry_0_25,opentelemetry_0_26,opentelemetry_0_27
+        env:
+          CARGO_PROFILE_DEV_DEBUG: "line-tables-only"
   
   rustfmt:
     name: Rustfmt

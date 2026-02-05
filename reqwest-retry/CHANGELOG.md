@@ -4,7 +4,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.9.1](https://github.com/TrueLayer/reqwest-middleware/compare/reqwest-retry-v0.9.0...reqwest-retry-v0.9.1) - 2026-02-05
+
+### Fixed
+
+- *(reqwest-retry)* drop instant by upgrading wasmtimer ([#254](https://github.com/TrueLayer/reqwest-middleware/pull/254))
+
+### Other
+
+- Set changelog version for last release ([#268](https://github.com/TrueLayer/reqwest-middleware/pull/268))
+
+## [0.9.0] - 2026-01-07
+
+### Changed
+
+- Updated `reqwest` to `0.13`
+
+## [0.8.0] - 2025-11-26
+
+### Breaking Changes
+
+- Updated `retry-policies` (re-exported as `reqwest_retry::policies`) to 0.5.
+
+### Changed
+
+- Updated `thiserror` to `2.0`
 
 ## [0.7.0] - 2024-11-08
 

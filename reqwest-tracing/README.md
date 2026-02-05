@@ -17,10 +17,10 @@ Attach `TracingMiddleware` to your client to automatically trace HTTP requests:
 # ...
 [dependencies]
 opentelemetry = "0.22"
-reqwest = { version = "0.12", features = ["rustls-tls"] }
-reqwest-middleware = "0.3"
-reqwest-retry = "0.5"
-reqwest-tracing = { version = "0.5", features = ["opentelemetry_0_22"] }
+reqwest = "0.13"
+reqwest-middleware = "0.5"
+reqwest-retry = "0.9"
+reqwest-tracing = { version = "0.6", features = ["opentelemetry_0_22"] }
 tokio = { version = "1.12.0", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1"
 tracing-opentelemetry = "0.23"
@@ -96,10 +96,10 @@ an opentelemetry version feature:
 ```toml
 [dependencies]
 # ...
-reqwest-tracing = { version = "0.5.0", features = ["opentelemetry_0_22"] }
+reqwest-tracing = { version = "0.6.0", features = ["opentelemetry_0_22"] }
 ```
 
-Available opentelemetry features are `opentelemetry_0_22`, `opentelemetry_0_21`, and `opentelemetry_0_20`,
+Available opentelemetry features are `opentelemetry_0_20` through `opentelemetry_0_31`.
 
 #### License
 

@@ -4,11 +4,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.5.1](https://github.com/TrueLayer/reqwest-middleware/compare/reqwest-middleware-v0.5.0...reqwest-middleware-v0.5.1) - 2026-02-05
+
+### Other
+
+- Set changelog version for last release ([#268](https://github.com/TrueLayer/reqwest-middleware/pull/268))
+
+## [0.5.0] - 2026-01-07
+
+### Changed
+
+- Updated `thiserror` to `2.0`
+- Updated `reqwest` to `0.13`
+- Renamed `rustls-tls` feature to `rustls` to match reqwest's feature naming
+- Added `form` feature, enables `reqwest/form`
+- Added `query` feature, enables `reqwest/query`
+- Made `serde` an optional dependency, enabled by `json`, `form`, or `query`
+
+### Removed
+- Remove deprecated `fetch_mode_no_cors`
+
+## [0.4.2] - 2025-04-08
+
+### Added
+- Deprecated `fetch_mode_no_cors` as it's been deprecated in reqwest.
+
+## [0.4.1] - 2025-02-24
+
 - Fixed wasm32 by disabling incompatible parts. On that target, `ClientWithMiddleware` is no longer
   a Tower service and has no `ClientWithMiddleware::timeout` function.
 
-- Implemented `AsRef<Client>` for `ClientWithMiddleware`. Allows access to the inner `reqwest::Client` ([#209](https://github.com/TrueLayer/reqwest-middleware/pull/209))
+### Changed
+- Updated `wasm-timer` to `wasmtimer`
 
 ## [0.4.0] - 2024-11-08
 

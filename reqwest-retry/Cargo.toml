@@ -1,6 +1,6 @@
 [package]
 name = "reqwest-retry"
-version = "0.7.0"
+version = "0.9.1"
 authors = ["Rodrigo Gryzinski <rodrigo.gryzinski@truelayer.com>"]
 edition = "2018"
 description = "Retry middleware for reqwest."
@@ -14,15 +14,15 @@ default = ["tracing"]
 tracing = ["dep:tracing"]
 
 [dependencies]
-reqwest-middleware = { version = ">0.3.0, <0.5.0", path = "../reqwest-middleware" }
+reqwest-middleware = { version = "0.5", path = "../reqwest-middleware" }
 
 anyhow = "1.0.0"
 async-trait = "0.1.51"
 futures = "0.3.0"
 http = "1.0"
-reqwest = { version = "0.12.0", default-features = false }
-retry-policies = "0.4"
-thiserror = "1.0.61"
+reqwest = { version = "0.13.1", default-features = false }
+retry-policies = "0.5"
+thiserror = "2.0"
 tracing = { version = "0.1.26", optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
@@ -30,8 +30,7 @@ hyper = "1.0"
 tokio = { version = "1.6.0", default-features = false, features = ["time"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-parking_lot = { version = "0.11.2", features = ["wasm-bindgen"] } # work around https://github.com/tomaka/wasm-timer/issues/14
-wasm-timer = "0.2.5"
+wasmtimer = "0.4.3"
 getrandom = { version = "0.2.0", features = ["js"] }
 
 [dev-dependencies]

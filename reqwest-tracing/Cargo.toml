@@ -1,6 +1,6 @@
 [package]
 name = "reqwest-tracing"
-version = "0.5.5"
+version = "0.7.0"
 authors = ["Rodrigo Gryzinski <rodrigo.gryzinski@truelayer.com>"]
 edition = "2018"
 description = "Opentracing middleware for reqwest."
@@ -18,19 +18,23 @@ opentelemetry_0_24 = ["opentelemetry_0_24_pkg", "tracing-opentelemetry_0_25_pkg"
 opentelemetry_0_25 = ["opentelemetry_0_25_pkg", "tracing-opentelemetry_0_26_pkg"]
 opentelemetry_0_26 = ["opentelemetry_0_26_pkg", "tracing-opentelemetry_0_27_pkg"]
 opentelemetry_0_27 = ["opentelemetry_0_27_pkg", "tracing-opentelemetry_0_28_pkg"]
+opentelemetry_0_28 = ["opentelemetry_0_28_pkg", "tracing-opentelemetry_0_29_pkg"]
+opentelemetry_0_29 = ["opentelemetry_0_29_pkg", "tracing-opentelemetry_0_30_pkg"]
+opentelemetry_0_30 = ["opentelemetry_0_30_pkg", "tracing-opentelemetry_0_31_pkg"]
+opentelemetry_0_31 = ["opentelemetry_0_31_pkg", "tracing-opentelemetry_0_32_pkg"]
 # This feature ensures that both the old (deprecated) and new attributes are published simultaneously.
 # By doing so, we maintain backward compatibility, allowing existing code that relies on the old attributes
 # to continue functioning while encouraging the transition to the new attributes.
 deprecated_attributes = []
 
 [dependencies]
-reqwest-middleware = { version = ">0.3.0, <0.5.0", path = "../reqwest-middleware" }
+reqwest-middleware = { version = "0.5", path = "../reqwest-middleware" }
 
 anyhow = "1.0.70"
 async-trait = "0.1.51"
 matchit = "0.8.0"
 http = "1"
-reqwest = { version = "0.12.0", default-features = false }
+reqwest = { version = "0.13.1", default-features = false }
 tracing = "0.1.26"
 
 opentelemetry_0_20_pkg = { package = "opentelemetry", version = "0.20.0", optional = true }
@@ -41,6 +45,10 @@ opentelemetry_0_24_pkg = { package = "opentelemetry", version = "0.24.0", option
 opentelemetry_0_25_pkg = { package = "opentelemetry", version = "0.25.0", optional = true }
 opentelemetry_0_26_pkg = { package = "opentelemetry", version = "0.26.0", optional = true }
 opentelemetry_0_27_pkg = { package = "opentelemetry", version = "0.27.0", optional = true }
+opentelemetry_0_28_pkg = { package = "opentelemetry", version = "0.28.0", optional = true }
+opentelemetry_0_29_pkg = { package = "opentelemetry", version = "0.29.0", optional = true }
+opentelemetry_0_30_pkg = { package = "opentelemetry", version = "0.30.0", optional = true }
+opentelemetry_0_31_pkg = { package = "opentelemetry", version = "0.31.0", optional = true }
 tracing-opentelemetry_0_21_pkg = { package = "tracing-opentelemetry", version = "0.21.0", optional = true }
 tracing-opentelemetry_0_22_pkg = { package = "tracing-opentelemetry", version = "0.22.0", optional = true }
 tracing-opentelemetry_0_23_pkg = { package = "tracing-opentelemetry", version = "0.23.0", optional = true }
@@ -49,6 +57,10 @@ tracing-opentelemetry_0_25_pkg = { package = "tracing-opentelemetry", version = 
 tracing-opentelemetry_0_26_pkg = { package = "tracing-opentelemetry", version = "0.26.0", optional = true }
 tracing-opentelemetry_0_27_pkg = { package = "tracing-opentelemetry", version = "0.27.0", optional = true }
 tracing-opentelemetry_0_28_pkg = { package = "tracing-opentelemetry", version = "0.28.0", optional = true }
+tracing-opentelemetry_0_29_pkg = { package = "tracing-opentelemetry", version = "0.29.0", optional = true }
+tracing-opentelemetry_0_30_pkg = { package = "tracing-opentelemetry", version = "0.30.0", optional = true }
+tracing-opentelemetry_0_31_pkg = { package = "tracing-opentelemetry", version = "0.31.0", optional = true }
+tracing-opentelemetry_0_32_pkg = { package = "tracing-opentelemetry", version = "0.32.0", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.2.0", features = ["js"] }
@@ -57,7 +69,7 @@ getrandom = { version = "0.2.0", features = ["js"] }
 tokio = { version = "1.0.0", features = ["macros"] }
 tracing_subscriber = { package = "tracing-subscriber", version = "0.3.0" }
 wiremock = "0.6.0"
-reqwest = { version = "0.12.0", features = ["rustls-tls"] }
+reqwest = { version = "0.13.1", features = ["rustls"] }
 
 opentelemetry_sdk_0_21 = { package = "opentelemetry_sdk", version = "0.21.0", features = ["trace"] }
 opentelemetry_sdk_0_22 = { package = "opentelemetry_sdk", version = "0.22.0", features = ["trace"] }
@@ -66,6 +78,10 @@ opentelemetry_sdk_0_24 = { package = "opentelemetry_sdk", version = "0.24.1", fe
 opentelemetry_sdk_0_25 = { package = "opentelemetry_sdk", version = "0.25.0", features = ["trace"] }
 opentelemetry_sdk_0_26 = { package = "opentelemetry_sdk", version = "0.26.0", features = ["trace"] }
 opentelemetry_sdk_0_27 = { package = "opentelemetry_sdk", version = "0.27.0", features = ["trace"] }
+opentelemetry_sdk_0_28 = { package = "opentelemetry_sdk", version = "0.28.0", features = ["trace"] }
+opentelemetry_sdk_0_29 = { package = "opentelemetry_sdk", version = "0.29.0", features = ["trace"] }
+opentelemetry_sdk_0_30 = { package = "opentelemetry_sdk", version = "0.30.0", features = ["trace"] }
+opentelemetry_sdk_0_31 = { package = "opentelemetry_sdk", version = "0.31.0", features = ["trace"] }
 opentelemetry_stdout_0_1 = { package = "opentelemetry-stdout", version = "0.1.0", features = ["trace"] }
 opentelemetry_stdout_0_2 = { package = "opentelemetry-stdout", version = "0.2.0", features = ["trace"] }
 opentelemetry_stdout_0_3 = { package = "opentelemetry-stdout", version = "0.3.0", features = ["trace"] }
