@@ -70,6 +70,8 @@ jobs:
       # Old opentelemetry features group to improve performance
       - name: test
         run: cargo hack test --feature-powerset -p reqwest-tracing --exclude-features opentelemetry_0_20 --group-features opentelemetry_0_21,opentelemetry_0_22,opentelemetry_0_23,opentelemetry_0_24,opentelemetry_0_25,opentelemetry_0_26,opentelemetry_0_27
+        env:
+          CARGO_PROFILE_DEV_DEBUG: "line-tables-only"
   
   rustfmt:
     name: Rustfmt
