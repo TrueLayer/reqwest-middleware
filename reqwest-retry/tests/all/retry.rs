@@ -1,3 +1,4 @@
+#![cfg(not(target_family = "wasm"))]
 use futures::FutureExt;
 use paste::paste;
 use reqwest::Client;
@@ -11,6 +12,7 @@ use std::sync::{
 };
 use tokio::io::AsyncReadExt;
 use tokio::io::AsyncWriteExt;
+
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, MockServer, Respond, ResponseTemplate};
 

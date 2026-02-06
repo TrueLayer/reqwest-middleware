@@ -1,5 +1,5 @@
 //! `RetryTransientMiddleware` implements retrying requests on transient errors.
-use web_time::{Duration, SystemTime};
+use std::time::{Duration, SystemTime};
 
 use crate::retryable_strategy::RetryableStrategy;
 use crate::{retryable::Retryable, retryable_strategy::DefaultRetryableStrategy, RetryError};
