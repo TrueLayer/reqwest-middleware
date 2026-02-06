@@ -1,3 +1,4 @@
+#![cfg(not(target_family = "wasm"))]
 use futures::FutureExt;
 use paste::paste;
 use reqwest::Client;
@@ -11,6 +12,7 @@ use std::sync::{
 };
 use tokio::io::AsyncReadExt;
 use tokio::io::AsyncWriteExt;
+
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, MockServer, Respond, ResponseTemplate};
 
@@ -55,8 +57,8 @@ macro_rules! assert_retry_succeeds_inner {
                 .with(RetryTransientMiddleware::new_with_policy(
                     ExponentialBackoff::builder()
                         .retry_bounds(
-                            std::time::Duration::from_millis(30),
-                            std::time::Duration::from_millis(100),
+                            web_time::Duration::from_millis(30),
+                            web_time::Duration::from_millis(100),
                         )
                         .build_with_max_retries(retry_amount),
                 ))
@@ -151,10 +153,10 @@ assert_retry_succeeds!(429, StatusCode::OK);
 assert_no_retry!(431, StatusCode::REQUEST_HEADER_FIELDS_TOO_LARGE);
 assert_no_retry!(451, StatusCode::UNAVAILABLE_FOR_LEGAL_REASONS);
 
-pub struct RetryTimeoutResponder(Arc<AtomicU32>, u32, std::time::Duration);
+pub struct RetryTimeoutResponder(Arc<AtomicU32>, u32, web_time::Duration);
 
 impl RetryTimeoutResponder {
-    fn new(retries: u32, initial_timeout: std::time::Duration) -> Self {
+    fn new(retries: u32, initial_timeout: web_time::Duration) -> Self {
         Self(Arc::new(AtomicU32::new(0)), retries, initial_timeout)
     }
 }
@@ -180,7 +182,7 @@ async fn assert_retry_on_request_timeout() {
         .and(path("/foo"))
         .respond_with(RetryTimeoutResponder::new(
             3,
-            std::time::Duration::from_millis(1000),
+            web_time::Duration::from_millis(1000),
         ))
         .expect(2)
         .mount(&server)
@@ -191,8 +193,8 @@ async fn assert_retry_on_request_timeout() {
         .with(RetryTransientMiddleware::new_with_policy(
             ExponentialBackoff::builder()
                 .retry_bounds(
-                    std::time::Duration::from_millis(30),
-                    std::time::Duration::from_millis(100),
+                    web_time::Duration::from_millis(30),
+                    web_time::Duration::from_millis(100),
                 )
                 .build_with_max_retries(3),
         ))
@@ -200,7 +202,7 @@ async fn assert_retry_on_request_timeout() {
 
     let resp = client
         .get(format!("{}/foo", server.uri()))
-        .timeout(std::time::Duration::from_millis(10))
+        .timeout(web_time::Duration::from_millis(10))
         .send()
         .await
         .expect("call failed");
@@ -246,8 +248,8 @@ async fn assert_retry_on_incomplete_message() {
         .with(RetryTransientMiddleware::new_with_policy(
             ExponentialBackoff::builder()
                 .retry_bounds(
-                    std::time::Duration::from_millis(30),
-                    std::time::Duration::from_millis(100),
+                    web_time::Duration::from_millis(30),
+                    web_time::Duration::from_millis(100),
                 )
                 .build_with_max_retries(3),
         ))
@@ -255,7 +257,7 @@ async fn assert_retry_on_incomplete_message() {
 
     let resp = client
         .get(format!("{}/foo", uri))
-        .timeout(std::time::Duration::from_millis(100))
+        .timeout(web_time::Duration::from_millis(100))
         .send()
         .await
         .expect("call failed");
@@ -297,8 +299,8 @@ async fn assert_retry_on_hyper_canceled() {
         .with(RetryTransientMiddleware::new_with_policy(
             ExponentialBackoff::builder()
                 .retry_bounds(
-                    std::time::Duration::from_millis(30),
-                    std::time::Duration::from_millis(100),
+                    web_time::Duration::from_millis(30),
+                    web_time::Duration::from_millis(100),
                 )
                 .build_with_max_retries(3),
         ))
@@ -306,7 +308,7 @@ async fn assert_retry_on_hyper_canceled() {
 
     let resp = client
         .get(format!("{}/foo", uri))
-        .timeout(std::time::Duration::from_millis(100))
+        .timeout(web_time::Duration::from_millis(100))
         .send()
         .await
         .expect("call failed");
@@ -345,8 +347,8 @@ async fn assert_retry_on_connection_reset_by_peer() {
         .with(RetryTransientMiddleware::new_with_policy(
             ExponentialBackoff::builder()
                 .retry_bounds(
-                    std::time::Duration::from_millis(30),
-                    std::time::Duration::from_millis(100),
+                    web_time::Duration::from_millis(30),
+                    web_time::Duration::from_millis(100),
                 )
                 .build_with_max_retries(3),
         ))
@@ -354,7 +356,7 @@ async fn assert_retry_on_connection_reset_by_peer() {
 
     let resp = client
         .get(format!("{}/foo", uri))
-        .timeout(std::time::Duration::from_millis(100))
+        .timeout(web_time::Duration::from_millis(100))
         .send()
         .await
         .expect("call failed");
