@@ -41,7 +41,7 @@ use reqwest_middleware::Error;
 /// // Just a toy example, retry when the successful response code is 201, else do nothing.
 /// struct Retry201;
 /// impl RetryableStrategy for Retry201 {
-///     fn handle(&self, res: &Result<reqwest::Response>) -> Option<Retryable> {
+///     fn handle(&self, res: &Result<reqwest::Response, reqwest_middleware::Error>) -> Option<Retryable> {
 ///          match res {
 ///              // retry if 201
 ///              Ok(success) if success.status() == 201 => Some(Retryable::Transient),
