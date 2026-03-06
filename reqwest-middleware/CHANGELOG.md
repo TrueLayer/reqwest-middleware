@@ -6,9 +6,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.5.1](https://github.com/TrueLayer/reqwest-middleware/compare/reqwest-middleware-v0.5.0...reqwest-middleware-v0.5.1) - 2026-02-05
 
-### Added
-- Re-export the `http` crate so users don't need to add it as a direct dependency.
-
 ### Other
 
 - Set changelog version for last release ([#268](https://github.com/TrueLayer/reqwest-middleware/pull/268))
