@@ -18,6 +18,7 @@ http2 = ["reqwest/http2"]
 rustls = ["reqwest/rustls"]
 query = ["reqwest/query", "dep:serde"]
 form = ["reqwest/form", "dep:serde"]
+stream = ["reqwest/stream"]
 
 [dependencies]
 anyhow = "1.0.0"
