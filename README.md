@@ -87,5 +87,5 @@ The following third-party middleware use `reqwest-middleware`:
 - [`http-cache`](https://github.com/06chaynes/http-cache) - HTTP caching rules
 - [`reqwest-cache`](https://gitlab.com/famedly/company/backend/libraries/reqwest-cache) - HTTP caching
 - [`aliri_reqwest`](https://github.com/neoeinstein/aliri/tree/main/aliri_reqwest) - Background token management and renewal
-- [`http-signature-normalization-reqwest`](https://crates.io/crates/http-signature-normalization-reqwest) (not free software) - HTTP Signatures
+- [`http-signature-normalization-reqwest`](https://crates.io/crates/http-signature-normalization-reqwest) - HTTP Signatures
 - [`reqwest-chain`](https://github.com/tommilligan/reqwest-chain) - Apply custom criteria to any reqwest response, deciding when and how to retry.
