@@ -1,4 +1,6 @@
 //! `RetryTransientMiddleware` implements retrying requests on transient errors.
+use std::collections::HashMap;
+use std::hash::Hash;
 use std::time::{Duration, SystemTime};
 
 use crate::retryable_strategy::RetryableStrategy;
@@ -161,7 +163,9 @@ where
             if let Some(Retryable::Transient) = self.retryable_strategy.handle(&result) {
                 // If the response failed and the error type was transient
                 // we can safely try to retry the request.
-                let retry_decision = self.retry_policy.should_retry(start_time, n_past_retries);
+                let res = result.as_ref().ok();
+                let extras = get_extras(&req, res);
+                let retry_decision = self.retry_policy.should_retry(start_time, n_past_retries, Some(extras));
                 if let retry_policies::RetryDecision::Retry { execute_after } = retry_decision {
                     let duration = execute_after
                         .duration_since(SystemTime::now())
@@ -200,4 +204,39 @@ where
             };
         }
     }
+}
+
+fn get_request_extras(request: &reqwest::Request) -> HashMap<String, String> {
+    let mut extras = HashMap::new();
+    
+    extras.insert("request:method".to_string(), request.method().to_string());
+    extras.insert("request:url".to_string(), request.url().to_string());
+    
+    for (name, value) in request.headers().iter() {
+        extras.insert(format!("request:header:{}", name), value.to_str().unwrap_or("").to_string());
+    }
+
+    extras
+}
+
+fn get_response_extras(response: &reqwest::Response) -> HashMap<String, String> {
+    let mut extras = HashMap::new();
+    
+    extras.insert("response:status".to_string(), response.status().to_string());
+    
+    for (name, value) in response.headers().iter() {
+        extras.insert(format!("response:header:{}", name), value.to_str().unwrap_or("").to_string());
+    }
+
+    extras
+}
+
+fn get_extras(request: &reqwest::Request, response: Option<&reqwest::Response>) -> HashMap<String, String> {
+    let mut extras = get_request_extras(request);
+    
+    if let Some(resp) = response {
+        extras.extend(get_response_extras(resp));
+    }
+
+    extras
 }
