@@ -213,7 +213,7 @@ fn get_request_extras(request: &reqwest::Request) -> HashMap<String, String> {
     extras.insert("request:url".to_string(), request.url().to_string());
     
     for (name, value) in request.headers().iter() {
-        extras.insert(format!("request:header:{}", name), value.to_str().unwrap_or("").to_string());
+        extras.insert(format!("request:headers:{}", name), value.to_str().unwrap_or("").to_string().to_lowercase());
     }
 
     extras
@@ -225,7 +225,7 @@ fn get_response_extras(response: &reqwest::Response) -> HashMap<String, String> 
     extras.insert("response:status".to_string(), response.status().to_string());
     
     for (name, value) in response.headers().iter() {
-        extras.insert(format!("response:header:{}", name), value.to_str().unwrap_or("").to_string());
+        extras.insert(format!("response:headers:{}", name), value.to_str().unwrap_or("").to_string().to_lowercase());
     }
 
     extras
