@@ -24,6 +24,7 @@ reqwest = { version = "0.13.1", default-features = false }
 retry-policies = "0.5"
 thiserror = "2.0"
 tracing = { version = "0.1.26", optional = true }
+web-time = "1.1.0"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 hyper = "1.0"
@@ -31,10 +32,18 @@ tokio = { version = "1.6.0", default-features = false, features = ["time"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasmtimer = "0.4.3"
-getrandom = { version = "0.2.0", features = ["js"] }
+getrandom = { version = "0.3.0", features = ["wasm_js"] }
 
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+wiremock = { version = "0.6", default-features = false }
 [dev-dependencies]
+tokio = { version = "1.0.0", features = [
+    #"time",
+    #"io-util",
+    #"sync",
+    #"macros",
+    #"rt",
+], default-features = false }
+
 paste = "1.0.0"
-tokio = { version = "1.0.0", features = ["full"] }
-wiremock = "0.6.0"
-futures = "0.3.0"
+#futures = "0.3.0"

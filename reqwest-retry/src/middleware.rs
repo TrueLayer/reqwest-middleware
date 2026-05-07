@@ -34,7 +34,7 @@ macro_rules! log_retry {
 /// runtime that supports them.
 ///
 ///```rust
-///     use std::time::Duration;
+///     use web_time::Duration;
 ///     use reqwest_middleware::ClientBuilder;
 ///     use retry_policies::{RetryDecision, RetryPolicy, Jitter};
 ///     use retry_policies::policies::ExponentialBackoff;
