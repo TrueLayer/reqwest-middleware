@@ -188,9 +188,14 @@ fn get_span_status(request_status: RequestStatusCode) -> Option<&'static str> {
         // another error (e.g., network error receiving the response body; or 3xx codes with max redirects exceeded),
         // in which case status MUST be set to Error.
         100..=399 => None,
-        // For HTTP status codes in the 4xx range span status MUST be left unset in case of SpanKind.SERVER and MUST be
-        // set to Error in case of SpanKind.CLIENT.
-        400..=499 => Some("ERROR"),
+        // For HTTP status codes in the 4xx range span status MUST be left unset in case of SpanKind.SERVER and SHOULD be
+        // set to Error in case of SpanKind.CLIENT. Do not set the span status for 401 and 404, the status of these spans
+        // should be interpreted by the parent application span and set on that span.
+        400 => Some("ERROR"),
+        401 => None,
+        402..=403 => Some("ERROR"),
+        404 => None,
+        405..=499 => Some("ERROR"),
         // For HTTP status codes in the 5xx range, as well as any other code the client failed to interpret, span
         // status MUST be set to Error.
         _ => Some("ERROR"),
