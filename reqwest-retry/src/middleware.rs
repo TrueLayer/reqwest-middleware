@@ -1,5 +1,5 @@
 //! `RetryTransientMiddleware` implements retrying requests on transient errors.
-use std::time::{Duration, SystemTime};
+use web_time::{Duration, SystemTime};
 
 use crate::retryable_strategy::RetryableStrategy;
 use crate::{retryable::Retryable, retryable_strategy::DefaultRetryableStrategy, RetryError};
@@ -34,7 +34,7 @@ macro_rules! log_retry {
 /// runtime that supports them.
 ///
 ///```rust
-///     use std::time::Duration;
+///     use web_time::Duration;
 ///     use reqwest_middleware::ClientBuilder;
 ///     use retry_policies::{RetryDecision, RetryPolicy, Jitter};
 ///     use retry_policies::policies::ExponentialBackoff;
