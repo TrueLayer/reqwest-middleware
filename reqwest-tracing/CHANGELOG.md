@@ -5,6 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.7.1](https://github.com/TrueLayer/reqwest-middleware/compare/reqwest-tracing-v0.7.0...reqwest-tracing-v0.7.1) - 2026-05-19
+
+### Added
+
+- [**breaking**] support opentelemetry 0.32 ([#284](https://github.com/TrueLayer/reqwest-middleware/pull/284))
+
+### Other
+
+- release ([#280](https://github.com/TrueLayer/reqwest-middleware/pull/280))
+
 ## [0.8.0](https://github.com/TrueLayer/reqwest-middleware/compare/reqwest-tracing-v0.7.0...reqwest-tracing-v0.8.0) - 2026-05-19
 
 ### Added
