@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- [**breaking**] support opentelemetry 0.32 ([#284](https://github.com/TrueLayer/reqwest-middleware/pull/284))
+- support opentelemetry 0.32 ([#284](https://github.com/TrueLayer/reqwest-middleware/pull/284))
 
 ## [0.7.0](https://github.com/TrueLayer/reqwest-middleware/compare/reqwest-tracing-v0.6.0...reqwest-tracing-v0.7.0) - 2026-02-05
 
