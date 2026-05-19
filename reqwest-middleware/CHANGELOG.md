@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.2](https://github.com/TrueLayer/reqwest-middleware/compare/reqwest-middleware-v0.5.1...reqwest-middleware-v0.5.2) - 2026-05-19
+
+### Added
+
+- *(reqwest-middleware)* `stream` feature exported. ([#246](https://github.com/TrueLayer/reqwest-middleware/pull/246))
+- expose internal reqwest::Client as reference ([#209](https://github.com/TrueLayer/reqwest-middleware/pull/209))
+
+### Other
+
+- Adjust third-party middleware list in readme ([#282](https://github.com/TrueLayer/reqwest-middleware/pull/282))
+
 ## [0.5.1](https://github.com/TrueLayer/reqwest-middleware/compare/reqwest-middleware-v0.5.0...reqwest-middleware-v0.5.1) - 2026-02-05
 
 ### Other
