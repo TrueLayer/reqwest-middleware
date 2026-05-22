@@ -83,6 +83,7 @@ dual licensed as above, without any additional terms or conditions.
 
 The following third-party middleware use `reqwest-middleware`:
 
+- [`reqwest-auth`](https://github.com/nicolas-vivot/reqwest-auth) - Generic authorization middleware for reqwest.
 - [`reqwest-conditional-middleware`](https://github.com/oxidecomputer/reqwest-conditional-middleware) - Per-request basis middleware
 - [`http-cache`](https://github.com/06chaynes/http-cache) - HTTP caching rules
 - [`reqwest-cache`](https://gitlab.com/famedly/company/backend/libraries/reqwest-cache) - HTTP caching
