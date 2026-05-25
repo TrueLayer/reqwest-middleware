@@ -30,6 +30,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Updated `thiserror` to `2.0`
 
+### Added
+- Report retry count on `Ok` results that underwent retries through a `RetryCount` response extension.
+
 ## [0.7.0] - 2024-11-08
 
 ### Breaking changes

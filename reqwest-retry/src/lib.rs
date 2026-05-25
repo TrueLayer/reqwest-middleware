@@ -32,7 +32,7 @@ mod retryable_strategy;
 pub use retry_policies::{policies, Jitter, RetryDecision, RetryPolicy};
 use thiserror::Error;
 
-pub use middleware::RetryTransientMiddleware;
+pub use middleware::{RetryCount, RetryTransientMiddleware};
 pub use retryable::Retryable;
 pub use retryable_strategy::{
     default_on_request_failure, default_on_request_success, DefaultRetryableStrategy,
