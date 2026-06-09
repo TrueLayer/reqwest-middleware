@@ -91,11 +91,11 @@ pub fn default_on_request_success(span: &Span, response: &Response) {
     if let Some(span_status) = span_status {
         span.record(OTEL_STATUS_CODE, span_status);
     }
-    span.record(HTTP_RESPONSE_STATUS_CODE, response.status().as_u16());
+    span.record(HTTP_RESPONSE_STATUS_CODE, response.status().as_u16() as i64);
     #[cfg(feature = "deprecated_attributes")]
     {
         let user_agent = get_header_value("user_agent", response.headers());
-        span.record(HTTP_STATUS_CODE, response.status().as_u16());
+        span.record(HTTP_STATUS_CODE, response.status().as_u16() as i64);
         span.record(HTTP_USER_AGENT, user_agent.as_str());
     }
 }
@@ -110,10 +110,10 @@ pub fn default_on_request_failure(span: &Span, e: &Error) {
     span.record(ERROR_CAUSE_CHAIN, error_cause_chain.as_str());
     if let Error::Reqwest(e) = e {
         if let Some(status) = e.status() {
-            span.record(HTTP_RESPONSE_STATUS_CODE, status.as_u16());
+            span.record(HTTP_RESPONSE_STATUS_CODE, status.as_u16() as i64);
             #[cfg(feature = "deprecated_attributes")]
             {
-                span.record(HTTP_STATUS_CODE, status.as_u16());
+                span.record(HTTP_STATUS_CODE, status.as_u16() as i64);
             }
         }
     }
